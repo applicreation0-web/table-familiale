@@ -1,5 +1,11 @@
 # Table Familiale — menus & budget
 
+**Application web publiée :** https://table-familiale-ibrahima-diallo-4768.vercel.app/
+
+**Code source GitHub :** https://github.com/applicreation0-web/table-familiale
+
+**Android :** APK de test compilé et signé en mode débogage par GitHub Actions (artefact `table-familiale-android-debug`). Cette signature de débogage ne garantit pas la continuité des mises à jour entre compilations. La signature privée définitive est une étape distincte.
+
 Application web/PWA **en français**, entièrement statique, prête pour GitHub Pages. Pour une famille de 5 personnes, 2 adultes et 3 enfants : repas halal, un plat préparé le midi et réchauffé le soir.
 
 ## Fonctions
@@ -43,24 +49,23 @@ python3 -m http.server 4173
 
 Ouvrir `http://localhost:4173`. Le dossier `dist/` contient la version statique prête pour GitHub Pages. Le fichier `index.html` est à la racine, aucune configuration Vite/React nécessaire.
 
-## Déploiement sur GitHub
+## Publication et installation
 
-1. Créer un dépôt GitHub vide nommé `table-familiale` (sans README généré automatiquement).
-2. Dans le dossier du projet :
+### Version web installable (recommandée)
 
-```bash
-git init
-git branch -M main
-git add .
-git commit -m "Initial Table Familiale"
-git remote add origin https://github.com/VOTRE-COMPTE/table-familiale.git
-git push -u origin main
-```
+Ouvrir **https://table-familiale-ibrahima-diallo-4768.vercel.app/** depuis Chrome sur Android, puis dans le menu du navigateur choisir **Installer l'application** ou **Ajouter à l'écran d'accueil** selon les options disponibles. La version web a été publiée sur Vercel à partir des sources vérifiées dans ce dépôt. Elle ne dépend pas de l'activation de GitHub Pages.
 
-3. Dans **Settings → Pages → Build and deployment**, sélectionner **GitHub Actions**. Le workflow `.github/workflows/pages.yml` teste puis publie l'application. Le lien public habituel sera sous `https://VOTRE-COMPTE.github.io/table-familiale/` **uniquement après une publication GitHub Pages réussie**.
-4. Sur Android/Chrome, ouvrir cette URL puis **Ajouter à l'écran d'accueil** ou **Installer l'application** selon le navigateur.
+Les modifications du code GitHub ne redéploient **pas automatiquement** cette version Vercel : il faut publier la version mise à jour.
 
-> Il s'agit d'une PWA, **pas encore d'un APK Android signé**. Pour une distribution privée par APK comme Core 40, il faudra ajouter un emballage Android et une signature dédiée sans remplacer la clé d'une autre application.
+### APK Android de test
+
+Le workflow `.github/workflows/android-debug.yml` compile l'APK Android et place `app-debug.apk` dans l'artefact **table-familiale-android-debug** de l'exécution GitHub Actions réussie. Le débogage est signé avec une clé de test propre à la compilation ; pour des mises à jour sans désinstallation, établir une signature privée permanente conservée en sécurité. Aucune clé de l'application sport n'est réutilisée.
+
+### Intégration GitHub
+
+`.github/workflows/pages.yml` exécute les tests et construit la version web en archive GitHub Actions. GitHub Pages n'est pas activé sur ce dépôt ; le site web est publié sur Vercel.
+
+Les achats réels et les recettes modifiées sont stockés dans le navigateur ou l'application locale. Prévoir une exportation JSON régulière (onglet **Suivi**) avant changement de téléphone ou effacement des données.
 
 ## Vérifications
 
