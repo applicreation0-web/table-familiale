@@ -426,11 +426,14 @@ function migrateQuichesWalnuts(month,index){
   for(const day of [12,20]){
     const previous=month.meals[day],reference=fresh.meals[day];
     const legacy=MEAL_INGREDIENTS[day];
+    const alreadyUpdated=previous&&reference&&previous.name===reference.name&&
+      previous.kind===reference.kind&&
+      JSON.stringify(previous.ingredients)===JSON.stringify(reference.ingredients);
     const unchanged=previous&&reference&&!previous.cooked&&
       previous.name===BASE_MENU[day].name&&previous.kind==='K'&&
       JSON.stringify(previous.ingredients)===JSON.stringify(legacy);
-    if(unchanged){
-      month.meals[day]={...previous,...clone(reference),id:previous.id};
+    if(alreadyUpdated||unchanged){
+      if(unchanged)month.meals[day]={...previous,...clone(reference),id:previous.id};
       replaced.push(day);
     }else if(previous){
       month.reconcileWarnings??=[];
