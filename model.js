@@ -2,7 +2,8 @@ import { BASE_MENU, BASE_SHOPPING, BASE_BUDGET } from './data.js';
 import { MEAL_INGREDIENTS, BREAKFASTS } from './recipes.js';
 import { FAMILY_PLAN } from './meal-plan.js';
 export { BREAKFASTS };
-export const SUPPLIERS = ['M&S', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'Épicerie africaine', 'Autre'];
+export const HARD_CEILING = 900;
+export const SUPPLIERS = ['M&S', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Épicerie africaine', 'Autre'];
 export const KIND_NAMES = {P:'Poulet Hubbard',T:'Cuisses halal',F:'Cabillaud',K:'Maquereau',L:'Agneau',V:'Végétarien'};
 export const START_DATE = new Date(2026,10,20,12);
 const eurosafe = n => Math.round(n * 100) / 100;
@@ -32,11 +33,15 @@ export function makeMonth(index=0){
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
   return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:5, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:6, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
-function signature(i){return normalize(i.name)+'|'+i.unit+'|'+i.supplier;}
+function signature(i){
+  // Une migration de fournisseur n'est pas une nouvelle consommation de cabillaud.
+  const supplier=normalize(i.name)==='cabillaud'&&['Dining Solutions','JJ Foodservice'].includes(i.supplier)?'cod-approved-merchant':i.supplier;
+  return normalize(i.name)+'|'+i.unit+'|'+supplier;
+}
 function aggregate(list){
   const map=new Map();
   for(const obj of list){
@@ -295,9 +300,14 @@ function migrateOptimisedBasket(month,index){
   }
   // Retenir tous les achats payés et toute modification personnelle même si le
   // produit n'est plus dans le panier théorique.
-  for(const item of old.values())
-    if(item.bought||item.overrideQty!=null||item.overridePrice!=null||item.inStock)
-      next.push(item);
+  for(const item of old.values()){
+    // Les identifiants inconnus sont des créations personnelles : ne jamais
+    // les effacer sous prétexte qu'ils ne figurent plus au panier de référence.
+    const builtIn=/^(?:base-[0-9]+-[0-9]+|month-[0-9]+|rightsize-[0-9]+-[0-9]+|baking-[0-9]+)$/.test(item.id)||
+      item.id==='yassa-poisson-moutarde';
+    if(item.bought||item.overrideQty!=null||item.overridePrice!=null||
+       item.inStock||!builtIn)next.push(item);
+  }
   month.groceries=next;
   month.bakingWeeks??={};
   month.reconcileWarnings=[...(month.reconcileWarnings||[]),...conflicts];
@@ -341,8 +351,33 @@ function migrateFishYassa(month,index){
  }
  return month;
 }
+// Mise à jour v5 -> v6 : plafond réel 900£, cabillaud sauvage MSC de
+// qualité comparable. Les reçus et recettes personnalisées restent inchangés.
+function migrateStrictBudget(month,index){
+ const fresh=makeMonth(index);
+ for(let i=0;i<month.meals.length;i++){
+   const m=month.meals[i],reference=fresh.meals[i];
+   if(!m||!reference||m.cooked||m.name!==reference.name||m.kind!==reference.kind||
+      !Array.isArray(m.ingredients)||m.ingredients.length!==reference.ingredients.length)continue;
+   const onlyMerchantDifference=m.ingredients.every((old,j)=>{
+     const now=reference.ingredients[j];
+     return old.name===now.name&&old.quantity===now.quantity&&old.unit===now.unit&&
+       (old.supplier===now.supplier||
+        old.name==='Cabillaud'&&old.supplier==='Dining Solutions'&&now.supplier==='JJ Foodservice');
+   });
+   if(onlyMerchantDifference)
+     m.ingredients=m.ingredients.map(ing=>ing.name==='Cabillaud'&&ing.supplier==='Dining Solutions'?
+       {...ing,supplier:'JJ Foodservice'}:ing);
+ }
+ // Recalcul des seuls achats non payés et non personnalisés.
+ migrateOptimisedBasket(month,index);
+ const previous=Number(month.budget);
+ month.budget=previous===850?HARD_CEILING:
+   Number.isFinite(previous)&&previous>0?Math.min(previous,HARD_CEILING):HARD_CEILING;
+ return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4,5].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -362,6 +397,11 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))
       raw.months[key]=migrateFishYassa({...month,index:Number(key)},Number(key));
     raw.version=5;
+  }
+  if(raw.version===5){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateStrictBudget({...month,index:Number(key)},Number(key));
+    raw.version=6;
   }
   for(const month of Object.values(raw.months)){
     month.bakingWeeks??={};

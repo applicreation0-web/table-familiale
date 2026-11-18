@@ -7,7 +7,7 @@ const copy = value => JSON.parse(JSON.stringify(value));
 const ingredient = (name, quantity, unit='g', supplier='M&S') => ({name,quantity,unit,supplier,price:null});
 function single(source){
   const dish=BASE_MENU[source];
-  return {name:dish.name,kind:dish.kind,ingredients:copy(MEAL_INGREDIENTS[source]),african:false,batchRole:null,servings:null,mealsPerDay:null};
+  return {name:dish.name,kind:dish.kind,ingredients:copy(MEAL_INGREDIENTS[source].map(i=>i.supplier==='Dining Solutions'?{...i,supplier:'JJ Foodservice'}:i)),african:false,batchRole:null,servings:null,mealsPerDay:null};
 }
 function batch(source,name,kind,custom){
   let ingredients=custom || MEAL_INGREDIENTS[source].map(x=>({...x,quantity:x.quantity*2}));
@@ -23,7 +23,7 @@ const yassa=MEAL_INGREDIENTS[0].map(x=>({...x,quantity:x.name==='Poulet Hubbard'
 // pendant deux jours. 1,8 kg de filets de cabillaud (180 g crus/portion).
 // Le riz du second jour doit être cuit frais plutôt que conservé deux jours.
 const fishYassa=[
-  ingredient('Cabillaud',1800,'g','Dining Solutions'),
+  ingredient('Cabillaud',1800,'g','JJ Foodservice'),
   ingredient('Riz',1200),
   ingredient('Oignons',1400),
   ingredient('Citron',6,'pièce'),

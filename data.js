@@ -1289,13 +1289,16 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "month-4",
-    "name": "Cabillaud (carton 1,8 kg)",
-    "qty": "3 cartons (5,4 kg)",
-    "price": 194.91,
-    "supplier": "Dining Solutions",
+    "name": "Dos de cabillaud sauvage Atlantique MSC IQF (JJ Foodservice, livraison à confirmer)",
+    "qty": "3 cartons × 10 dos (5,67 kg net) · livraison incluse",
+    "price": 112.97,
+    "supplier": "JJ Foodservice",
     "purchase": "monthly",
     "week": -1,
-    "category": "D"
+    "category": "D",
+    "priceStatus": "provisional",
+    "priceDetails": "FSH452 : 3 × £35.99 livraison = £107.97, plus £5 frais sous £129; vérifier zone et panier avant achat",
+    "sourceUrl": "https://www.jjfoodservice.com/product/england/FSH452/"
   },
   {
     "id": "month-5",
@@ -1558,4 +1561,4 @@ export const BASE_SHOPPING = [
   }
 ];
 
-export const BASE_BUDGET = 850;
+export const BASE_BUDGET = 900;
