@@ -3,7 +3,7 @@ import {MEAL_INGREDIENTS} from './recipes.js';
 import {
  BREAKFASTS, SUPPLIERS, KIND_NAMES, money, period, periodDays, dateISO, clone,
  makeMonth, newState, ingredientChanges, suggestedPurchases, shoppingEntries,
- allShoppingEntries, finance, saveDish, swapDishes, toggleCooked, markBought, validateImport
+ allShoppingEntries, finance, saveDish, swapDishes, toggleCooked, markBought, markInStock, setBakingWeek, isBakingWeek, validateImport
 } from './model.js';
 
 const STORAGE='table-familiale-github-v2';
@@ -33,6 +33,7 @@ const icon=(name,size=18)=>{
    archive:'<path d="M3 4h18v5H3zM5 9v11h14V9M9 13h6"/>',
    trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v8M14 10v8"/>',
    cart:'<circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M2 3h2l3 13h12l2-9H6"/>',
+   home:'<path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7"/>',
    eye:'<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/>'
  };
  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.check}</svg>`;
@@ -81,12 +82,22 @@ function weekHeader(month,months=false){
  const dayFrom=selectedWeek*7, dayTo=Math.min(month.meals.length-1,dayFrom+6),dates=activeDates();
  return `<div class="week-bar"><button class="icon-button outline" data-action="previous-week" ${selectedWeek===0?'disabled':''} aria-label="Semaine précédente">${icon('left')}</button><span><b>Semaine ${selectedWeek+1} · ${fmt(dates[dayFrom])} – ${fmt(dates[dayTo])}</b><small>${months?'Courses fraîches et épicerie M&S':`${month.meals.slice(dayFrom,dayTo+1).filter(x=>x.cooked).length} / ${dayTo-dayFrom+1} journées préparées`}</small></span><button class="icon-button outline" data-action="next-week" ${selectedWeek>=weeks()-1?'disabled':''} aria-label="Semaine suivante">${icon('right')}</button></div>`;
 }
+function getBreakfast(month,index){
+ const label=BREAKFASTS[index%BREAKFASTS.length];
+ if(!isBakingWeek(month,Math.floor(index/7))&&/Gâteau maison|Muffins maison/.test(label))
+   return 'Porridge au lait Yeo Valley et fruits';
+ return label;
+}
+function bakingSwitch(month){
+ const enabled=isBakingWeek(month,selectedWeek);
+ return `<div class="baking-switch"><div><strong>Gâteaux ou muffins cette semaine ?</strong><span>${enabled?'Oui : ingrédients facultatifs et œufs ajustés':'Non : pas de beurre ni ingrédients inutiles dans le panier'}</span></div><button class="button ${enabled?'primary':'outline'}" data-action="toggle-baking" aria-pressed="${enabled}">${enabled?'✓ Pâtisserie prévue':'+ Prévoir une pâtisserie'}</button></div>`;
+}
 function renderMenus(month,dates){
  const from=selectedWeek*7, meals=month.meals.slice(from,from+7);
  return `<div class="section-title"><div><span class="overline">MENU PROPOSÉ</span><h2>Les plats de la semaine</h2><p>Un plat africain différent par semaine, cuisiné une fois pour deux jours. Autres repas variés.</p></div><button class="button outline" data-action="goto-shopping">${icon('basket',17)} Liste M&S</button></div>
- ${weekHeader(month)}<div class="meal-grid">${meals.map((dish,i)=>{
+ ${weekHeader(month)}${bakingSwitch(month)}<div class="meal-grid">${meals.map((dish,i)=>{
  const j=from+i, date=dates[j],kind=dish.kind==='V'?'green':'protein';return `<article class="meal-card ${dish.cooked?'is-cooked':''}"><div class="day"><strong>${date.getDate()}</strong><small>${date.toLocaleDateString('fr-FR',{weekday:'short',month:'short'})}</small></div>
- <div class="meal-main"><div class="tags"><span class="tag ${kind}">${esc(KIND_NAMES[dish.kind]||'Plat')}</span>${dish.african?'<span class="tag protein">Africain</span>':''}${dish.batchRole==='prepare'?'<span class="tag">2 jours · 1 cuisson</span>':''}${dish.batchRole==='reheat'?'<span class="tag">Réchauffage</span>':''}${dish.cooked?'<span class="tag cooked">✓ Cuisiné</span>':''}</div><h3>${esc(dish.name)}</h3><p><b>Petit-déjeuner :</b> ${esc(BREAKFASTS[j%BREAKFASTS.length])}</p><small class="meal-note">${dish.batchRole==='reheat'?'Repas de la veille · Aucun achat en double':dish.batchRole==='prepare'?dish.ingredients.length+' ingrédients · Pour deux jours (midi et soir)':dish.ingredients.length+' ingrédients · Midi et soir'}</small></div>
+ <div class="meal-main"><div class="tags"><span class="tag ${kind}">${esc(KIND_NAMES[dish.kind]||'Plat')}</span>${dish.african?'<span class="tag protein">Africain</span>':''}${dish.batchRole==='prepare'?'<span class="tag">2 jours · 1 cuisson</span>':''}${dish.batchRole==='reheat'?'<span class="tag">Réchauffage</span>':''}${dish.cooked?'<span class="tag cooked">✓ Cuisiné</span>':''}</div><h3>${esc(dish.name)}</h3><p><b>Petit-déjeuner :</b> ${esc(getBreakfast(month,j))}</p><small class="meal-note">${dish.batchRole==='reheat'?'Repas de la veille · Aucun achat en double':dish.batchRole==='prepare'?dish.ingredients.length+' ingrédients · Pour deux jours (midi et soir)':dish.ingredients.length+' ingrédients · Midi et soir'}</small></div>
  <div class="meal-buttons"><button class="button mini ${dish.cooked?'light':'outline'}" data-action="cook" data-index="${j}" ${dish.batchRole==='reheat'&&!month.meals[j-1]?.cooked&&!dish.cooked?'disabled':''}>${dish.cooked?(dish.batchRole==='reheat'?'✓ Servi':'✓ Fait'):dish.batchRole==='reheat'?'Réchauffé':icon('chef',15)+' Cuisiné'}</button><button class="icon-button" title="${dish.batchRole==='reheat'?'Modifier depuis le premier jour':'Modifier le plat et ses ingrédients'}" ${dish.batchRole==='reheat'?'disabled':''} data-action="edit-meal" data-index="${j}">${icon('pen',18)}</button><button class="icon-button" title="Échanger deux dates" data-action="swap-meal" data-index="${j}">${icon('swap',18)}</button></div>
  </article>`}).join('')}</div>
  <div class="tip"><span>${icon('basket',20)} Un ingrédient ajouté à un plat apparaît dans les courses à prévoir.</span><button class="button primary" data-action="goto-shopping">Voir les courses ${icon('right',15)}</button></div>`;
@@ -97,7 +108,7 @@ function renderShopItem(item){
  const planned=estimate==null?`<span class="unknown">Prix manquant</span>`:money(Number(estimate));
  const bought=!!item.bought;
  const priceInput=bought?`<label class="actual-entry"><span>Payé (£)</span><input type="number" step="0.01" min="0" value="${Number(item.actual??estimate??0)}" data-action="actual-change" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Prix payé ${name}"/></label>`:kind==='auto'&&estimate==null?`<label class="actual-entry"><span>Prévision (£)</span><input type="number" step="0.01" min="0" placeholder="À saisir" data-action="auto-estimate" data-id="${esc(item.id)}" aria-label="Prix prévu ${name}" /></label>`:`<b class="listed-price">${planned}</b>`;
- const actions=kind==='auto'?`<button class="icon-button tiny" data-action="skip-auto" data-id="${esc(item.id)}" title="Déjà dans mes placards : ignorer l'achat">${icon('close',15)}</button>`:!bought?`<button class="icon-button tiny" data-action="edit-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Modifier ${name}">${icon('pen',14)}</button><button class="icon-button tiny" data-action="hide-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Retirer ${name}">${icon('close',14)}</button>`:'';
+ const actions=kind==='auto'&&!bought?`<button class="icon-button tiny" data-action="skip-auto" data-id="${esc(item.id)}" title="Déjà en stock" aria-label="Déjà en stock : ${name}">${icon('home',15)}</button>`:kind==='auto'?'':!bought?`<button class="icon-button tiny" data-action="mark-stock" data-id="${esc(item.id)}" data-kind="${kind}" title="Déjà à la maison" aria-label="Déjà en stock : ${name}">${icon('home',14)}</button><button class="icon-button tiny" data-action="edit-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Modifier ${name}">${icon('pen',14)}</button><button class="icon-button tiny" data-action="hide-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Retirer ${name}">${icon('close',14)}</button>`:'';
  return `<div class="product ${bought?'checked':''}"><input type="checkbox" class="shop-check" ${bought?'checked':''} data-action="check-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Acheter ${name}"/><div class="product-description"><strong>${name}${kind==='auto'?' <span class="auto-tag">Nouveau</span>':''}</strong><small>${esc(item.qty)}${kind==='auto'?' · ajouté suite au menu':''}</small></div><div class="product-right">${priceInput}${actions}</div></div>`;
 }
 function renderCourses(month){
@@ -110,11 +121,11 @@ function renderCourses(month){
  const group=groupBySupplier(rows.filter(x=>!search||x.name.toLowerCase().includes(search.toLowerCase())));
  return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viande et poisson en début de mois ; M&S et lait Yeo Valley chaque semaine.</p></div><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div>
  <div class="choice-row"><button class="button ${!isMonthly?'primary':'outline'}" data-action="shopping-week">Courses M&S · semaine</button><button class="button ${isMonthly?'primary':'outline'}" data-action="shopping-month">Viande & poisson · mois</button></div>
- ${isMonthly?`<div class="banner success">${icon('cart',20)} <div><b>Une seule commande au début du mois</b><span>Hubbard, agneau, cuisses halal, cabillaud et maquereau, plus fonio/niébé. Portionner et congeler en respectant les dates.</span></div></div>`:weekHeader(month,true)}
+ ${isMonthly?`<div class="banner success">${icon('cart',20)} <div><b>Une seule commande au début du mois</b><span>Hubbard, agneau, cuisses halal, cabillaud et maquereau, plus fonio. Portionner et congeler en respectant les dates.</span></div></div>`:weekHeader(month,true)+bakingSwitch(month)}
  ${cuts.length?`<div class="banner caution">${icon('alert')} <div><b>Ingrédients moins nécessaires après modification</b><span>${cuts.map(x=>`${esc(x.name)} (−${x.quantity} ${esc(x.unit)})`).join(' · ')}. Vérifie si tu peux réduire l'achat initial, sans perdre les produits déjà achetés.</span></div></div>`:''}
  <div class="shopping-tools"><input id="search-products" placeholder="Rechercher un ingrédient..." value="${esc(search)}" aria-label="Rechercher un ingrédient"/><span>${rows.filter(x=>x.bought).length}/${rows.length} achetés</span></div>
  ${group.length?group.map(([shop,list])=>`<section class="shop-panel"><header><strong>${esc(shop)}</strong><span>${money(list.reduce((s,i)=>s+Number(i.estimate??0),0))} prévus</span></header><div class="product-list">${list.map(renderShopItem).join('')}</div></section>`).join(''):`<div class="empty">Aucun produit correspondant.</div>`}
- ${hidden.length||skipped.length?`<details class="dismissed"><summary>Produits écartés (${hidden.length+skipped.length}) — rétablir</summary>${hidden.map(x=>`<div><span>${esc(x.name)} · ${esc(x.qty)}</span><button class="button outline small" data-action="restore-product" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}${skipped.map(x=>`<div><span>${esc(x.name)} · ${x.quantity} ${esc(x.unit)}</span><button class="button outline small" data-action="restore-auto" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}</details>`:''}
+ ${hidden.length||skipped.length?`<details class="dismissed"><summary>Déjà en stock ou retirés (${hidden.length+skipped.length}) — rétablir</summary>${hidden.map(x=>`<div><span>${x.inStock?'Déjà en stock · ':'Retiré · '}${esc(x.name)} · ${esc(x.qty)}</span><button class="button outline small" data-action="restore-product" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}${skipped.map(x=>`<div><span>${esc(x.name)} · ${x.quantity} ${esc(x.unit)}</span><button class="button outline small" data-action="restore-auto" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}</details>`:''}
  <div class="shop-bottom"><span>Prix indicatifs. Farine et ingrédients de pâtisserie ajoutés ; masquer les options inutiles ou déjà en stock. Les nouveaux ingrédients sans prix rendent la prévision incomplète.</span><b>Panier affiché : ${money(total)}${unknown?' + '+unknown+' prix à renseigner':''}</b></div>`;
 }
 function renderFinance(month,f){
@@ -196,14 +207,16 @@ function onAction(action,btn){
  case 'swap-meal':openMeal(index,true);break;
  case 'shopping-month':shopMode='monthly';search='';render();break;
  case 'shopping-week':shopMode='week';search='';render();break;
+ case 'toggle-baking':setBakingWeek(month,selectedWeek,!isBakingWeek(month,selectedWeek));save();flash('Liste et petits-déjeuners actualisés');break;
+ case 'mark-stock':{const x=allShoppingEntries(month).find(x=>x.id===id);if(x){try{markInStock(month,x,true);save();flash('Produit déjà en stock : achat évité')}catch(err){flash(err.message,'error')}}break;}
  case 'add-product':openProduct();break;
  case 'edit-product':{const item=allShoppingEntries(month).find(x=>x.id===id);if(item)openProduct(item);break;}
  case 'hide-product':{
   const group=btn.dataset.kind==='manual'?month.manualItems:month.groceries;
   const x=group.find(i=>i.id===id);if(x&&!x.bought){x.hidden=true;save();flash('Produit retiré du panier prévisionnel');}break;
  }
- case 'skip-auto':month.autoPurchases[id]={...month.autoPurchases[id],skip:true};save();flash('Achat écarté : ingrédient déjà en stock');break;
- case 'restore-product':{const x=[...month.groceries,...month.manualItems].find(x=>x.id===id);if(x){x.hidden=false;save();flash('Produit rétabli');}break;}
+ case 'skip-auto':month.autoPurchases[id]={...month.autoPurchases[id],skip:true};save();flash('Produit déjà en stock : achat évité');break;
+ case 'restore-product':{const x=[...month.groceries,...month.manualItems].find(x=>x.id===id);if(x){x.hidden=false;x.inStock=false;save();flash('Produit rétabli');}break;}
  case 'restore-auto':month.autoPurchases[id]={...month.autoPurchases[id],skip:false};save();flash('Ingrédient rétabli');break;
  case 'add-expense':openExpense();break;
  case 'delete-expense':month.extraExpenses=month.extraExpenses.filter(x=>x.id!==id);save();break;
