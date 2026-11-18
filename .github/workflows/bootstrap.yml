@@ -19,6 +19,9 @@ jobs:
           curl --fail --location --retry 3 --output /tmp/table-familiale.zip 'https://ae66564e-80b7-41e0-87ab-0ab3e969a2df.sandbox.floot.app/_cdn/static/61467550-6149-4b4f-9b03-6280f359025c-table-familiale-source.zip'
           echo '5b2d087f1c78e5c68faf99cada585f68bbb56449fa79fbad941b86e8565b3ffc  /tmp/table-familiale.zip' | sha256sum -c -
           unzip -q -o /tmp/table-familiale.zip -d .
+          # Le jeton Actions n'a pas le droit de créer des fichiers workflow.
+          # Ils seront déposés séparément par le connecteur GitHub autorisé.
+          rm -f .github/workflows/pages.yml .github/workflows/android-debug.yml
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
