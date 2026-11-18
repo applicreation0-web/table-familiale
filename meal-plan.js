@@ -5,10 +5,27 @@ import { MEAL_INGREDIENTS } from './recipes.js';
 // Le deuxième jour est une consommation des restes : aucun ingrédient n'est racheté.
 const copy = value => JSON.parse(JSON.stringify(value));
 const ingredient = (name, quantity, unit='g', supplier='M&S') => ({name,quantity,unit,supplier,price:null});
-function single(source){
+function single(source,custom={}){
   const dish=BASE_MENU[source];
-  return {name:dish.name,kind:dish.kind,ingredients:copy(MEAL_INGREDIENTS[source].map(i=>i.supplier==='Dining Solutions'?{...i,supplier:'JJ Foodservice'}:i)),african:false,batchRole:null,servings:null,mealsPerDay:null};
+  return {name:custom.name||dish.name,kind:custom.kind||dish.kind,
+    ingredients:copy(custom.ingredients||MEAL_INGREDIENTS[source]),
+    african:false,batchRole:null,servings:null,mealsPerDay:null};
 }
+// Quatre paquets de quatre filets M&S sont portionnés pour trois services de
+// cinq personnes. Le 16e filet reste en réserve au congélateur.
+function salmon(source,name){
+  const ingredients=MEAL_INGREDIENTS[source].map(x=>x.name==='Cabillaud'?
+    {...x,name:'Saumon frais',quantity:680,supplier:'M&S'}:x);
+  return single(source,{name,kind:'S',ingredients});
+}
+const smokedSalmon=single(22,{name:'Boulgour aux œufs, poivrons et saumon fumé M&S',kind:'G',
+  ingredients:[
+    ingredient('Saumon fumé',200,'g','M&S'),
+    ingredient('Œufs',5,'pièce'),
+    ingredient('Boulgour',350),
+    ingredient('Poivrons',800),
+    ingredient('Tomates concassées',600)
+  ]});
 function batch(source,name,kind,custom){
   let ingredients=custom || MEAL_INGREDIENTS[source].map(x=>({...x,quantity:x.quantity*2}));
   ingredients=copy(ingredients);
@@ -23,7 +40,7 @@ const yassa=MEAL_INGREDIENTS[0].map(x=>({...x,quantity:x.name==='Poulet Hubbard'
 // pendant deux jours. 1,8 kg de filets de cabillaud (180 g crus/portion).
 // Le riz du second jour doit être cuit frais plutôt que conservé deux jours.
 const fishYassa=[
-  ingredient('Cabillaud',1800,'g','JJ Foodservice'),
+  ingredient('Cabillaud',1800,'g','Dining Solutions'),
   ingredient('Riz',1200),
   ingredient('Oignons',1400),
   ingredient('Citron',6,'pièce'),
@@ -39,16 +56,16 @@ const thiou=[
 ];
 
 export const FAMILY_PLAN = [
-  single(6),single(1),single(2),
+  single(6),single(1),salmon(2,'Saumon frais M&S citron, pommes de terre et courgettes'),
   ...batch(3,'Mafé d’agneau, patates douces et fonio','L'),
   single(9),single(14),
-  single(7),single(4),single(8),
+  salmon(7,'Saumon frais M&S, tomates, poivrons et boulgour'),single(4),single(8),
   ...batch(5,'Riz à la viande d’agneau, chou et carottes','L',riceLamb),
   single(12),single(13),
-  single(17),single(21),single(29),
+  salmon(17,'Saumon frais M&S citron, carottes et pommes de terre'),single(21),single(29),
   ...batch(0,'Poulet yassa, riz et haricots verts','P',yassa),
   single(19),single(20),
-  single(18),single(22),single(23),
+  single(18),smokedSalmon,single(23),
   ...batch(null,'Yassa au poisson, oignons citronnés et riz','F',fishYassa),
   single(24),single(14),
   single(28),
