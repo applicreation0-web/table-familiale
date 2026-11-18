@@ -25,7 +25,12 @@ export function periodDays(index=0){
 export function makeMonth(index=0){
   const dates=periodDays(index);
   const meals=dates.map((d,i)=>{
-    const plan=FAMILY_PLAN[i%FAMILY_PLAN.length];
+    let plan=FAMILY_PLAN[i%FAMILY_PLAN.length];
+    // Sur un cycle de 30 jours, ne jamais commencer une cuisson de 10
+    // portions pour 2 jours quand il ne reste qu'un seul jour.
+    if(plan.batchRole==='prepare'&&i===dates.length-1)
+      plan={...plan,batchRole:null,servings:5,mealsPerDay:1,
+        ingredients:plan.ingredients.map(x=>({...x,quantity:x.quantity/2}))};
     return {id:dateISO(d),name:plan.name,kind:plan.kind,african:plan.african,
       batchRole:plan.batchRole,servings:plan.servings,mealsPerDay:plan.mealsPerDay,ingredients:clone(plan.ingredients),originalIndex:i%31,
       cooked:false,cookedAt:null};
@@ -57,9 +62,10 @@ export function ingredientChanges(month){
   // Différentiel entre les recettes initiales du jour et les recettes actuelles.
   // Ne remplace jamais silencieusement une quantité d'achat en conditionnement.
   const weekCount=Math.ceil(month.meals.length/7), out=[];
+  const reference=makeMonth(month.index??0).meals;
   for(let w=0;w<weekCount;w++){
     const original=month.meals.slice(w*7,w*7+7).flatMap((meal,offset)=>
-      meal.cooked?meal.ingredients:FAMILY_PLAN[(w*7+offset)%31].ingredients);
+      meal.cooked?meal.ingredients:reference[w*7+offset].ingredients);
     const current=month.meals.slice(w*7,w*7+7).flatMap(x=>x.ingredients||[]);
     const src=aggregate(original),dst=aggregate(current);
     for(const k of new Set([...src.keys(),...dst.keys()])){
