@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {BASE_MENU,BASE_SHOPPING} from '../data.js';
 import {MEAL_INGREDIENTS} from '../recipes.js';
@@ -520,4 +521,28 @@ test('Nouveaux mois 28, 30 et 31 jours : intégrité du calendrier, recettes et 
    assert.ok(finance(m).forecast>=0);
    assert.equal(finance(m).unknownCount,0);
  }
+});
+
+test('Cycle de 30 jours : la dernière préparation est ramenée à 5 portions sans réchauffage fantôme',()=>{
+ const months=[...Array(24).keys()].map(i=>makeMonth(i));
+ const m=months.find(x=>x.meals.length===30);
+ assert.ok(m,'Une période de 30 jours doit exister');
+ const last=m.meals.at(-1);
+ assert.match(last.name,/Thiou au poulet/);
+ assert.equal(last.batchRole,null);
+ assert.equal(last.servings,5);
+ assert.equal(last.mealsPerDay,1);
+ assert.equal(last.ingredients.find(x=>x.name==='Poulet Hubbard')?.quantity,1250);
+ assert.equal(m.meals.filter(x=>x.batchRole==='prepare').length,4);
+ assert.equal(m.meals.filter(x=>x.batchRole==='reheat').length,4);
+ assert.deepEqual(ingredientChanges(m),[]);
+ assert.deepEqual(suggestedPurchases(m),[]);
+ assert.equal(finance(m).unknownCount,0);
+});
+test('Audit du catalogue UI : quiches disponibles, anciennes recettes au maquereau absentes des choix courants',()=>{
+ const source=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ assert.match(source,/quiche-salmon/);
+ assert.match(source,/quiche-spinach/);
+ assert.match(source,/!\[12,20\]\.includes\(i\)/);
+ assert.ok(!source.includes('cabillaud MSC JJ et maquereau'));
 });
