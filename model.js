@@ -300,9 +300,14 @@ function migrateOptimisedBasket(month,index){
   }
   // Retenir tous les achats payés et toute modification personnelle même si le
   // produit n'est plus dans le panier théorique.
-  for(const item of old.values())
-    if(item.bought||item.overrideQty!=null||item.overridePrice!=null||item.inStock)
-      next.push(item);
+  for(const item of old.values()){
+    // Les identifiants inconnus sont des créations personnelles : ne jamais
+    // les effacer sous prétexte qu'ils ne figurent plus au panier de référence.
+    const builtIn=/^(?:base-\\d+-\\d+|month-\\d+|rightsize-\\d+-\\d+|baking-\\d+)$/.test(item.id)||
+      item.id==='yassa-poisson-moutarde';
+    if(item.bought||item.overrideQty!=null||item.overridePrice!=null||
+       item.inStock||!builtIn)next.push(item);
+  }
   month.groceries=next;
   month.bakingWeeks??={};
   month.reconcileWarnings=[...(month.reconcileWarnings||[]),...conflicts];
