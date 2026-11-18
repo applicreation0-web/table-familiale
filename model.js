@@ -303,7 +303,7 @@ function migrateOptimisedBasket(month,index){
   for(const item of old.values()){
     // Les identifiants inconnus sont des créations personnelles : ne jamais
     // les effacer sous prétexte qu'ils ne figurent plus au panier de référence.
-    const builtIn=/^(?:base-\\d+-\\d+|month-\\d+|rightsize-\\d+-\\d+|baking-\\d+)$/.test(item.id)||
+    const builtIn=/^(?:base-[0-9]+-[0-9]+|month-[0-9]+|rightsize-[0-9]+-[0-9]+|baking-[0-9]+)$/.test(item.id)||
       item.id==='yassa-poisson-moutarde';
     if(item.bought||item.overrideQty!=null||item.overridePrice!=null||
        item.inStock||!builtIn)next.push(item);
