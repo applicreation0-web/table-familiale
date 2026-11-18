@@ -9,15 +9,34 @@ function single(source,custom={}){
   const dish=BASE_MENU[source];
   return {name:custom.name||dish.name,kind:custom.kind||dish.kind,
     ingredients:copy(custom.ingredients||MEAL_INGREDIENTS[source]),
-    african:false,batchRole:null,servings:null,mealsPerDay:null};
+    african:false,batchRole:null,servings:5,mealsPerDay:1};
 }
 // Quatre paquets de quatre filets M&S sont portionnés pour trois services de
 // cinq personnes. Le 16e filet reste en réserve au congélateur.
 function salmon(source,name){
   const ingredients=MEAL_INGREDIENTS[source].map(x=>x.name==='Cabillaud'?
-    {...x,name:'Saumon frais',quantity:680,supplier:'M&S'}:x);
+    {...x,name:'Saumon frais',quantity:650,supplier:'M&S'}:x);
   return single(source,{name,kind:'S',ingredients});
 }
+// Trois plats de 5 filets à environ 130 g ; un filet est réservé pour la quiche.
+// La quiche utilise quatre filets (un restant + trois du cinquième paquet).
+const salmonQuiche=single(12,{name:'Grande quiche au saumon frais M&S et pommes de terre',kind:'S',
+  ingredients:[
+    ingredient('Saumon frais',520,'g','M&S'),
+    ingredient('Œufs',6,'pièce'),
+    ingredient('Pâte brisée M&S',320),
+    ingredient('Pommes de terre',900),
+    ingredient('Lait Yeo Valley',200,'ml','Supermarché (Yeo Valley)'),
+    ingredient('Fromage',80)
+  ]});
+const spinachQuiche=single(20,{name:'Grande quiche aux épinards et pommes de terre',kind:'V',
+  ingredients:[
+    ingredient('Épinards',800),
+    ingredient('Œufs',6,'pièce'),
+    ingredient('Pâte brisée M&S',320),
+    ingredient('Pommes de terre',1100),
+    ingredient('Lait Yeo Valley',200,'ml','Supermarché (Yeo Valley)')
+  ]});
 const smokedSalmon=single(22,{name:'Boulgour aux œufs, poivrons et saumon fumé M&S',kind:'G',
   ingredients:[
     ingredient('Saumon fumé',200,'g','M&S'),
@@ -61,10 +80,10 @@ export const FAMILY_PLAN = [
   single(9),single(14),
   salmon(7,'Saumon frais M&S, tomates, poivrons et boulgour'),single(4),single(8),
   ...batch(5,'Riz à la viande d’agneau, chou et carottes','L',riceLamb),
-  single(12),single(13),
+  salmonQuiche,single(13),
   salmon(17,'Saumon frais M&S citron, carottes et pommes de terre'),single(21),single(29),
   ...batch(0,'Poulet yassa, riz et haricots verts','P',yassa),
-  single(19),single(20),
+  single(19),spinachQuiche,
   single(18),smokedSalmon,single(23),
   ...batch(null,'Yassa au poisson, oignons citronnés et riz','F',fishYassa),
   single(24),single(14),

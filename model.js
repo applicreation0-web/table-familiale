@@ -3,7 +3,7 @@ import { MEAL_INGREDIENTS, BREAKFASTS } from './recipes.js';
 import { FAMILY_PLAN } from './meal-plan.js';
 export { BREAKFASTS };
 export const HARD_CEILING = 900;
-export const SUPPLIERS = ['M&S', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Épicerie africaine', 'Autre'];
+export const SUPPLIERS = ['M&S', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Healthy Supplies', 'Épicerie africaine', 'Autre'];
 export const KIND_NAMES = {P:'Poulet Hubbard',T:'Cuisses halal',F:'Cabillaud',S:'Saumon frais',G:'Saumon fumé',K:'Maquereau',L:'Agneau',V:'Végétarien'};
 export const START_DATE = new Date(2026,10,20,12);
 const eurosafe = n => Math.round(n * 100) / 100;
@@ -25,7 +25,12 @@ export function periodDays(index=0){
 export function makeMonth(index=0){
   const dates=periodDays(index);
   const meals=dates.map((d,i)=>{
-    const plan=FAMILY_PLAN[i%FAMILY_PLAN.length];
+    let plan=FAMILY_PLAN[i%FAMILY_PLAN.length];
+    // Sur un cycle de 30 jours, ne jamais commencer une cuisson de 10
+    // portions pour 2 jours quand il ne reste qu'un seul jour.
+    if(plan.batchRole==='prepare'&&i===dates.length-1)
+      plan={...plan,batchRole:null,servings:5,mealsPerDay:1,
+        ingredients:plan.ingredients.map(x=>({...x,quantity:x.quantity/2}))};
     return {id:dateISO(d),name:plan.name,kind:plan.kind,african:plan.african,
       batchRole:plan.batchRole,servings:plan.servings,mealsPerDay:plan.mealsPerDay,ingredients:clone(plan.ingredients),originalIndex:i%31,
       cooked:false,cookedAt:null};
@@ -33,7 +38,7 @@ export function makeMonth(index=0){
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
   return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:7, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:8, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -57,9 +62,10 @@ export function ingredientChanges(month){
   // Différentiel entre les recettes initiales du jour et les recettes actuelles.
   // Ne remplace jamais silencieusement une quantité d'achat en conditionnement.
   const weekCount=Math.ceil(month.meals.length/7), out=[];
+  const reference=makeMonth(month.index??0).meals;
   for(let w=0;w<weekCount;w++){
     const original=month.meals.slice(w*7,w*7+7).flatMap((meal,offset)=>
-      meal.cooked?meal.ingredients:FAMILY_PLAN[(w*7+offset)%31].ingredients);
+      meal.cooked?meal.ingredients:reference[w*7+offset].ingredients);
     const current=month.meals.slice(w*7,w*7+7).flatMap(x=>x.ingredients||[]);
     const src=aggregate(original),dst=aggregate(current);
     for(const k of new Set([...src.keys(),...dst.keys()])){
@@ -308,7 +314,7 @@ function migrateOptimisedBasket(month,index){
       item.id==='yassa-poisson-moutarde'||item.id.startsWith('ms-fresh-salmon-week-')||
       item.id==='ms-smoked-salmon-week-3';
     if(item.bought||item.overrideQty!=null||item.overridePrice!=null||
-       item.inStock||!builtIn)next.push(item);
+       item.inStock||item.hidden||!builtIn)next.push(item);
   }
   month.groceries=next;
   month.bakingWeeks??={};
@@ -416,8 +422,62 @@ function migrateSalmonPlan(month,index){
  month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
  return month;
 }
+
+// v7 -> v8 : deux recettes de maquereau remplacées ; les deux grandes réserves
+// de noix bio remplacent le réassort hebdomadaire de noix non bio.
+// Aucune validation culinaire, modification personnelle ni facture ne peut être effacée.
+function migrateQuichesWalnuts(month,index){
+  const fresh=makeMonth(index);
+  const replaced=[];
+  for(const day of [12,20]){
+    const previous=month.meals[day],reference=fresh.meals[day];
+    const legacy=MEAL_INGREDIENTS[day];
+    const alreadyUpdated=previous&&reference&&previous.name===reference.name&&
+      previous.kind===reference.kind&&
+      JSON.stringify(previous.ingredients)===JSON.stringify(reference.ingredients);
+    const unchanged=previous&&reference&&!previous.cooked&&
+      previous.name===BASE_MENU[day].name&&previous.kind==='K'&&
+      JSON.stringify(previous.ingredients)===JSON.stringify(legacy);
+    if(alreadyUpdated||unchanged){
+      if(unchanged)month.meals[day]={...previous,...clone(reference),id:previous.id};
+      replaced.push(day);
+    }else if(previous){
+      month.reconcileWarnings??=[];
+      month.reconcileWarnings.push({name:'Jour '+(day+1)+' : recette maquereau déjà faite ou personnalisée ; quiche non substituée'});
+    }
+  }
+  const oldPaid=month.groceries.filter(item=>item.bought&&
+    (item.id==='month-5'||['base-0-22','base-1-22','base-2-21'].includes(item.id)));
+  migrateOptimisedBasket(month,index);
+  // Ne pas réclamer de quiche de remplacement si la recette historique doit rester.
+  if(!replaced.includes(12))
+    for(const id of ['quiche-salmon-fresh-week1','quiche-pastry-week1']){
+      const x=month.groceries.find(item=>item.id===id);
+      if(x&&!x.bought){x.hidden=true;x.inStock=false;}
+    }
+  if(!replaced.includes(20)){
+    const pastry=month.groceries.find(item=>item.id==='quiche-pastry-week2');
+    if(pastry&&!pastry.bought){pastry.hidden=true;pastry.inStock=false;}
+    const spinach=month.groceries.find(item=>item.id==='base-2-6');
+    if(spinach&&!spinach.bought&&!spinach.overrideQty){
+      spinach.overrideQty='900 g';
+      spinach.overridePrice=2.50;
+    }
+  }
+  if(oldPaid.length){
+    month.reconcileWarnings??=[];
+    month.reconcileWarnings.push({name:'Articles poisson/noix déjà payés : vérifier les stocks avant de commander les quiches et les grands pots bio'});
+  }
+  for(const dish of month.meals){
+    if(!dish)continue;
+    dish.servings??=dish.batchRole?10:5;
+    dish.mealsPerDay??=1;
+  }
+  month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
+  return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4,5,6,7].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6,7,8].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -447,6 +507,11 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))
       raw.months[key]=migrateSalmonPlan({...month,index:Number(key)},Number(key));
     raw.version=7;
+  }
+  if(raw.version===7){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateQuichesWalnuts({...month,index:Number(key)},Number(key));
+    raw.version=8;
   }
   for(const month of Object.values(raw.months)){
     month.bakingWeeks??={};

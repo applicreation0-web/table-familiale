@@ -1,4 +1,4 @@
-const CACHE='table-familiale-static-v6';
+const CACHE='table-familiale-static-v7';
 const FILES=['./','./index.html','./styles.css','./app.js','./model.js','./recipes.js','./meal-plan.js','./data.js','./manifest.webmanifest','./icons/icon.svg'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()));
