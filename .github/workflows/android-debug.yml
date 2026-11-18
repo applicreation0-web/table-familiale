@@ -6,6 +6,7 @@ on:
       - 'app.js'
       - 'model.js'
       - 'recipes.js'
+      - 'meal-plan.js'
       - 'data.js'
       - 'index.html'
       - 'styles.css'
