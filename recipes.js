@@ -40,7 +40,11 @@ export const MEAL_INGREDIENTS = [
   [g('Poulet Hubbard',900,'Saffron Alley'),g('Riz',350),g('Haricots verts',500),g('Oignons',500),n('Citron',2)]
 ];
 export const BREAKFASTS = [
-  'Flocons d’avoine au lait',
+  'Flocons d’avoine au lait Yeo Valley',
   'Yaourt grec M&S et noix finement moulues',
-  'Œufs et pommes de terre',
+  'Œufs et pain complet',
+  'Porridge au lait Yeo Valley et fruits',
+  'Muffins maison (option) ou yaourt grec',
+  'Tartines, fruits et lait Yeo Valley',
+  'Gâteau maison (option) ou flocons d’avoine'
 ];
