@@ -31,20 +31,20 @@ Le paquet M&S de quatre filets contient approximativement **520 g**. **Cinq paqu
 
 ## Deux grands pots de noix bio
 
-Demande conservée : **deux grands pots de 500 g**, soit 1 kg de cerneaux de noix issus de l'agriculture biologique. Le produit confirmé est **Organic Walnut Halves 500g (Sussex Wholefoods)** chez Healthy Supplies, **8,35 £ les 500 g**, soit **16,70 £** pour 2 sachets. **Les contenants hermétiques de 500 g ne sont pas fournis** : prévoir deux pots existants pour transvaser les sachets. L'option M&S Organic Walnuts vérifiée se présente en **pot de 180 g**, donc trop petit pour un « grand pot » de 500 g.
+Demande conservée : **deux grands pots de 500 g**, soit 1 kg de cerneaux de noix issus de l'agriculture biologique. Le conditionnement le plus économique vérifié est **Organic Walnut Halves 1 kg (Sussex Wholefoods)** chez Healthy Supplies, **15 £ le kilo**. Il suffit de répartir ce sachet dans deux grands pots réutilisables de 500 g, sans réduire la quantité. Deux sachets individuels de 500 g coûteraient 16,70 £ : ce conditionnement économise donc 1,70 £. **Les deux grands pots hermétiques de 500 g ne sont pas fournis** : prévoir deux pots existants pour transvaser le sachet de 1 kg. L'option M&S Organic Walnuts vérifiée se présente en **pot de 180 g**, donc trop petit pour un « grand pot » de 500 g.
 
-Liens : [noix bio 500 g Healthy Supplies](https://www.healthysupplies.co.uk/walnuts-organic-500g-sussex.html), [pots M&S bio 180 g](https://www.ocado.com/products/m-s-organic-walnuts/673023011).
+Liens : [noix bio 1 kg Healthy Supplies](https://www.healthysupplies.co.uk/walnuts-organic-1kg-sussex.html), [pots M&S bio 180 g](https://www.ocado.com/products/m-s-organic-walnuts/673023011).
 
 Le tarif de livraison Healthy Supplies sous le seuil de gratuité est **à confirmer** ; une **provision de 5 £** est comptée séparément au panier pour éviter de sous-estimer le budget. La gratuité n'est annoncée qu'à partir d'environ 49–50 £ de produits selon la page officielle. Les trois anciens achats hebdomadaires de noix non bio, 200 g chacun, sont remplacés. Pour les jeunes enfants, servir les noix finement moulues, jamais entières si risque de fausse route.
 
 ## Finances et contrôle de la qualité
 
-**Panier prévisionnel sans pâtisserie optionnelle : 896,58 £**, dont 5 £ de réserve pour la livraison des noix. Le plafond est **900 £**, soit une **marge fragile de 3,42 £**. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
+**Panier prévisionnel sans pâtisserie optionnelle : 894,88 £**, dont 5 £ de réserve pour la livraison des noix. Le plafond est **900 £**, soit une **marge fragile de 5,12 £**. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
 
 Sources de prix indicatifs, à vérifier avant de passer commande :
 - [Pâte brisée M&S 320 g — 2 £](https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011)
 - [Saumon frais M&S 4 filets 520 g — 10,25 £](https://www.ocado.com/products/m-s-4-scottish-salmon-fillets-skin-on/505278011)
-- [Noix bio 500 g — 8,35 £](https://www.healthysupplies.co.uk/walnuts-organic-500g-sussex.html)
+- [Noix bio 1 kg — 15 £](https://www.healthysupplies.co.uk/walnuts-organic-1kg-sussex.html)
 - [Conditions de livraison Healthy Supplies](https://www.healthysupplies.co.uk/deliveryoptions.html)
 
 Les économies supplémentaires ont été limitées à des **quantités inutiles** (courgettes, semoule, ail), avec des prix recalculés à partir du prix de référence. Le magasin peut toutefois imposer un paquet plus grand ; cette différence doit être reportée comme coût réel. La qualité des poulets Hubbard, de l'agneau halal, du lait Yeo Valley, des produits M&S et des noix biologiques n'est pas déclassée.
