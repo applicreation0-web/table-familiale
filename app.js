@@ -1,5 +1,6 @@
 import {BASE_MENU, BASE_SHOPPING} from './data.js';
 import {MEAL_INGREDIENTS} from './recipes.js';
+import {FAMILY_PLAN} from './meal-plan.js';
 import {
  BREAKFASTS, SUPPLIERS, KIND_NAMES, HARD_CEILING, money, period, periodDays, dateISO, clone,
  makeMonth, newState, ingredientChanges, suggestedPurchases, shoppingEntries,
@@ -174,7 +175,7 @@ function openMeal(index,swap=false){
   <label class="field"><span>Échanger avec</span><select id="target-day">${month.meals.map((d,i)=>`<option value="${i}" ${i===Math.min(index+1,month.meals.length-1)?'selected':''}>${esc(fmt(dates[i]))} · ${esc(d.name)}</option>`).join('')}</select></label><div class="banner caution">${icon('alert')} Un échange entre semaines met à jour la liste des ingrédients à prévoir. Les plats déjà cuisinés sont protégés.</div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-swap">Échanger les jours</button></div>`);
  }else{
  openDialog(`<div class="dialog-head"><div><span class="overline">RECETTE MODIFIABLE</span><h2 id="editor-title">Modifier le plat</h2><p>${esc(long(dates[index]))} · ${meal.batchRole==='prepare'?'10 portions, une fois par jour pendant deux jours':'5 portions pour un repas familial'}</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
- <div class="edit-body"><label class="field"><span>Partir d'une recette du programme</span><select id="template-choice"><option value="custom">Plat actuel / personnalisé</option>${BASE_MENU.map((m,i)=>`<option value="${i}">${esc(m.name)}</option>`).join('')}</select></label>
+ <div class="edit-body"><label class="field"><span>Partir d'une recette du programme</span><select id="template-choice"><option value="custom">Plat actuel / personnalisé</option>${BASE_MENU.map((m,i)=>![12,20].includes(i)?`<option value="${i}">${esc(m.name)}</option>`:'').join('')}<option value="quiche-salmon">${esc(FAMILY_PLAN[12].name)}</option><option value="quiche-spinach">${esc(FAMILY_PLAN[20].name)}</option></select></label>
  <div class="edit-main"><label class="field"><span>Nom du plat</span><input id="dish-name" value="${esc(draft.name)}" /></label><label class="field"><span>Type</span><select id="dish-kind">${Object.entries(KIND_NAMES).map(([v,n])=>`<option value="${v}" ${v===draft.kind?'selected':''}>${esc(n)}</option>`).join('')}</select></label></div>
  <div class="ingredient-heading"><h3>Ingrédients du plat</h3><button class="button outline small" data-action="add-ingredient">${icon('plus',15)} Ajouter un ingrédient</button></div><div id="ingredient-rows">${ingredientFields()}</div>
  <div class="banner caution">${icon('alert')} L'ajout ou la suppression d'un ingrédient modifie les besoins à acheter. Un prix non renseigné déclenche une alerte budget.</div></div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-dish">Enregistrer le plat</button></div>`);
@@ -260,7 +261,17 @@ dialog.addEventListener('click',e=>{
 });
 dialog.addEventListener('change',e=>{
  if(e.target.id==='template-choice'&&e.target.value!=='custom'){
-  readIngredientFields();const i=Number(e.target.value);draft.name=BASE_MENU[i].name;draft.kind=BASE_MENU[i].kind;draft.ingredients=mealBatchIngredients(i,draft.index);
+  readIngredientFields();
+   const choice=e.target.value;
+   if(choice==='quiche-salmon'||choice==='quiche-spinach'){
+     const template=FAMILY_PLAN[choice==='quiche-salmon'?12:20];
+     draft.name=template.name;draft.kind=template.kind;
+     const mult=getMonth().meals[draft.index].batchRole==='prepare'?2:1;
+     draft.ingredients=clone(template.ingredients).map(x=>({...x,quantity:x.quantity*mult}));
+   }else{
+     const i=Number(choice);draft.name=BASE_MENU[i].name;draft.kind=BASE_MENU[i].kind;
+     draft.ingredients=mealBatchIngredients(i,draft.index);
+   }
   dialog.querySelector('#dish-name').value=draft.name;dialog.querySelector('#dish-kind').value=draft.kind;dialog.querySelector('#ingredient-rows').innerHTML=ingredientFields();
  }
 });
