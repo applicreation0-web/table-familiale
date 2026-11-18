@@ -160,8 +160,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-0",
     "name": "Pommes de terre",
-    "qty": "3 kg",
-    "price": 3.6,
+    "qty": "4 kg",
+    "price": 4.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -180,8 +180,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-2",
     "name": "Carottes",
-    "qty": "3 kg",
-    "price": 3,
+    "qty": "4 kg",
+    "price": 4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -200,8 +200,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-4",
     "name": "Courgettes",
-    "qty": "1 kg",
-    "price": 2.8,
+    "qty": "3 kg",
+    "price": 8.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -218,36 +218,6 @@ export const BASE_SHOPPING = [
     "category": "F"
   },
   {
-    "id": "base-0-6",
-    "name": "Épinards surgelés",
-    "qty": "900 g",
-    "price": 2.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 0,
-    "category": "F"
-  },
-  {
-    "id": "base-0-7",
-    "name": "Haricots verts surgelés",
-    "qty": "1 kg",
-    "price": 2.9,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 0,
-    "category": "F"
-  },
-  {
-    "id": "base-0-8",
-    "name": "Chou blanc",
-    "qty": "1 pièce",
-    "price": 1.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 0,
-    "category": "F"
-  },
-  {
     "id": "base-0-9",
     "name": "Betteraves cuites",
     "qty": "500 g",
@@ -258,20 +228,10 @@ export const BASE_SHOPPING = [
     "category": "F"
   },
   {
-    "id": "base-0-10",
-    "name": "Concombres",
-    "qty": "2 pièces",
-    "price": 2,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 0,
-    "category": "F"
-  },
-  {
     "id": "base-0-11",
     "name": "Citrons",
-    "qty": "4 pièces",
-    "price": 1.4,
+    "qty": "2 pièces",
+    "price": 0.7,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -388,30 +348,10 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-0-23",
-    "name": "Riz",
-    "qty": "1 kg",
-    "price": 2,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 0,
-    "category": "S"
-  },
-  {
     "id": "base-0-24",
     "name": "Tomates concassées",
-    "qty": "3 × 400 g",
-    "price": 2.1,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 0,
-    "category": "S"
-  },
-  {
-    "id": "base-0-25",
-    "name": "Pois chiches en boîte",
-    "qty": "2 × 400 g",
-    "price": 1.6,
+    "qty": "4 × 400 g",
+    "price": 2.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -450,18 +390,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-0",
     "name": "Pommes de terre",
-    "qty": "3 kg",
-    "price": 3.6,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 1,
-    "category": "F"
-  },
-  {
-    "id": "base-1-1",
-    "name": "Patates douces",
     "qty": "2 kg",
-    "price": 5,
+    "price": 2.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -470,8 +400,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-2",
     "name": "Carottes",
-    "qty": "2 kg",
-    "price": 2,
+    "qty": "3 kg",
+    "price": 3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -480,8 +410,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-3",
     "name": "Courgettes",
-    "qty": "2 kg",
-    "price": 5.6,
+    "qty": "1 kg",
+    "price": 2.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -490,8 +420,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-4",
     "name": "Oignons",
-    "qty": "1,5 kg",
-    "price": 2.1,
+    "qty": "1 kg",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -518,16 +448,6 @@ export const BASE_SHOPPING = [
     "category": "F"
   },
   {
-    "id": "base-1-7",
-    "name": "Brocolis frais M&S",
-    "qty": "1 kg",
-    "price": 3.6,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 1,
-    "category": "F"
-  },
-  {
     "id": "base-1-8",
     "name": "Betteraves cuites",
     "qty": "500 g",
@@ -540,8 +460,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-9",
     "name": "Chou blanc",
-    "qty": "1 pièce",
-    "price": 1.5,
+    "qty": "2 pièces (env. 1,6 kg)",
+    "price": 3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -710,8 +630,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-26",
     "name": "Pois chiches en boîte",
-    "qty": "4 × 400 g",
-    "price": 3.2,
+    "qty": "2 × 400 g",
+    "price": 1.6,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -720,8 +640,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-27",
     "name": "Tomates concassées",
-    "qty": "4 × 400 g",
-    "price": 2.8,
+    "qty": "3 × 400 g",
+    "price": 2.1,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -740,18 +660,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-0",
     "name": "Pommes de terre",
-    "qty": "3 kg",
-    "price": 3.6,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 2,
-    "category": "F"
-  },
-  {
-    "id": "base-2-1",
-    "name": "Patates douces",
-    "qty": "1,5 kg",
-    "price": 3.75,
+    "qty": "4 kg",
+    "price": 4.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -760,8 +670,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-2",
     "name": "Carottes",
-    "qty": "3 kg",
-    "price": 3,
+    "qty": "2 kg",
+    "price": 2,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -780,8 +690,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-4",
     "name": "Oignons",
-    "qty": "1,5 kg",
-    "price": 2.1,
+    "qty": "1 kg",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -810,8 +720,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-7",
     "name": "Haricots verts surgelés",
-    "qty": "1 kg",
-    "price": 2.9,
+    "qty": "2 × 1 kg",
+    "price": 5.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -840,8 +750,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-10",
     "name": "Citrons",
-    "qty": "4 pièces",
-    "price": 1.4,
+    "qty": "6 pièces",
+    "price": 2.1,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -928,16 +838,6 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-2-19",
-    "name": "Fromage M&S (présure vég.)",
-    "qty": "250 g",
-    "price": 3.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 2,
-    "category": "S"
-  },
-  {
     "id": "base-2-20",
     "name": "Flocons d’avoine",
     "qty": "1 kg",
@@ -988,30 +888,10 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-2-25",
-    "name": "Tomates concassées",
-    "qty": "4 × 400 g",
-    "price": 2.8,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 2,
-    "category": "S"
-  },
-  {
     "id": "base-3-0",
     "name": "Pommes de terre",
-    "qty": "3 kg",
-    "price": 3.6,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "F"
-  },
-  {
-    "id": "base-3-1",
-    "name": "Patates douces",
     "qty": "2 kg",
-    "price": 5,
+    "price": 2.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1020,8 +900,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-2",
     "name": "Carottes",
-    "qty": "2 kg",
-    "price": 2,
+    "qty": "3 kg",
+    "price": 3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1040,18 +920,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-4",
     "name": "Oignons",
-    "qty": "1,5 kg",
-    "price": 2.1,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "F"
-  },
-  {
-    "id": "base-3-5",
-    "name": "Brocolis frais M&S",
     "qty": "1 kg",
-    "price": 3.6,
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1092,16 +962,6 @@ export const BASE_SHOPPING = [
     "name": "Chou blanc",
     "qty": "1 pièce",
     "price": 1.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "F"
-  },
-  {
-    "id": "base-3-10",
-    "name": "Salade verte",
-    "qty": "2 sachets",
-    "price": 2.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1248,30 +1108,10 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-3-25",
-    "name": "Pois chiches en boîte",
-    "qty": "4 × 400 g",
-    "price": 3.2,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "S"
-  },
-  {
-    "id": "base-3-26",
-    "name": "Haricots blancs en boîte",
-    "qty": "2 × 400 g",
-    "price": 1.6,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "S"
-  },
-  {
     "id": "base-3-27",
     "name": "Tomates concassées",
-    "qty": "4 × 400 g",
-    "price": 2.8,
+    "qty": "7 × 400 g",
+    "price": 4.9,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1280,8 +1120,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-4-0",
     "name": "Pommes de terre",
-    "qty": "1 kg",
-    "price": 1.2,
+    "qty": "2 kg",
+    "price": 2.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
@@ -1290,18 +1130,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-4-1",
     "name": "Carottes",
-    "qty": "2 kg",
-    "price": 2,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 4,
-    "category": "F"
-  },
-  {
-    "id": "base-4-2",
-    "name": "Courgettes",
-    "qty": "1 kg",
-    "price": 2.8,
+    "qty": "3 kg",
+    "price": 3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
@@ -1318,40 +1148,10 @@ export const BASE_SHOPPING = [
     "category": "F"
   },
   {
-    "id": "base-4-4",
-    "name": "Brocolis frais M&S",
-    "qty": "1 kg",
-    "price": 3.6,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 4,
-    "category": "F"
-  },
-  {
-    "id": "base-4-5",
-    "name": "Haricots verts surgelés",
-    "qty": "1 kg",
-    "price": 2.9,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 4,
-    "category": "F"
-  },
-  {
-    "id": "base-4-6",
-    "name": "Betteraves cuites",
-    "qty": "500 g",
-    "price": 1.3,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 4,
-    "category": "F"
-  },
-  {
     "id": "base-4-7",
     "name": "Citrons",
-    "qty": "4 pièces",
-    "price": 1.4,
+    "qty": "2 pièces",
+    "price": 0.7,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
@@ -1428,16 +1228,6 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-4-15",
-    "name": "Pâtes complètes",
-    "qty": "500 g",
-    "price": 1,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 4,
-    "category": "S"
-  },
-  {
     "id": "base-4-16",
     "name": "Riz",
     "qty": "1 kg",
@@ -1448,30 +1238,10 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-4-17",
-    "name": "Lentilles sèches",
-    "qty": "500 g",
-    "price": 1.1,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 4,
-    "category": "S"
-  },
-  {
     "id": "base-4-18",
     "name": "Tomates concassées",
     "qty": "2 × 400 g",
     "price": 1.4,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 4,
-    "category": "S"
-  },
-  {
-    "id": "base-4-19",
-    "name": "Pois chiches en boîte",
-    "qty": "1 × 400 g",
-    "price": 0.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
@@ -1540,8 +1310,8 @@ export const BASE_SHOPPING = [
   {
     "id": "month-5",
     "name": "Maquereau M&S nature 125 g",
-    "qty": "18 boîtes",
-    "price": 27.9,
+    "qty": "12 boîtes",
+    "price": 18.6,
     "supplier": "M&S",
     "purchase": "monthly",
     "week": -1,
@@ -1550,17 +1320,7 @@ export const BASE_SHOPPING = [
   {
     "id": "month-6",
     "name": "Fonio",
-    "qty": "500 g",
-    "price": 5,
-    "supplier": "Épicerie africaine",
-    "purchase": "monthly",
-    "week": -1,
-    "category": "A"
-  },
-  {
-    "id": "month-7",
-    "name": "Niébé sec",
-    "qty": "2 kg",
+    "qty": "2 × 500 g (1 kg)",
     "price": 10,
     "supplier": "Épicerie africaine",
     "purchase": "monthly",
@@ -1580,14 +1340,14 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "baking-1",
-    "name": "Farine blanche M&S (réassort pâtisserie)",
+    "name": "Farine blanche M&S (réassort si muffins)",
     "qty": "1 × 1,5 kg",
     "price": 0.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
     "category": "S",
-    "optional": false
+    "optional": true
   },
   {
     "id": "baking-2",
@@ -1665,6 +1425,146 @@ export const BASE_SHOPPING = [
     "week": 3,
     "category": "S",
     "optional": true
+  },
+  {
+    "id": "rightsize-0-0",
+    "name": "Poivrons",
+    "qty": "6 pièces (env. 900 g)",
+    "price": 4.2,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 0,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-0-1",
+    "name": "Quinoa",
+    "qty": "500 g",
+    "price": 2.8,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 0,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-0-2",
+    "name": "Pâtes complètes",
+    "qty": "500 g",
+    "price": 1,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 0,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-0-3",
+    "name": "Lentilles sèches",
+    "qty": "500 g",
+    "price": 1.1,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 0,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-1-0",
+    "name": "Riz",
+    "qty": "2 × 1 kg",
+    "price": 4,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 1,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-3-0",
+    "name": "Riz",
+    "qty": "1 kg",
+    "price": 2,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-3-1",
+    "name": "Aubergines",
+    "qty": "1 kg",
+    "price": 3,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-0-4",
+    "name": "Pain complet M&S",
+    "qty": "1 pain",
+    "price": 1.6,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 0,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-1-1",
+    "name": "Pain complet M&S",
+    "qty": "1 pain",
+    "price": 1.6,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 1,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-2-0",
+    "name": "Pain complet M&S",
+    "qty": "1 pain",
+    "price": 1.6,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 2,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-3-2",
+    "name": "Pain complet M&S",
+    "qty": "1 pain",
+    "price": 1.6,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-4-0",
+    "name": "Pain complet M&S",
+    "qty": "1 pain",
+    "price": 1.6,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 4,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-3-extra-lentils",
+    "name": "Lentilles sèches",
+    "qty": "500 g",
+    "price": 1.1,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-3-extra-pasta",
+    "name": "Pâtes complètes",
+    "qty": "500 g",
+    "price": 1,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S"
   }
 ];
 

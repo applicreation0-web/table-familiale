@@ -30,9 +30,9 @@ export function makeMonth(index=0){
       cooked:false,cookedAt:null};
   });
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
-  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
+  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:3, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:4, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -69,21 +69,74 @@ export function ingredientChanges(month){
   return out;
 }
 export function suggestedPurchases(month){
-  return ingredientChanges(month).filter(x=>x.delta>0 && !month.autoPurchases?.[x.id]?.skip).map(x=>({
+  const recipeAdditions=ingredientChanges(month).filter(x=>x.delta>0 && !month.autoPurchases?.[x.id]?.skip).map(x=>({
     ...x,kind:'auto',qty:`${x.quantity} ${x.unit}`,estimate:month.autoPurchases?.[x.id]?.plannedPrice??x.price,
     bought:!!month.autoPurchases?.[x.id]?.bought,
     actual:month.autoPurchases?.[x.id]?.actual??null,
   }));
+  const eggTopups=month.groceries.filter(x=>x.name==='Œufs'&&x.week<4&&x.bought&&
+    isBakingWeek(month,x.week)&&/2 × 12/.test(x.overrideQty??x.qty)&&
+    !/\+ 1 × 6/.test(x.overrideQty??x.qty)).map(x=>{
+      const id='baking-eggs-'+x.week,state=month.autoPurchases?.[id]||{};
+      return {id,week:x.week,kind:'auto',monthOnly:false,supplier:'M&S',name:'Œufs pour gâteaux et muffins — complément',
+        quantity:6,unit:'pièce',qty:'6 œufs',estimate:state.plannedPrice??2.60,
+        bought:!!state.bought,actual:state.actual??null,skip:!!state.skip};
+    }).filter(x=>!x.skip);
+  return [...recipeAdditions,...eggTopups];
+}
+// Les produits de pâtisserie ne sont prévus que si la semaine concernée est activée.
+// Les articles déjà achetés ne sont jamais effacés lorsque l'option est désactivée.
+export function isBakingWeek(month,week){return !!month.bakingWeeks?.[week];}
+function plannedGrocery(month,item){
+  if(item.hidden)return null;
+  let targetWeek=item.week;
+  if(item.optional&&!item.bought){
+    const staple=item.week===0&&/Sucre pour gâteaux|Levure chimique|Extrait de vanille/.test(item.name);
+    const active=Object.keys(month.bakingWeeks||{}).filter(w=>month.bakingWeeks[w]).map(Number).sort((a,b)=>a-b);
+    if(staple){
+      if(!active.length)return null;
+      targetWeek=active[0]; // Les ingrédients de base apparaissent dans la semaine de cuisine.
+    }else if(!isBakingWeek(month,item.week))return null;
+  }
+  const planned={...item,week:targetWeek,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.price};
+  if(item.name==='Œufs'&&item.week<4&&!item.bought&&!item.overrideQty){
+    planned.qty=isBakingWeek(month,item.week)?'2 × 12 + 1 × 6 (30 œufs)':'2 × 12 (24 œufs)';
+    if(item.overridePrice==null)planned.estimate=isBakingWeek(month,item.week)?11.40:8.80;
+    planned.dynamicEggs=true;
+  }
+  return planned;
 }
 export function shoppingEntries(month,week,monthly=false){
-  const base=month.groceries.filter(x=>!x.hidden&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week)).map(x=>({...x,kind:'base',estimate:x.overridePrice??x.price,qty:x.overrideQty??x.qty}));
-  const manual=(month.manualItems||[]).filter(x=>!x.hidden&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week)).map(x=>({...x,kind:'manual',estimate:x.price}));
+  const base=month.groceries.map(x=>plannedGrocery(month,x))
+    .filter(x=>x&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week));
+  const manual=(month.manualItems||[]).filter(x=>!x.hidden&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week))
+    .map(x=>({...x,kind:'manual',estimate:x.price}));
   const auto=suggestedPurchases(month).filter(x=>monthly?x.monthOnly:!x.monthOnly&&x.week===week);
   return [...base,...manual,...auto];
 }
 export function allShoppingEntries(month){
-  return [...month.groceries.filter(x=>!x.hidden).map(x=>({...x,kind:'base',estimate:x.overridePrice??x.price})),
+  return [...month.groceries.map(x=>plannedGrocery(month,x)).filter(Boolean),
     ...(month.manualItems||[]).filter(x=>!x.hidden).map(x=>({...x,kind:'manual',estimate:x.price})),...suggestedPurchases(month)];
+}
+export function setBakingWeek(month,week,enabled){
+  if(!Number.isInteger(week)||week<0||week>=Math.ceil(month.meals.length/7))throw new Error('Semaine invalide');
+  month.bakingWeeks??={};
+  month.bakingWeeks[week]=!!enabled;
+  return month;
+}
+export function markInStock(month,item,stock=true){
+  if(item.kind==='auto'){
+    if(item.bought)throw new Error('Achat déjà enregistré');
+    month.autoPurchases[item.id]={...month.autoPurchases[item.id],skip:!!stock};
+    return month;
+  }
+  const list=item.kind==='manual'?month.manualItems:month.groceries;
+  const found=list.find(x=>x.id===item.id);
+  if(!found)throw new Error('Produit introuvable');
+  if(found.bought)throw new Error('Achat déjà enregistré');
+  found.hidden=!!stock;
+  found.inStock=!!stock;
+  return month;
 }
 export function finance(month){
   const items=allShoppingEntries(month);
@@ -136,14 +189,7 @@ export function swapDishes(month,a,b){
   if(A.start<A.start+A.len&&B.start<A.start+A.len&&B.start>=A.start||
      A.start<B.start+B.len&&A.start>=B.start)throw new Error('Les journées se chevauchent.');
   // Une préparation de deux jours peut échanger avec deux jours simples consécutifs.
-  const aLen=A.len,bLen=B.len;
-  if(aLen!==bLen){
-    const single=aLen===1?A:B, pair=aLen===2?A:B;
-    if(single.start+1>=month.meals.length||single.start<=pair.start+1&&single.start+1>=pair.start)
-      throw new Error('Choisissez deux journées consécutives libres.');
-    if(month.meals[single.start+1].batchRole)throw new Error('Choisissez deux journées simples consécutives.');
-    single.len=2;
-  }
+  if(A.len!==B.len)throw new Error('Échangez deux préparations de même durée (1 jour ou 2 jours).');
   const touched=[...new Set([...Array(A.len)].map((_,j)=>A.start+j).concat([...Array(B.len)].map((_,j)=>B.start+j)))];
   if(touched.some(i=>month.meals[i]?.cooked))throw new Error('Un repas déjà cuisiné ne peut pas être déplacé.');
   const old=touched.map(i=>[i,clone(month.meals[i])]);
@@ -175,11 +221,13 @@ export function toggleCooked(month,index){
 export function markBought(month,item,checked,actual){
   const cents=actual==null?null:Math.round(Number(actual)*100)/100;
   if(checked&&(!Number.isFinite(cents)||cents<0))throw Error('Prix réel requis (0 possible).');
-  if(item.kind==='auto')month.autoPurchases[item.id]={bought:checked,actual:checked?cents:null,at:new Date().toISOString()};
+  if(item.kind==='auto')month.autoPurchases[item.id]={...month.autoPurchases[item.id],bought:checked,actual:checked?cents:null,at:new Date().toISOString()};
   else {
     const list=item.kind==='manual'?month.manualItems:month.groceries;
     const found=list.find(x=>x.id===item.id);
     if(!found)throw Error('Produit introuvable');
+    if(checked&&item.dynamicEggs){found.bakingLocked=true;found.overrideQty=item.qty;found.overridePrice=item.estimate;}
+    if(!checked&&found.bakingLocked){found.overrideQty=null;found.overridePrice=null;found.bakingLocked=false;}
     found.bought=checked;found.actual=checked?cents:null;
   }
   return month;
@@ -224,15 +272,57 @@ function migrateLegacyMonth(month){
   month.manualItems=[...(month.manualItems||[]),...extras];
   return month;
 }
+// La mise à jour des listes ne doit jamais convertir un achat ancien en quantité
+// nouvelle supposément achetée. Les montants payés restent immuables.
+function migrateOptimisedBasket(month,index){
+  const fresh=makeMonth(index);
+  const old=new Map(month.groceries.map(x=>[x.id,x]));
+  const next=[];
+  const conflicts=[];
+  for(const item of fresh.groceries){
+    const previous=old.get(item.id);
+    if(previous){
+      old.delete(item.id);
+      const custom=previous.hidden||previous.inStock||previous.overrideQty!=null||previous.overridePrice!=null;
+      if(previous.bought||custom){
+        next.push(previous);
+        if(previous.bought&&previous.qty!==item.qty)
+          conflicts.push({name:previous.name,oldQty:previous.qty,newQty:item.qty});
+        continue;
+      }
+    }
+    next.push(item);
+  }
+  // Retenir tous les achats payés et toute modification personnelle même si le
+  // produit n'est plus dans le panier théorique.
+  for(const item of old.values())
+    if(item.bought||item.overrideQty!=null||item.overridePrice!=null||item.inStock)
+      next.push(item);
+  month.groceries=next;
+  month.bakingWeeks??={};
+  month.reconcileWarnings=[...(month.reconcileWarnings||[]),...conflicts];
+  return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3].includes(raw.version)||!raw.months||typeof raw.months!=='object')throw Error('Sauvegarde non reconnue');
+  if(!raw||![2,3,4].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+    throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
-    if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||!Array.isArray(month.manualItems)||!Array.isArray(month.extraExpenses))throw Error('Structure incorrecte');
-    // Validation sans modifier les données avant la migration.
+    if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
+      !Array.isArray(month.manualItems)||!Array.isArray(month.extraExpenses))
+      throw Error('Structure incorrecte');
   }
   if(raw.version===2){
-    for(const [key,month] of Object.entries(raw.months))raw.months[key]=migrateLegacyMonth({...month,index:Number(key)});
-    raw.version=3;
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateLegacyMonth({...month,index:Number(key)});
+  }
+  if(raw.version<=3){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateOptimisedBasket({...month,index:Number(key)},Number(key));
+    raw.version=4;
+  }
+  for(const month of Object.values(raw.months)){
+    month.bakingWeeks??={};
+    month.reconcileWarnings??=[];
   }
   return raw;
 }
