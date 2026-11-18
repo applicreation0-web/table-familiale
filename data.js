@@ -1559,16 +1559,16 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "organic-walnuts-large-2x500",
-    "name": "Noix bio en cerneaux — 2 grands pots de 500 g (à remplir avec 2 sachets)",
-    "qty": "2 × 500 g = 1 kg (contenants réutilisables non inclus)",
-    "price": 16.7,
+    "name": "Noix bio 1 kg pour remplir 2 grands pots de 500 g",
+    "qty": "1 sachet × 1 kg, à répartir dans 2 pots réutilisables de 500 g",
+    "price": 15,
     "supplier": "Healthy Supplies",
     "purchase": "monthly",
     "week": -1,
     "category": "S",
     "priceStatus": "provisional",
-    "sourceUrl": "https://www.healthysupplies.co.uk/walnuts-organic-500g-sussex.html",
-    "priceDetails": "£8.35 × 2, expédiés en sachets; prévoir deux pots hermétiques réutilisables."
+    "sourceUrl": "https://www.healthysupplies.co.uk/walnuts-organic-1kg-sussex.html",
+    "priceDetails": "Sussex Wholefoods Organic Walnut Halves : 1 kg à £15 au lieu de 2 × 500 g à £16.70 ; transvaser dans 2 pots réutilisables, non vendus avec les noix."
   },
   {
     "id": "organic-walnuts-delivery",
