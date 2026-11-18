@@ -89,12 +89,16 @@ export function suggestedPurchases(month){
 export function isBakingWeek(month,week){return !!month.bakingWeeks?.[week];}
 function plannedGrocery(month,item){
   if(item.hidden)return null;
+  let targetWeek=item.week;
   if(item.optional&&!item.bought){
     const staple=item.week===0&&/Sucre pour gâteaux|Levure chimique|Extrait de vanille/.test(item.name);
-    const enabled=staple?Object.values(month.bakingWeeks||{}).some(Boolean):isBakingWeek(month,item.week);
-    if(!enabled)return null;
+    const active=Object.keys(month.bakingWeeks||{}).filter(w=>month.bakingWeeks[w]).map(Number).sort((a,b)=>a-b);
+    if(staple){
+      if(!active.length)return null;
+      targetWeek=active[0]; // Les ingrédients de base apparaissent dans la semaine de cuisine.
+    }else if(!isBakingWeek(month,item.week))return null;
   }
-  const planned={...item,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.price};
+  const planned={...item,week:targetWeek,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.price};
   if(item.name==='Œufs'&&item.week<4&&!item.bought&&!item.overrideQty){
     planned.qty=isBakingWeek(month,item.week)?'2 × 12 + 1 × 6 (30 œufs)':'2 × 12 (24 œufs)';
     if(item.overridePrice==null)planned.estimate=isBakingWeek(month,item.week)?11.40:8.80;
@@ -103,8 +107,8 @@ function plannedGrocery(month,item){
   return planned;
 }
 export function shoppingEntries(month,week,monthly=false){
-  const base=month.groceries.filter(x=>monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week)
-    .map(x=>plannedGrocery(month,x)).filter(Boolean);
+  const base=month.groceries.map(x=>plannedGrocery(month,x))
+    .filter(x=>x&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week));
   const manual=(month.manualItems||[]).filter(x=>!x.hidden&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week))
     .map(x=>({...x,kind:'manual',estimate:x.price}));
   const auto=suggestedPurchases(month).filter(x=>monthly?x.monthOnly:!x.monthOnly&&x.week===week);
