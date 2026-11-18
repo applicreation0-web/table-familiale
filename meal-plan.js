@@ -1,32 +1,33 @@
 import { BASE_MENU } from './data.js';
 import { MEAL_INGREDIENTS } from './recipes.js';
 
-// Un seul plat africain par semaine, une cuisson couvrant deux jours.
+// Un seul plat africain par semaine : 10 portions (5 convives × 1 repas par jour × 2 jours).
 // Le deuxième jour est une consommation des restes : aucun ingrédient n'est racheté.
 const copy = value => JSON.parse(JSON.stringify(value));
 const ingredient = (name, quantity, unit='g', supplier='M&S') => ({name,quantity,unit,supplier,price:null});
 function single(source){
   const dish=BASE_MENU[source];
-  return {name:dish.name,kind:dish.kind,ingredients:copy(MEAL_INGREDIENTS[source]),african:false,batchRole:null};
+  return {name:dish.name,kind:dish.kind,ingredients:copy(MEAL_INGREDIENTS[source]),african:false,batchRole:null,servings:null,mealsPerDay:null};
 }
 function batch(source,name,kind,custom){
   let ingredients=custom || MEAL_INGREDIENTS[source].map(x=>({...x,quantity:x.quantity*2}));
   ingredients=copy(ingredients);
   return [
-    {name,kind,ingredients,african:true,batchRole:'prepare'},
-    {name,kind,ingredients:[],african:true,batchRole:'reheat'}
+    {name,kind,ingredients,african:true,batchRole:'prepare',servings:10,mealsPerDay:1},
+    {name,kind,ingredients:[],african:true,batchRole:'reheat',servings:10,mealsPerDay:1}
   ];
 }
 const riceLamb=MEAL_INGREDIENTS[5].map(x=>({...x,quantity:x.name==='Riz'?1300:x.quantity*2}));
 const yassa=MEAL_INGREDIENTS[0].map(x=>({...x,quantity:x.name==='Poulet Hubbard'?2600:x.name==='Riz'?1000:x.quantity*2}));
-const thieb=[
+// Yassa au poisson : 10 portions, soit cinq personnes une fois par jour
+// pendant deux jours. 1,8 kg de filets de cabillaud (180 g crus/portion).
+// Le riz du second jour doit être cuit frais plutôt que conservé deux jours.
+const fishYassa=[
   ingredient('Cabillaud',1800,'g','Dining Solutions'),
   ingredient('Riz',1200),
-  ingredient('Carottes',1200),
-  ingredient('Chou blanc',800),
-  ingredient('Aubergines',800),
-  ingredient('Tomates concassées',700),
-  ingredient('Oignons',700)
+  ingredient('Oignons',1400),
+  ingredient('Citron',6,'pièce'),
+  ingredient('Moutarde de Dijon',120)
 ];
 const thiou=[
   ingredient('Poulet Hubbard',2500,'g','Saffron Alley'),
@@ -48,7 +49,7 @@ export const FAMILY_PLAN = [
   ...batch(0,'Poulet yassa, riz et haricots verts','P',yassa),
   single(19),single(20),
   single(18),single(22),single(23),
-  ...batch(null,'Thiéboudienne au poisson et légumes','F',thieb),
+  ...batch(null,'Yassa au poisson, oignons citronnés et riz','F',fishYassa),
   single(24),single(14),
   single(28),
   ...batch(null,'Thiou au poulet, légumes et riz','P',thiou)
