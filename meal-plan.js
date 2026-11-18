@@ -7,14 +7,14 @@ const copy = value => JSON.parse(JSON.stringify(value));
 const ingredient = (name, quantity, unit='g', supplier='M&S') => ({name,quantity,unit,supplier,price:null});
 function single(source){
   const dish=BASE_MENU[source];
-  return {name:dish.name,kind:dish.kind,ingredients:copy(MEAL_INGREDIENTS[source]),african:false,batchRole:null};
+  return {name:dish.name,kind:dish.kind,ingredients:copy(MEAL_INGREDIENTS[source]),african:false,batchRole:null,servings:null,mealsPerDay:null};
 }
 function batch(source,name,kind,custom){
   let ingredients=custom || MEAL_INGREDIENTS[source].map(x=>({...x,quantity:x.quantity*2}));
   ingredients=copy(ingredients);
   return [
-    {name,kind,ingredients,african:true,batchRole:'prepare'},
-    {name,kind,ingredients:[],african:true,batchRole:'reheat'}
+    {name,kind,ingredients,african:true,batchRole:'prepare',servings:10,mealsPerDay:1},
+    {name,kind,ingredients:[],african:true,batchRole:'reheat',servings:10,mealsPerDay:1}
   ];
 }
 const riceLamb=MEAL_INGREDIENTS[5].map(x=>({...x,quantity:x.name==='Riz'?1300:x.quantity*2}));
