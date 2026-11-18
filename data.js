@@ -1340,14 +1340,14 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "baking-1",
-    "name": "Farine blanche M&S (réassort pâtisserie)",
+    "name": "Farine blanche M&S (réassort si muffins)",
     "qty": "1 × 1,5 kg",
     "price": 0.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
     "category": "S",
-    "optional": false
+    "optional": true
   },
   {
     "id": "baking-2",
@@ -1544,6 +1544,26 @@ export const BASE_SHOPPING = [
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-3-extra-lentils",
+    "name": "Lentilles sèches",
+    "qty": "500 g",
+    "price": 1.1,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S"
+  },
+  {
+    "id": "rightsize-3-extra-pasta",
+    "name": "Pâtes complètes",
+    "qty": "500 g",
+    "price": 1,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
     "category": "S"
   }
 ];
