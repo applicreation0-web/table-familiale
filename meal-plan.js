@@ -23,7 +23,7 @@ const yassa=MEAL_INGREDIENTS[0].map(x=>({...x,quantity:x.name==='Poulet Hubbard'
 // pendant deux jours. 1,8 kg de filets de cabillaud (180 g crus/portion).
 // Le riz du second jour doit être cuit frais plutôt que conservé deux jours.
 const fishYassa=[
-  ingredient('Cabillaud',1800,'g','Dining Solutions'),
+  ingredient('Cabillaud',1800,'g','JJ Foodservice'),
   ingredient('Riz',1200),
   ingredient('Oignons',1400),
   ingredient('Citron',6,'pièce'),
