@@ -69,11 +69,20 @@ export function ingredientChanges(month){
   return out;
 }
 export function suggestedPurchases(month){
-  return ingredientChanges(month).filter(x=>x.delta>0 && !month.autoPurchases?.[x.id]?.skip).map(x=>({
+  const recipeAdditions=ingredientChanges(month).filter(x=>x.delta>0 && !month.autoPurchases?.[x.id]?.skip).map(x=>({
     ...x,kind:'auto',qty:`${x.quantity} ${x.unit}`,estimate:month.autoPurchases?.[x.id]?.plannedPrice??x.price,
     bought:!!month.autoPurchases?.[x.id]?.bought,
     actual:month.autoPurchases?.[x.id]?.actual??null,
   }));
+  const eggTopups=month.groceries.filter(x=>x.name==='Œufs'&&x.week<4&&x.bought&&
+    isBakingWeek(month,x.week)&&/2 × 12/.test(x.overrideQty??x.qty)&&
+    !/\+ 1 × 6/.test(x.overrideQty??x.qty)).map(x=>{
+      const id='baking-eggs-'+x.week,state=month.autoPurchases?.[id]||{};
+      return {id,week:x.week,kind:'auto',monthOnly:false,supplier:'M&S',name:'Œufs pour gâteaux et muffins — complément',
+        quantity:6,unit:'pièce',qty:'6 œufs',estimate:state.plannedPrice??2.60,
+        bought:!!state.bought,actual:state.actual??null,skip:!!state.skip};
+    }).filter(x=>!x.skip);
+  return [...recipeAdditions,...eggTopups];
 }
 // Les produits de pâtisserie ne sont prévus que si la semaine concernée est activée.
 // Les articles déjà achetés ne sont jamais effacés lorsque l'option est désactivée.
