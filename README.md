@@ -100,3 +100,11 @@ La pâtisserie n'est plus supposée hebdomadaire : sans pâtisserie, panier de *
 Comparaison de prix : le lait Yeo Valley 2 L reste valorisé à 3,15 £ dans le budget ; des offres identiques moins chères peuvent être vérifiées auprès d'autres enseignes. Aucun prix promotionnel temporaire n'est supposé permanent.
 
 Les anciennes sauvegardes v2 et v3 sont reconnues et migrées en v4, avec conservation des reçus, des menus déjà cuisinés, des achats payés et des modifications manuelles ; les écarts de conditionnement pour les achats déjà enregistrés donnent lieu à une alerte de réconciliation.
+
+### Circuit Android officiel (signature privée)
+
+Le workflow **.github/workflows/android-release-private.yml** construit, signe et vérifie un APK stable pour les mises à jour successives, avec empreinte SHA-256. Il doit être déclenché manuellement par GitHub Actions sur une branche officielle vérifiée ; aucune signature automatique de débogage ne doit être appelée « officielle ».
+
+Avant son premier lancement, configurer les quatre secrets GitHub Actions du dépôt : `TABLE_FAMILIALE_KEYSTORE_BASE64` (clé JKS de Table Familiale encodée en base64), `TABLE_FAMILIALE_STORE_PASSWORD`, `TABLE_FAMILIALE_KEY_ALIAS`, `TABLE_FAMILIALE_KEY_PASSWORD`. **Sauvegarder hors ligne le keystore initial** : une clé différente empêcherait une mise à jour sans désinstallation. Ne jamais committer, publier, journaliser ou envoyer la clé ni les mots de passe en clair.
+
+La release Android privée n'est pas considérée comme publiée tant que le workflow n'a pas terminé avec succès sur la branche officielle et produit l'artefact `table-familiale-android-officiel`. L'APK de débogage reste un canal de test distinct.
