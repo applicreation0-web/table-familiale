@@ -4,7 +4,7 @@ import { FAMILY_PLAN } from './meal-plan.js';
 export { BREAKFASTS };
 export const HARD_CEILING = 900;
 export const SUPPLIERS = ['M&S', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Épicerie africaine', 'Autre'];
-export const KIND_NAMES = {P:'Poulet Hubbard',T:'Cuisses halal',F:'Cabillaud',K:'Maquereau',L:'Agneau',V:'Végétarien'};
+export const KIND_NAMES = {P:'Poulet Hubbard',T:'Cuisses halal',F:'Cabillaud',S:'Saumon frais',G:'Saumon fumé',K:'Maquereau',L:'Agneau',V:'Végétarien'};
 export const START_DATE = new Date(2026,10,20,12);
 const eurosafe = n => Math.round(n * 100) / 100;
 export const money = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(n);
@@ -33,7 +33,7 @@ export function makeMonth(index=0){
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
   return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:6, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:7, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -58,7 +58,8 @@ export function ingredientChanges(month){
   // Ne remplace jamais silencieusement une quantité d'achat en conditionnement.
   const weekCount=Math.ceil(month.meals.length/7), out=[];
   for(let w=0;w<weekCount;w++){
-    const original=month.meals.slice(w*7,w*7+7).flatMap((_,offset)=>FAMILY_PLAN[(w*7+offset)%31].ingredients);
+    const original=month.meals.slice(w*7,w*7+7).flatMap((meal,offset)=>
+      meal.cooked?meal.ingredients:FAMILY_PLAN[(w*7+offset)%31].ingredients);
     const current=month.meals.slice(w*7,w*7+7).flatMap(x=>x.ingredients||[]);
     const src=aggregate(original),dst=aggregate(current);
     for(const k of new Set([...src.keys(),...dst.keys()])){
@@ -304,7 +305,8 @@ function migrateOptimisedBasket(month,index){
     // Les identifiants inconnus sont des créations personnelles : ne jamais
     // les effacer sous prétexte qu'ils ne figurent plus au panier de référence.
     const builtIn=/^(?:base-[0-9]+-[0-9]+|month-[0-9]+|rightsize-[0-9]+-[0-9]+|baking-[0-9]+)$/.test(item.id)||
-      item.id==='yassa-poisson-moutarde';
+      item.id==='yassa-poisson-moutarde'||item.id.startsWith('ms-fresh-salmon-week-')||
+      item.id==='ms-smoked-salmon-week-3';
     if(item.bought||item.overrideQty!=null||item.overridePrice!=null||
        item.inStock||!builtIn)next.push(item);
   }
@@ -376,8 +378,46 @@ function migrateStrictBudget(month,index){
    Number.isFinite(previous)&&previous>0?Math.min(previous,HARD_CEILING):HARD_CEILING;
  return month;
 }
+
+// Mise à jour v6 -> v7 : le yassa conserve un seul carton de cabillaud Dining,
+// les trois repas isolés passent au saumon frais M&S et un au saumon fumé.
+// Préserver absolument les repas cochés, les recettes personnelles et les reçus.
+function migrateSalmonPlan(month,index){
+ const fresh=makeMonth(index);
+ for(const [day,source] of [[2,2],[7,7],[14,17],[22,22]]){
+   const previous=month.meals[day],reference=fresh.meals[day];
+   if(!previous||!reference||previous.cooked||previous.name!==BASE_MENU[source].name||
+      previous.kind!=='F')continue;
+   const legacy=MEAL_INGREDIENTS[source].map(item=>item.name==='Cabillaud'?
+     {...item,supplier:'JJ Foodservice'}:item);
+   const sameLegacy=JSON.stringify(previous.ingredients)===JSON.stringify(legacy)||
+      JSON.stringify(previous.ingredients)===JSON.stringify(MEAL_INGREDIENTS[source]);
+   if(sameLegacy)
+     month.meals[day]={...previous,...clone(reference),id:previous.id};
+ }
+ const a=month.meals[24],b=month.meals[25],updated=fresh.meals[24];
+ if(a&&b&&!a.cooked&&!b.cooked&&a.name===updated.name&&a.kind==='F'&&
+    b.batchRole==='reheat'&&b.name===a.name){
+   const classic=FAMILY_PLAN[24].ingredients.map(i=>i.name==='Cabillaud'?
+     {...i,supplier:'JJ Foodservice'}:i);
+   if(JSON.stringify(a.ingredients)===JSON.stringify(classic)||
+      JSON.stringify(a.ingredients)===JSON.stringify(updated.ingredients)){
+     month.meals[24]={...a,...clone(updated),id:a.id};
+     month.meals[25]={...b,...clone(fresh.meals[25]),id:b.id};
+   }
+ }
+ const paidOldCod=month.groceries.some(x=>x.id==='month-4'&&x.bought&&
+   x.supplier==='JJ Foodservice');
+ migrateOptimisedBasket(month,index);
+ if(paidOldCod){
+   month.reconcileWarnings??=[];
+   month.reconcileWarnings.push({name:'Cabillaud JJ déjà acheté : utiliser le stock et replanifier les achats de saumon M&S, ne pas racheter automatiquement'});
+ }
+ month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
+ return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4,5,6].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6,7].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -402,6 +442,11 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))
       raw.months[key]=migrateStrictBudget({...month,index:Number(key)},Number(key));
     raw.version=6;
+  }
+  if(raw.version===6){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateSalmonPlan({...month,index:Number(key)},Number(key));
+    raw.version=7;
   }
   for(const month of Object.values(raw.months)){
     month.bakingWeeks??={};

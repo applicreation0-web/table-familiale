@@ -1289,16 +1289,16 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "month-4",
-    "name": "Dos de cabillaud sauvage Atlantique MSC IQF (JJ Foodservice, livraison à confirmer)",
-    "qty": "3 cartons × 10 dos (5,67 kg net) · livraison incluse",
-    "price": 112.97,
-    "supplier": "JJ Foodservice",
+    "name": "Dos de cabillaud Atlantique Dining Solutions (1 carton)",
+    "qty": "1 carton de 1,8 kg (pour 10 portions de yassa poisson)",
+    "price": 64.97,
+    "supplier": "Dining Solutions",
     "purchase": "monthly",
     "week": -1,
     "category": "D",
     "priceStatus": "provisional",
-    "priceDetails": "FSH452 : 3 × £35.99 livraison = £107.97, plus £5 frais sous £129; vérifier zone et panier avant achat",
-    "sourceUrl": "https://www.jjfoodservice.com/product/england/FSH452/"
+    "priceDetails": "Tarif fournisseur 64,97 £ ; livraison annoncée gratuite au-delà de 50 £, à vérifier",
+    "sourceUrl": "https://diningsolutionsdirect.com/collections/seafood"
   },
   {
     "id": "month-5",
@@ -1558,6 +1558,54 @@ export const BASE_SHOPPING = [
     "purchase": "weekly",
     "week": 3,
     "category": "S"
+  },
+  {
+    "id": "ms-fresh-salmon-week-0",
+    "name": "M&S 4 Scottish Salmon Fillets Skin On (frais, à portionner/congeler)",
+    "qty": "2 paquets × 520 g = 8 filets ; 5 pour le repas, congeler 3",
+    "price": 20.5,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 0,
+    "category": "D",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-4-scottish-salmon-fillets-skin-on/505278011"
+  },
+  {
+    "id": "ms-fresh-salmon-week-1",
+    "name": "M&S 4 Scottish Salmon Fillets Skin On (frais)",
+    "qty": "1 paquet × 520 g = 4 filets ; 2 utilisés avec 3 congelés",
+    "price": 10.25,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 1,
+    "category": "D",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-4-scottish-salmon-fillets-skin-on/505278011"
+  },
+  {
+    "id": "ms-fresh-salmon-week-2",
+    "name": "M&S 4 Scottish Salmon Fillets Skin On (frais)",
+    "qty": "1 paquet × 520 g = 4 filets ; 3 utilisés avec 2 congelés, 1 restant",
+    "price": 10.25,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 2,
+    "category": "D",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-4-scottish-salmon-fillets-skin-on/505278011"
+  },
+  {
+    "id": "ms-smoked-salmon-week-3",
+    "name": "M&S Scottish Oak Smoked Salmon Slices (fines tranches)",
+    "qty": "2 paquets × 100 g (200 g) + œufs et boulgour",
+    "price": 10,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "D",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-scottish-oak-smoked-salmon-slices/505092011"
   }
 ];
 
