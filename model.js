@@ -30,7 +30,7 @@ export function makeMonth(index=0){
       cooked:false,cookedAt:null};
   });
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
-  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
+  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
 export function newState(){return {version:3, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
@@ -75,15 +75,55 @@ export function suggestedPurchases(month){
     actual:month.autoPurchases?.[x.id]?.actual??null,
   }));
 }
+// Les produits de pâtisserie ne sont prévus que si la semaine concernée est activée.
+// Les articles déjà achetés ne sont jamais effacés lorsque l'option est désactivée.
+export function isBakingWeek(month,week){return !!month.bakingWeeks?.[week];}
+function plannedGrocery(month,item){
+  if(item.hidden)return null;
+  if(item.optional&&!item.bought){
+    const staple=item.week===0&&/Sucre pour gâteaux|Levure chimique|Extrait de vanille/.test(item.name);
+    const enabled=staple?Object.values(month.bakingWeeks||{}).some(Boolean):isBakingWeek(month,item.week);
+    if(!enabled)return null;
+  }
+  const planned={...item,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.price};
+  if(item.name==='Œufs'&&item.week<4&&!item.bought&&!item.overrideQty){
+    planned.qty=isBakingWeek(month,item.week)?'2 × 12 + 1 × 6 (30 œufs)':'2 × 12 (24 œufs)';
+    if(item.overridePrice==null)planned.estimate=isBakingWeek(month,item.week)?11.40:8.80;
+    planned.dynamicEggs=true;
+  }
+  return planned;
+}
 export function shoppingEntries(month,week,monthly=false){
-  const base=month.groceries.filter(x=>!x.hidden&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week)).map(x=>({...x,kind:'base',estimate:x.overridePrice??x.price,qty:x.overrideQty??x.qty}));
-  const manual=(month.manualItems||[]).filter(x=>!x.hidden&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week)).map(x=>({...x,kind:'manual',estimate:x.price}));
+  const base=month.groceries.filter(x=>monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week)
+    .map(x=>plannedGrocery(month,x)).filter(Boolean);
+  const manual=(month.manualItems||[]).filter(x=>!x.hidden&&(monthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===week))
+    .map(x=>({...x,kind:'manual',estimate:x.price}));
   const auto=suggestedPurchases(month).filter(x=>monthly?x.monthOnly:!x.monthOnly&&x.week===week);
   return [...base,...manual,...auto];
 }
 export function allShoppingEntries(month){
-  return [...month.groceries.filter(x=>!x.hidden).map(x=>({...x,kind:'base',estimate:x.overridePrice??x.price})),
+  return [...month.groceries.map(x=>plannedGrocery(month,x)).filter(Boolean),
     ...(month.manualItems||[]).filter(x=>!x.hidden).map(x=>({...x,kind:'manual',estimate:x.price})),...suggestedPurchases(month)];
+}
+export function setBakingWeek(month,week,enabled){
+  if(!Number.isInteger(week)||week<0||week>=Math.ceil(month.meals.length/7))throw new Error('Semaine invalide');
+  month.bakingWeeks??={};
+  month.bakingWeeks[week]=!!enabled;
+  return month;
+}
+export function markInStock(month,item,stock=true){
+  if(item.kind==='auto'){
+    if(item.bought)throw new Error('Achat déjà enregistré');
+    month.autoPurchases[item.id]={...month.autoPurchases[item.id],skip:!!stock};
+    return month;
+  }
+  const list=item.kind==='manual'?month.manualItems:month.groceries;
+  const found=list.find(x=>x.id===item.id);
+  if(!found)throw new Error('Produit introuvable');
+  if(found.bought)throw new Error('Achat déjà enregistré');
+  found.hidden=!!stock;
+  found.inStock=!!stock;
+  return month;
 }
 export function finance(month){
   const items=allShoppingEntries(month);
@@ -180,6 +220,8 @@ export function markBought(month,item,checked,actual){
     const list=item.kind==='manual'?month.manualItems:month.groceries;
     const found=list.find(x=>x.id===item.id);
     if(!found)throw Error('Produit introuvable');
+    if(checked&&item.dynamicEggs){found.bakingLocked=true;found.overrideQty=item.qty;found.overridePrice=item.estimate;}
+    if(!checked&&found.bakingLocked){found.overrideQty=null;found.overridePrice=null;found.bakingLocked=false;}
     found.bought=checked;found.actual=checked?cents:null;
   }
   return month;
@@ -234,5 +276,6 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))raw.months[key]=migrateLegacyMonth({...month,index:Number(key)});
     raw.version=3;
   }
+  for(const month of Object.values(raw.months))month.bakingWeeks??={};
   return raw;
 }
