@@ -507,7 +507,7 @@ test('Stress budget : les frais réels et les ajouts déclenchent un dépassemen
  assert.equal(f.forecastHeadroom,-4.07);
  const item=shoppingEntries(m,1,false).find(x=>x.id==='quiche-salmon-fresh-week1');
  markBought(m,item,true,11.25);
- assert.equal(finance(m).paid,11.25+7.49);
+ assert.equal(finance(m).paid,18.74);
  assert.equal(finance(m).forecast,905.07);
 });
 
