@@ -9,7 +9,7 @@ function single(source,custom={}){
   const dish=BASE_MENU[source];
   return {name:custom.name||dish.name,kind:custom.kind||dish.kind,
     ingredients:copy(custom.ingredients||MEAL_INGREDIENTS[source]),
-    african:false,batchRole:null,servings:null,mealsPerDay:null};
+    african:false,batchRole:null,servings:5,mealsPerDay:1};
 }
 // Quatre paquets de quatre filets M&S sont portionnés pour trois services de
 // cinq personnes. Le 16e filet reste en réserve au congélateur.
