@@ -224,8 +224,11 @@ export function validateImport(raw){
   if(!raw||![2,3].includes(raw.version)||!raw.months||typeof raw.months!=='object')throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||!Array.isArray(month.manualItems)||!Array.isArray(month.extraExpenses))throw Error('Structure incorrecte');
-    if(raw.version===2)migrateLegacyMonth({...month,index:Number(key)});
+    // Validation sans modifier les données avant la migration.
   }
-  if(raw.version===2){for(const [key,month] of Object.entries(raw.months))raw.months[key]=migrateLegacyMonth({...month,index:Number(key)});raw.version=3;}
+  if(raw.version===2){
+    for(const [key,month] of Object.entries(raw.months))raw.months[key]=migrateLegacyMonth({...month,index:Number(key)});
+    raw.version=3;
+  }
   return raw;
 }
