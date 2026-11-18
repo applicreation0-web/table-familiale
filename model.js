@@ -32,7 +32,7 @@ export function makeMonth(index=0){
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
   return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:3, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:4, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -185,14 +185,7 @@ export function swapDishes(month,a,b){
   if(A.start<A.start+A.len&&B.start<A.start+A.len&&B.start>=A.start||
      A.start<B.start+B.len&&A.start>=B.start)throw new Error('Les journées se chevauchent.');
   // Une préparation de deux jours peut échanger avec deux jours simples consécutifs.
-  const aLen=A.len,bLen=B.len;
-  if(aLen!==bLen){
-    const single=aLen===1?A:B, pair=aLen===2?A:B;
-    if(single.start+1>=month.meals.length||single.start<=pair.start+1&&single.start+1>=pair.start)
-      throw new Error('Choisissez deux journées consécutives libres.');
-    if(month.meals[single.start+1].batchRole)throw new Error('Choisissez deux journées simples consécutives.');
-    single.len=2;
-  }
+  if(A.len!==B.len)throw new Error('Échangez deux préparations de même durée (1 jour ou 2 jours).');
   const touched=[...new Set([...Array(A.len)].map((_,j)=>A.start+j).concat([...Array(B.len)].map((_,j)=>B.start+j)))];
   if(touched.some(i=>month.meals[i]?.cooked))throw new Error('Un repas déjà cuisiné ne peut pas être déplacé.');
   const old=touched.map(i=>[i,clone(month.meals[i])]);
@@ -224,7 +217,7 @@ export function toggleCooked(month,index){
 export function markBought(month,item,checked,actual){
   const cents=actual==null?null:Math.round(Number(actual)*100)/100;
   if(checked&&(!Number.isFinite(cents)||cents<0))throw Error('Prix réel requis (0 possible).');
-  if(item.kind==='auto')month.autoPurchases[item.id]={bought:checked,actual:checked?cents:null,at:new Date().toISOString()};
+  if(item.kind==='auto')month.autoPurchases[item.id]={...month.autoPurchases[item.id],bought:checked,actual:checked?cents:null,at:new Date().toISOString()};
   else {
     const list=item.kind==='manual'?month.manualItems:month.groceries;
     const found=list.find(x=>x.id===item.id);
@@ -275,16 +268,57 @@ function migrateLegacyMonth(month){
   month.manualItems=[...(month.manualItems||[]),...extras];
   return month;
 }
+// La mise à jour des listes ne doit jamais convertir un achat ancien en quantité
+// nouvelle supposément achetée. Les montants payés restent immuables.
+function migrateOptimisedBasket(month,index){
+  const fresh=makeMonth(index);
+  const old=new Map(month.groceries.map(x=>[x.id,x]));
+  const next=[];
+  const conflicts=[];
+  for(const item of fresh.groceries){
+    const previous=old.get(item.id);
+    if(previous){
+      old.delete(item.id);
+      const custom=previous.hidden||previous.inStock||previous.overrideQty!=null||previous.overridePrice!=null;
+      if(previous.bought||custom){
+        next.push(previous);
+        if(previous.bought&&previous.qty!==item.qty)
+          conflicts.push({name:previous.name,oldQty:previous.qty,newQty:item.qty});
+        continue;
+      }
+    }
+    next.push(item);
+  }
+  // Retenir tous les achats payés et toute modification personnelle même si le
+  // produit n'est plus dans le panier théorique.
+  for(const item of old.values())
+    if(item.bought||item.overrideQty!=null||item.overridePrice!=null||item.inStock)
+      next.push(item);
+  month.groceries=next;
+  month.bakingWeeks??={};
+  month.reconcileWarnings=[...(month.reconcileWarnings||[]),...conflicts];
+  return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3].includes(raw.version)||!raw.months||typeof raw.months!=='object')throw Error('Sauvegarde non reconnue');
+  if(!raw||![2,3,4].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+    throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
-    if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||!Array.isArray(month.manualItems)||!Array.isArray(month.extraExpenses))throw Error('Structure incorrecte');
-    // Validation sans modifier les données avant la migration.
+    if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
+      !Array.isArray(month.manualItems)||!Array.isArray(month.extraExpenses))
+      throw Error('Structure incorrecte');
   }
   if(raw.version===2){
-    for(const [key,month] of Object.entries(raw.months))raw.months[key]=migrateLegacyMonth({...month,index:Number(key)});
-    raw.version=3;
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateLegacyMonth({...month,index:Number(key)});
   }
-  for(const month of Object.values(raw.months))month.bakingWeeks??={};
+  if(raw.version<=3){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateOptimisedBasket({...month,index:Number(key)},Number(key));
+    raw.version=4;
+  }
+  for(const month of Object.values(raw.months)){
+    month.bakingWeeks??={};
+    month.reconcileWarnings??=[];
+  }
   return raw;
 }
