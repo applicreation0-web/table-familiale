@@ -1,0 +1,285 @@
+import {BASE_MENU, BASE_SHOPPING} from './data.js';
+import {MEAL_INGREDIENTS} from './recipes.js';
+import {
+ BREAKFASTS, SUPPLIERS, KIND_NAMES, money, period, periodDays, dateISO, clone,
+ makeMonth, newState, ingredientChanges, suggestedPurchases, shoppingEntries,
+ allShoppingEntries, finance, saveDish, swapDishes, markBought, validateImport
+} from './model.js';
+
+const STORAGE='table-familiale-github-v2';
+const root=document.getElementById('app');
+const dialog=document.getElementById('editor');
+const toastEl=document.getElementById('toast');
+let state;
+try{state=validateImport(JSON.parse(localStorage.getItem(STORAGE)))}catch{state=newState()}
+let activeTab='menus', selectedWeek=0, shopMode='week', search='', draft=null, modalType=null, toastTimeout=null;
+const icon=(name,size=18)=>{
+ const icons={
+   calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+   basket:'<path d="M3 10h18l-2 10H5L3 10ZM8 10l4-7 4 7"/>',
+   wallet:'<rect x="3" y="6" width="18" height="15" rx="2"/><path d="M3 10h18M16 14h2"/>',
+   chef:'<path d="M7 20v-6a4 4 0 0 1 0-8 5 5 0 0 1 10 0 4 4 0 0 1 0 8v6H7ZM7 17h10"/>',
+   check:'<path d="m5 12 4 4L19 6"/>',
+   swap:'<path d="m7 7-4 4 4 4M3 11h15M17 17l4-4-4-4M21 13H6"/>',
+   pen:'<path d="m4 20 4-1 12-12-3-3L5 16l-1 4ZM15 6l3 3"/>',
+   plus:'<path d="M12 5v14M5 12h14"/>',
+   left:'<path d="m15 18-6-6 6-6"/>',right:'<path d="m9 18 6-6-6-6"/>',
+   leaf:'<path d="M4 20c1-9 6-16 17-17-1 11-8 17-17 17Zm0 0c5-6 10-10 16-13"/>',
+   fish:'<path d="M21 12c-4 5-10 7-16 0 6-7 12-5 16 0ZM5 12 2 7v10l3-5Z"/><circle cx="16" cy="11" r=".6" fill="currentColor" stroke="none"/>',
+   alert:'<path d="m12 3 10 18H2L12 3ZM12 9v5M12 17h.01"/>',
+   download:'<path d="M12 3v13m-5-5 5 5 5-5M4 19h16"/>',
+   upload:'<path d="M12 21V8m-5 5 5-5 5 5M4 5h16"/>',
+   close:'<path d="M5 5 19 19M19 5 5 19"/>',
+   archive:'<path d="M3 4h18v5H3zM5 9v11h14V9M9 13h6"/>',
+   trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v8M14 10v8"/>',
+   cart:'<circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M2 3h2l3 13h12l2-9H6"/>',
+   eye:'<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/>'
+ };
+ return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.check}</svg>`;
+};
+const esc=(v='')=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+const fmt=d=>d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+const long=d=>d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+function getMonth(){
+ const key=String(state.selectedPeriod);
+ if(!state.months[key])state.months[key]=makeMonth(state.selectedPeriod);
+ return state.months[key];
+}
+function persist(){localStorage.setItem(STORAGE,JSON.stringify(state));}
+function save(){persist();render();}
+function flash(msg,type='ok'){
+ toastEl.className=type==='error'?'shown danger':'shown';toastEl.textContent=msg;
+ clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>toastEl.className='',3600);
+}
+function activeDates(){return periodDays(state.selectedPeriod)}
+function weeks(){return Math.ceil(getMonth().meals.length/7)}
+function groupBySupplier(entries){
+ const m=new Map();
+ for(const e of entries){const group=m.get(e.supplier)||[];group.push(e);m.set(e.supplier,group)}
+ return [...m];
+}
+function render(){
+ const month=getMonth(), f=finance(month),days=activeDates(),dates=period(state.selectedPeriod);
+ if(selectedWeek>=weeks())selectedWeek=weeks()-1;
+ const n=month.meals.length, countProtein=month.meals.filter(m=>m.kind!=='V').length;
+ document.title='Table Familiale · '+dates.start.toLocaleDateString('fr-FR',{month:'short',year:'numeric'});
+ root.innerHTML=`<div class="topbar"><div class="brand"><span class="brand-icon">${icon('chef',20)}</span><strong>TABLE FAMILIALE</strong></div><span class="top-family">5 personnes · repas halal</span></div>
+ <main class="app">
+ <header class="intro"><div class="intro-copy"><span class="overline">CARNET DE MENUS & COURSES</span><h1>Le plaisir de <em>bien s'organiser.</em></h1><p>Les repas de toute la famille, les courses de la semaine et le budget maîtrisé.</p></div>
+ <div class="period-switch"><button class="icon-button" data-action="previous-period" ${state.selectedPeriod===0?'disabled':''} aria-label="Mois précédent">${icon('left')}</button><span><small>Période suivie</small><b>${fmt(dates.start)} — ${fmt(dates.end)} ${dates.end.getFullYear()}</b></span><button class="icon-button" data-action="next-period" aria-label="Mois suivant">${icon('right')}</button></div></header>
+ <section class="summary-grid" aria-label="Budget et progression"><div class="budget-card"><div class="budget-heading"><span>${icon('wallet',18)} Budget mensuel</span><span class="budget-pill">Plafond ${money(month.budget)}</span></div><div class="budget-number">${money(f.paid)} <small>dépensés</small></div><div class="track"><div style="width:${Math.min(100,100*f.paid/month.budget)}%"></div></div><div class="budget-bottom"><span>Prévision <b>${money(f.forecast)}</b></span><span class="${f.forecastHeadroom<0?'budget-warning':'budget-safe'}">${f.forecastHeadroom<0?'Dépassement':'Marge'} <b>${money(Math.abs(f.forecastHeadroom))}</b></span></div></div>
+ <div class="stat"><div class="stat-icon">${icon('chef',22)}</div><strong>${f.cooked}<small> / ${n}</small></strong><span>journées cuisinées</span></div>
+ <div class="stat"><div class="stat-icon">${icon('basket',22)}</div><strong>${f.bought}<small> / ${f.total}</small></strong><span>courses enregistrées</span></div></section>
+ <div class="meta"><span>${icon('fish',16)} ${countProtein} jours viande ou poisson</span><span>${icon('leaf',16)} ${n-countProtein} journées végétariennes</span><span>Déjeuner = dîner</span></div>
+ ${f.unknownCount?`<div class="banner caution">${icon('alert')} <span>${f.unknownCount} produit(s) ajouté(s) sans prix : la prévision du budget est incomplète. Renseigne leur prix dans « Courses ».</span></div>`:''}
+ <nav class="tabs" aria-label="Sections">${[['menus','calendar','Menus'],['courses','basket','Courses'],['depenses','wallet','Dépenses'],['suivi','archive','Suivi']].map(([id,ico,label])=>`<button class="tab ${activeTab===id?'active':''}" data-action="tab" data-tab="${id}" aria-current="${activeTab===id?'page':'false'}">${icon(ico,18)}<span>${label}</span></button>`).join('')}</nav>
+ <div id="screen">${activeTab==='menus'?renderMenus(month,days):activeTab==='courses'?renderCourses(month):activeTab==='depenses'?renderFinance(month,f):renderHistory(month,f)}</div>
+ <footer>Table Familiale · Prix M&S indicatifs · Pour les enfants : noix finement moulues · Données conservées localement dans ce navigateur</footer>
+ </main>`;
+}
+function weekHeader(month,months=false){
+ const dayFrom=selectedWeek*7, dayTo=Math.min(month.meals.length-1,dayFrom+6),dates=activeDates();
+ return `<div class="week-bar"><button class="icon-button outline" data-action="previous-week" ${selectedWeek===0?'disabled':''} aria-label="Semaine précédente">${icon('left')}</button><span><b>Semaine ${selectedWeek+1} · ${fmt(dates[dayFrom])} – ${fmt(dates[dayTo])}</b><small>${months?'Courses fraîches et épicerie M&S':`${month.meals.slice(dayFrom,dayTo+1).filter(x=>x.cooked).length} / ${dayTo-dayFrom+1} journées préparées`}</small></span><button class="icon-button outline" data-action="next-week" ${selectedWeek>=weeks()-1?'disabled':''} aria-label="Semaine suivante">${icon('right')}</button></div>`;
+}
+function renderMenus(month,dates){
+ const from=selectedWeek*7, meals=month.meals.slice(from,from+7);
+ return `<div class="section-title"><div><span class="overline">MENU PROPOSÉ</span><h2>Les plats de la semaine</h2><p>Un plat par jour, cuisiné pour le midi et le soir.</p></div><button class="button outline" data-action="goto-shopping">${icon('basket',17)} Liste M&S</button></div>
+ ${weekHeader(month)}<div class="meal-grid">${meals.map((dish,i)=>{
+ const j=from+i, date=dates[j],kind=dish.kind==='V'?'green':'protein';return `<article class="meal-card ${dish.cooked?'is-cooked':''}"><div class="day"><strong>${date.getDate()}</strong><small>${date.toLocaleDateString('fr-FR',{weekday:'short',month:'short'})}</small></div>
+ <div class="meal-main"><div class="tags"><span class="tag ${kind}">${esc(KIND_NAMES[dish.kind]||'Plat')}</span>${dish.cooked?'<span class="tag cooked">✓ Cuisiné</span>':''}</div><h3>${esc(dish.name)}</h3><p><b>Petit-déjeuner :</b> ${esc(BREAKFASTS[j%3])}</p><small class="meal-note">${dish.ingredients.length} ingrédients · Midi et soir</small></div>
+ <div class="meal-buttons"><button class="button mini ${dish.cooked?'light':'outline'}" data-action="cook" data-index="${j}">${dish.cooked?'✓ Fait':icon('chef',15)+' Cuisiné'}</button><button class="icon-button" title="Modifier le plat et ses ingrédients" data-action="edit-meal" data-index="${j}">${icon('pen',18)}</button><button class="icon-button" title="Échanger deux dates" data-action="swap-meal" data-index="${j}">${icon('swap',18)}</button></div>
+ </article>`}).join('')}</div>
+ <div class="tip"><span>${icon('basket',20)} Un ingrédient ajouté à un plat apparaît dans les courses à prévoir.</span><button class="button primary" data-action="goto-shopping">Voir les courses ${icon('right',15)}</button></div>`;
+}
+function renderShopItem(item){
+ const name=esc(item.name),kind=item.kind;
+ const estimate=item.estimate;
+ const planned=estimate==null?`<span class="unknown">Prix manquant</span>`:money(Number(estimate));
+ const bought=!!item.bought;
+ const priceInput=bought?`<label class="actual-entry"><span>Payé (£)</span><input type="number" step="0.01" min="0" value="${Number(item.actual??estimate??0)}" data-action="actual-change" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Prix payé ${name}"/></label>`:kind==='auto'&&estimate==null?`<label class="actual-entry"><span>Prévision (£)</span><input type="number" step="0.01" min="0" placeholder="À saisir" data-action="auto-estimate" data-id="${esc(item.id)}" aria-label="Prix prévu ${name}" /></label>`:`<b class="listed-price">${planned}</b>`;
+ const actions=kind==='auto'?`<button class="icon-button tiny" data-action="skip-auto" data-id="${esc(item.id)}" title="Déjà dans mes placards : ignorer l'achat">${icon('close',15)}</button>`:!bought?`<button class="icon-button tiny" data-action="edit-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Modifier ${name}">${icon('pen',14)}</button><button class="icon-button tiny" data-action="hide-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Retirer ${name}">${icon('close',14)}</button>`:'';
+ return `<div class="product ${bought?'checked':''}"><input type="checkbox" class="shop-check" ${bought?'checked':''} data-action="check-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Acheter ${name}"/><div class="product-description"><strong>${name}${kind==='auto'?' <span class="auto-tag">Nouveau</span>':''}</strong><small>${esc(item.qty)}${kind==='auto'?' · ajouté suite au menu':''}</small></div><div class="product-right">${priceInput}${actions}</div></div>`;
+}
+function renderCourses(month){
+ const isMonthly=shopMode==='monthly',rows=shoppingEntries(month,selectedWeek,isMonthly);
+ const changes=ingredientChanges(month).filter(x=>isMonthly?x.monthOnly:x.week===selectedWeek&&!x.monthOnly);
+ const cuts=changes.filter(x=>x.delta<0);
+ const hidden=[...month.groceries,...month.manualItems].filter(x=>x.hidden&&(isMonthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===selectedWeek));
+ const skipped=changes.filter(x=>x.delta>0&&month.autoPurchases[x.id]?.skip);
+ const total=rows.reduce((a,x)=>a+Number(x.estimate??0),0), unknown=rows.filter(x=>!x.bought&&x.estimate==null).length;
+ const group=groupBySupplier(rows.filter(x=>!search||x.name.toLowerCase().includes(search.toLowerCase())));
+ return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viande et poisson en début de mois ; M&S chaque semaine.</p></div><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div>
+ <div class="choice-row"><button class="button ${!isMonthly?'primary':'outline'}" data-action="shopping-week">Courses M&S · semaine</button><button class="button ${isMonthly?'primary':'outline'}" data-action="shopping-month">Viande & poisson · mois</button></div>
+ ${isMonthly?`<div class="banner success">${icon('cart',20)} <div><b>Une seule commande au début du mois</b><span>Hubbard, agneau, cuisses halal, cabillaud et maquereau, plus fonio/niébé. Portionner et congeler en respectant les dates.</span></div></div>`:weekHeader(month,true)}
+ ${cuts.length?`<div class="banner caution">${icon('alert')} <div><b>Ingrédients moins nécessaires après modification</b><span>${cuts.map(x=>`${esc(x.name)} (−${x.quantity} ${esc(x.unit)})`).join(' · ')}. Vérifie si tu peux réduire l'achat initial, sans perdre les produits déjà achetés.</span></div></div>`:''}
+ <div class="shopping-tools"><input id="search-products" placeholder="Rechercher un ingrédient..." value="${esc(search)}" aria-label="Rechercher un ingrédient"/><span>${rows.filter(x=>x.bought).length}/${rows.length} achetés</span></div>
+ ${group.length?group.map(([shop,list])=>`<section class="shop-panel"><header><strong>${esc(shop)}</strong><span>${money(list.reduce((s,i)=>s+Number(i.estimate??0),0))} prévus</span></header><div class="product-list">${list.map(renderShopItem).join('')}</div></section>`).join(''):`<div class="empty">Aucun produit correspondant.</div>`}
+ ${hidden.length||skipped.length?`<details class="dismissed"><summary>Produits écartés (${hidden.length+skipped.length}) — rétablir</summary>${hidden.map(x=>`<div><span>${esc(x.name)} · ${esc(x.qty)}</span><button class="button outline small" data-action="restore-product" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}${skipped.map(x=>`<div><span>${esc(x.name)} · ${x.quantity} ${esc(x.unit)}</span><button class="button outline small" data-action="restore-auto" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}</details>`:''}
+ <div class="shop-bottom"><span>Les prix sont modifiables après l’achat. Les nouveaux ingrédients sans prix rendent la prévision incomplète.</span><b>Panier affiché : ${money(total)}${unknown?' + '+unknown+' prix à renseigner':''}</b></div>`;
+}
+function renderFinance(month,f){
+ const groups=new Map();
+ for(const item of allShoppingEntries(month)){
+  const g=groups.get(item.supplier)||{estimate:0,paid:0};g.estimate+=Number(item.estimate??0);if(item.bought)g.paid+=Number(item.actual??item.estimate??0);groups.set(item.supplier,g);
+ }
+ for(const extra of month.extraExpenses){const g=groups.get(extra.supplier)||{estimate:0,paid:0};g.paid+=Number(extra.amount);groups.set(extra.supplier,g)}
+ return `<div class="section-title"><div><span class="overline">LES CHIFFRES DU MOIS</span><h2>Dépenses réelles</h2><p>Achats prévus et montants effectivement payés, par magasin.</p></div><button class="button primary" data-action="add-expense">${icon('plus',16)} Dépense</button></div>
+ <div class="finance-grid"><div class="finance-cell"><small>Budget plafond</small><strong>${money(month.budget)}</strong></div><div class="finance-cell"><small>Dépensé</small><strong>${money(f.paid)}</strong></div><div class="finance-cell"><small>Encore à acheter</small><strong>${money(f.unpaid)}</strong></div><div class="finance-cell ${f.forecastHeadroom<0?'critical':''}"><small>Marge prévisionnelle</small><strong>${money(f.forecastHeadroom)}</strong></div></div>
+ <div class="budget-adjust"><label for="budget-field">Plafond mensuel (£)</label><input type="number" id="budget-field" min="1" step="1" value="${month.budget}" /><button class="button outline" data-action="update-budget">Modifier</button><small>Objectif initial : 850 £. Les achats non cochés restent des estimations.</small></div>
+ ${f.unknownCount?`<div class="banner caution">${icon('alert')} ${f.unknownCount} article(s) sans prix. La prévision affichée est un minimum, pas un budget garanti.</div>`:''}
+ <h3 class="subheading">Par fournisseur</h3><div class="supplier-grid">${[...groups].map(([shop,g])=>`<div class="supplier-card"><strong>${esc(shop)}</strong><span>${money(g.paid)} payés / ${money(g.estimate)} prévus</span><div class="small-track"><div style="width:${g.estimate?Math.min(100,g.paid/g.estimate*100):0}%"></div></div></div>`).join('')}</div>
+ <h3 class="subheading">Dépenses supplémentaires</h3>${month.extraExpenses.length?`<div class="extra-list">${month.extraExpenses.map(x=>`<div><span><b>${esc(x.label)}</b><small>${esc(x.supplier)} · ${esc(x.date)}</small></span><strong>${money(x.amount)}</strong><button class="icon-button tiny" data-action="delete-expense" data-id="${esc(x.id)}" aria-label="Supprimer la dépense">${icon('trash',15)}</button></div>`).join('')}</div>`:'<div class="empty">Pas de dépenses supplémentaires enregistrées.</div>'}`;
+}
+function renderHistory(month,f){
+ const entries=Object.keys(state.months).sort((a,b)=>Number(a)-Number(b));
+ return `<div class="section-title"><div><span class="overline">HISTORIQUE FAMILIAL</span><h2>Suivi & sauvegardes</h2><p>Conserve tes listes, tes repas et tes dépenses d'une période à l'autre.</p></div></div>
+ <div class="history-grid"><div>${icon('chef',23)}<strong>${f.cooked} / ${f.planned}</strong><small>journées cuisinées</small></div><div>${icon('basket',23)}<strong>${f.bought} / ${f.total}</strong><small>achats cochés</small></div><div>${icon('wallet',23)}<strong>${money(f.paid)}</strong><small>dépensés</small></div></div>
+ <section class="archive"><h3>Périodes disponibles</h3>${entries.map(k=>{const item=state.months[k],rng=period(Number(k)),amount=finance(item);return `<div class="archive-line"><span><b>${fmt(rng.start)} — ${fmt(rng.end)} ${rng.end.getFullYear()}</b><small>${amount.cooked} plats cuisinés · ${money(amount.paid)} dépensés</small></span><button class="button ${Number(k)===state.selectedPeriod?'light':'outline'}" data-action="open-period" data-index="${k}">${Number(k)===state.selectedPeriod?'En cours':'Ouvrir'}</button></div>`}).join('')}</section>
+ <section class="archive"><h3>Mes données</h3><p>L'application fonctionne sans compte et stocke les données localement sur ton appareil. Pour éviter toute perte, sauvegarde régulièrement un fichier JSON. Tu peux restaurer ce fichier ailleurs.</p><div class="action-line"><button class="button primary" data-action="export">${icon('download',17)} Sauvegarder JSON</button><button class="button outline" data-action="import">${icon('upload',17)} Restaurer JSON</button></div></section>`;
+}
+function selectOptions(values,selected){return values.map(x=>`<option value="${esc(x)}" ${String(x)===String(selected)?'selected':''}>${esc(x)}</option>`).join('')}
+function ingredientFields(){
+ if(!draft)return '';
+ return draft.ingredients.map((i,j)=>`<div class="ingredient-entry" data-ingredient="${j}"><label class="ingredient-n"><span>Ingrédient</span><input data-field="name" value="${esc(i.name)}" placeholder="ex. persil"/></label><label class="ingredient-q"><span>Quantité</span><input data-field="quantity" type="number" min="0.01" step="0.01" value="${i.quantity}" /></label><label class="ingredient-u"><span>Unité</span><select data-field="unit">${selectOptions(['g','kg','ml','L','pièce','boîte','sachet'],i.unit)}</select></label><label class="ingredient-s"><span>Magasin</span><select data-field="supplier">${selectOptions(SUPPLIERS,i.supplier)}</select></label><label class="ingredient-p"><span>Prix prévu (£)</span><input data-field="price" type="number" step="0.01" min="0" placeholder="facultatif" value="${i.price??''}"/></label><button class="icon-button tiny remove-ing" data-action="remove-ingredient" data-index="${j}" title="Enlever cet ingrédient">${icon('close',16)}</button></div>`).join('');
+}
+function readIngredientFields(){
+ const items=[...dialog.querySelectorAll('[data-ingredient]')];
+ if(!draft)return;
+ draft.ingredients=items.map(el=>{
+  const read=name=>el.querySelector(`[data-field="${name}"]`)?.value;
+  return {name:read('name')||'',quantity:Number(read('quantity')||0),unit:read('unit')||'g',supplier:read('supplier')||'M&S',price:read('price')===''?null:Number(read('price'))};
+ });
+ const name=dialog.querySelector('#dish-name')?.value;const kind=dialog.querySelector('#dish-kind')?.value;
+ if(name!=null)draft.name=name;if(kind!=null)draft.kind=kind;
+}
+function openDialog(html){dialog.innerHTML=html;dialog.showModal();dialog.scrollTop=0;}
+function openMeal(index,swap=false){
+ const month=getMonth(),meal=month.meals[index],dates=activeDates();modalType=swap?'swap':'dish';draft={index,name:meal.name,kind:meal.kind,ingredients:clone(meal.ingredients),target:index};
+ if(swap){
+  openDialog(`<div class="dialog-head"><div><span class="overline">RÉORGANISER</span><h2 id="editor-title">Changer le jour du repas</h2><p>${esc(long(dates[index]))} · ${esc(meal.name)}</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
+  <label class="field"><span>Échanger avec</span><select id="target-day">${month.meals.map((d,i)=>`<option value="${i}" ${i===Math.min(index+1,month.meals.length-1)?'selected':''}>${esc(fmt(dates[i]))} · ${esc(d.name)}</option>`).join('')}</select></label><div class="banner caution">${icon('alert')} Un échange entre semaines met à jour la liste des ingrédients à prévoir. Les plats déjà cuisinés sont protégés.</div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-swap">Échanger les jours</button></div>`);
+ }else{
+ openDialog(`<div class="dialog-head"><div><span class="overline">RECETTE MODIFIABLE</span><h2 id="editor-title">Modifier le plat</h2><p>${esc(long(dates[index]))} · midi et soir</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
+ <div class="edit-body"><label class="field"><span>Partir d'une recette du programme</span><select id="template-choice"><option value="custom">Plat actuel / personnalisé</option>${BASE_MENU.map((m,i)=>`<option value="${i}">${esc(m.name)}</option>`).join('')}</select></label>
+ <div class="edit-main"><label class="field"><span>Nom du plat</span><input id="dish-name" value="${esc(draft.name)}" /></label><label class="field"><span>Type</span><select id="dish-kind">${Object.entries(KIND_NAMES).map(([v,n])=>`<option value="${v}" ${v===draft.kind?'selected':''}>${esc(n)}</option>`).join('')}</select></label></div>
+ <div class="ingredient-heading"><h3>Ingrédients du plat</h3><button class="button outline small" data-action="add-ingredient">${icon('plus',15)} Ajouter un ingrédient</button></div><div id="ingredient-rows">${ingredientFields()}</div>
+ <div class="banner caution">${icon('alert')} L'ajout ou la suppression d'un ingrédient modifie les besoins à acheter. Un prix non renseigné déclenche une alerte budget.</div></div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-dish">Enregistrer le plat</button></div>`);
+ }
+}
+function openProduct(item=null){
+ modalType='product';draft={id:item?.id||null,kind:item?.kind||'manual',name:item?.name||'',qty:item?.qty||'',price:item?.estimate??null,supplier:item?.supplier||'M&S',purchase:item?.purchase|| (shopMode==='monthly'?'monthly':'weekly'),week:item?.week??selectedWeek};
+ openDialog(`<div class="dialog-head"><div><span class="overline">LISTE DE COURSES</span><h2 id="editor-title">${item?'Modifier un produit':'Ajouter un ingrédient ou produit'}</h2><p>Produits absents de la liste de base inclus.</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
+ <div class="field-grid"><label class="field"><span>Nom</span><input id="product-name" value="${esc(draft.name)}" placeholder="Ex. coriandre fraîche"/></label><label class="field"><span>Quantité / nombre</span><input id="product-qty" value="${esc(draft.qty)}" placeholder="Ex. 2 bouquets / 500 g" /></label><label class="field"><span>Prix estimé (£)</span><input id="product-price" type="number" step="0.01" min="0" value="${draft.price??''}" placeholder="ex. 2.50" /></label><label class="field"><span>Magasin</span><select id="product-supplier">${selectOptions(SUPPLIERS,draft.supplier)}</select></label><label class="field"><span>À acheter</span><select id="product-purchase"><option value="weekly" ${draft.purchase==='weekly'?'selected':''}>Avec les courses M&S de la semaine</option><option value="monthly" ${draft.purchase==='monthly'?'selected':''}>En début de mois</option></select></label></div>
+ <div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-product">Enregistrer</button></div>`);
+}
+function openExpense(){
+ modalType='expense';openDialog(`<div class="dialog-head"><div><span class="overline">DÉPENSE IMPRÉVUE</span><h2 id="editor-title">Ajouter une dépense</h2><p>Pour les achats hors liste.</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
+ <div class="field-grid"><label class="field"><span>Intitulé</span><input id="expense-label" placeholder="Ex. fruits en supplément" /></label><label class="field"><span>Prix payé (£)</span><input id="expense-amount" type="number" min="0.01" step="0.01" placeholder="0.00" /></label><label class="field"><span>Fournisseur</span><select id="expense-shop">${selectOptions(SUPPLIERS,'M&S')}</select></label><label class="field"><span>Date</span><input id="expense-date" type="date" value="${dateISO(new Date())}" /></label></div>
+ <div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-expense">Ajouter</button></div>`);
+}
+function setAutoEstimate(itemId,cost){
+ const month=getMonth();month.autoPurchases[itemId]={...month.autoPurchases[itemId],plannedPrice:cost};save();
+}
+function onAction(action,btn){
+ const month=getMonth(),id=btn.dataset.id,index=Number(btn.dataset.index);
+ switch(action){
+ case 'tab':activeTab=btn.dataset.tab;search='';render();break;
+ case 'goto-shopping':activeTab='courses';shopMode='week';render();break;
+ case 'next-period':state.selectedPeriod++;selectedWeek=0;activeTab='menus';save();break;
+ case 'previous-period':if(state.selectedPeriod>0){state.selectedPeriod--;selectedWeek=0;activeTab='menus';save()}break;
+ case 'open-period':state.selectedPeriod=index;selectedWeek=0;activeTab='menus';save();break;
+ case 'previous-week':selectedWeek=Math.max(0,selectedWeek-1);render();break;
+ case 'next-week':selectedWeek=Math.min(weeks()-1,selectedWeek+1);render();break;
+ case 'cook':{const m=month.meals[index];m.cooked=!m.cooked;m.cookedAt=m.cooked?new Date().toISOString():null;save();flash(m.cooked?'Plat marqué cuisiné':'Validation retirée');break;}
+ case 'edit-meal':openMeal(index);break;
+ case 'swap-meal':openMeal(index,true);break;
+ case 'shopping-month':shopMode='monthly';search='';render();break;
+ case 'shopping-week':shopMode='week';search='';render();break;
+ case 'add-product':openProduct();break;
+ case 'edit-product':{const item=allShoppingEntries(month).find(x=>x.id===id);if(item)openProduct(item);break;}
+ case 'hide-product':{
+  const group=btn.dataset.kind==='manual'?month.manualItems:month.groceries;
+  const x=group.find(i=>i.id===id);if(x&&!x.bought){x.hidden=true;save();flash('Produit retiré du panier prévisionnel');}break;
+ }
+ case 'skip-auto':month.autoPurchases[id]={...month.autoPurchases[id],skip:true};save();flash('Achat écarté : ingrédient déjà en stock');break;
+ case 'restore-product':{const x=[...month.groceries,...month.manualItems].find(x=>x.id===id);if(x){x.hidden=false;save();flash('Produit rétabli');}break;}
+ case 'restore-auto':month.autoPurchases[id]={...month.autoPurchases[id],skip:false};save();flash('Ingrédient rétabli');break;
+ case 'add-expense':openExpense();break;
+ case 'delete-expense':month.extraExpenses=month.extraExpenses.filter(x=>x.id!==id);save();break;
+ case 'update-budget':{const val=Number(document.querySelector('#budget-field')?.value);if(val>0){month.budget=val;save();}else flash('Saisis un budget positif','error');break;}
+ case 'close-modal':dialog.close();draft=null;break;
+ case 'save-swap':{
+  try{const target=Number(dialog.querySelector('#target-day').value);swapDishes(month,draft.index,target);dialog.close();save();flash('Repas échangés, besoins de courses actualisés');}catch(err){flash(err.message,'error')}break;
+ }
+ case 'add-ingredient':readIngredientFields();draft.ingredients.push({name:'',quantity:100,unit:'g',supplier:'M&S',price:null});dialog.querySelector('#ingredient-rows').innerHTML=ingredientFields();break;
+ case 'remove-ingredient':readIngredientFields();draft.ingredients.splice(index,1);dialog.querySelector('#ingredient-rows').innerHTML=ingredientFields();break;
+ case 'save-dish':{
+   try{readIngredientFields();saveDish(month,draft.index,draft);dialog.close();save();flash('Recette et besoins de courses mis à jour');}catch(err){flash(err.message,'error')}break;
+ }
+ case 'save-product':{
+  const name=dialog.querySelector('#product-name').value.trim(),qty=dialog.querySelector('#product-qty').value.trim(),priceText=dialog.querySelector('#product-price').value;
+  const price=priceText===''?null:Number(priceText),supplier=dialog.querySelector('#product-supplier').value,purchase=dialog.querySelector('#product-purchase').value;
+  if(!name||!qty||price!=null&&(!Number.isFinite(price)||price<0)){flash('Renseigne nom, quantité et un prix valide.','error');break;}
+  if(draft?.id){const list=draft.kind==='base'?month.groceries:month.manualItems;const item=list.find(x=>x.id===draft.id);if(item){item.name=name;item.overrideQty=qty;item.qty=qty;item.overridePrice=price;item.price=price;item.supplier=supplier;item.purchase=purchase;item.week=purchase==='weekly'?selectedWeek:-1;}}
+  else month.manualItems.push({id:'manual-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name,qty,price,supplier,purchase,week:selectedWeek,bought:false,actual:null,hidden:false});
+  dialog.close();save();flash('Produit ajouté à la liste de courses');break;
+ }
+ case 'save-expense':{
+  const label=dialog.querySelector('#expense-label').value.trim(),amount=Number(dialog.querySelector('#expense-amount').value),supplier=dialog.querySelector('#expense-shop').value,date=dialog.querySelector('#expense-date').value;
+  if(!label||!(amount>0)){flash('Intitulé et prix positif requis.','error');break;}
+  month.extraExpenses.push({id:'expense-'+Date.now(),label,amount,supplier,date});dialog.close();save();flash('Dépense enregistrée');break;
+ }
+ case 'export':{
+   const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='table-familiale-sauvegarde-'+dateISO(new Date())+'.json';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);flash('Sauvegarde téléchargée');break;
+ }
+ case 'import':{const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.addEventListener('change',async()=>{try{const file=input.files?.[0];if(!file)return;const raw=validateImport(JSON.parse(await file.text()));state=raw;selectedWeek=0;activeTab='suivi';save();flash('Sauvegarde restaurée');}catch(e){flash('Fichier non compatible : '+e.message,'error')}});input.click();break;}
+ }
+}
+root.addEventListener('click',e=>{
+ const btn=e.target.closest('button[data-action]');if(btn){e.preventDefault();onAction(btn.dataset.action,btn)}
+});
+dialog.addEventListener('click',e=>{
+ if(e.target===dialog){dialog.close();return;}
+ const btn=e.target.closest('button[data-action]');if(btn){e.preventDefault();onAction(btn.dataset.action,btn)}
+});
+dialog.addEventListener('change',e=>{
+ if(e.target.id==='template-choice'&&e.target.value!=='custom'){
+  readIngredientFields();const i=Number(e.target.value);draft.name=BASE_MENU[i].name;draft.kind=BASE_MENU[i].kind;draft.ingredients=clone(MEAL_INGREDIENTS[i]);
+  dialog.querySelector('#dish-name').value=draft.name;dialog.querySelector('#dish-kind').value=draft.kind;dialog.querySelector('#ingredient-rows').innerHTML=ingredientFields();
+ }
+});
+root.addEventListener('change',e=>{
+ const el=e.target;
+ if(el.id==='search-products'){search=el.value;render();return}
+ if(!el.dataset?.action)return;
+ const month=getMonth(),item=allShoppingEntries(month).find(x=>x.id===el.dataset.id);
+ if(el.dataset.action==='check-product'){
+  if(!item)return;
+  try{
+   let cost=item.actual??item.estimate;
+   if(el.checked&&cost==null){const answer=prompt(`Prix payé pour « ${item.name} » en £ ?`);if(answer===null){el.checked=false;return;}cost=Number(answer);}
+   markBought(month,item,el.checked,el.checked?Number(cost):null);save();
+  }catch(err){el.checked=!el.checked;flash(err.message,'error')}
+ }
+ if(el.dataset.action==='actual-change'){
+  if(item){try{markBought(month,item,true,Number(el.value));save();}catch(err){flash(err.message,'error')}}
+ }
+ if(el.dataset.action==='auto-estimate'){
+  const cost=Number(el.value);if(Number.isFinite(cost)&&cost>=0)setAutoEstimate(el.dataset.id,cost);
+ }
+});
+root.addEventListener('input',e=>{
+ if(e.target.id==='search-products'){
+  const cursor=e.target.selectionStart;search=e.target.value;
+  // Ne rerendre que les produits, tout en gardant le curseur du champ de recherche.
+  render();const input=document.getElementById('search-products');if(input){input.focus();input.setSelectionRange(cursor,cursor)}
+ }
+});
+window.addEventListener('storage',e=>{
+ if(e.key===STORAGE){try{state=validateImport(JSON.parse(e.newValue));render();flash('Données mises à jour depuis un autre onglet')}catch{}}
+});
+render();
+// Installation et accès hors connexion : le stockage des dépenses reste local.
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}

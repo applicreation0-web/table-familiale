@@ -1,0 +1,11 @@
+{
+  "name": "Table Familiale — Menus & Budget",
+  "short_name": "Table Familiale",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#304e3d",
+  "background_color": "#f7f6f0",
+  "icons": [{ "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
