@@ -3,7 +3,7 @@ import {MEAL_INGREDIENTS} from './recipes.js';
 import {
  BREAKFASTS, SUPPLIERS, KIND_NAMES, money, period, periodDays, dateISO, clone,
  makeMonth, newState, ingredientChanges, suggestedPurchases, shoppingEntries,
- allShoppingEntries, finance, saveDish, swapDishes, markBought, validateImport
+ allShoppingEntries, finance, saveDish, swapDishes, toggleCooked, markBought, validateImport
 } from './model.js';
 
 const STORAGE='table-familiale-github-v2';
@@ -11,7 +11,7 @@ const root=document.getElementById('app');
 const dialog=document.getElementById('editor');
 const toastEl=document.getElementById('toast');
 let state;
-try{state=validateImport(JSON.parse(localStorage.getItem(STORAGE)))}catch{state=newState()}
+try{state=validateImport(JSON.parse(localStorage.getItem(STORAGE)));localStorage.setItem(STORAGE,JSON.stringify(state))}catch{state=newState()}
 let activeTab='menus', selectedWeek=0, shopMode='week', search='', draft=null, modalType=null, toastTimeout=null;
 const icon=(name,size=18)=>{
  const icons={
@@ -70,7 +70,7 @@ function render(){
  <section class="summary-grid" aria-label="Budget et progression"><div class="budget-card"><div class="budget-heading"><span>${icon('wallet',18)} Budget mensuel</span><span class="budget-pill">Plafond ${money(month.budget)}</span></div><div class="budget-number">${money(f.paid)} <small>dépensés</small></div><div class="track"><div style="width:${Math.min(100,100*f.paid/month.budget)}%"></div></div><div class="budget-bottom"><span>Prévision <b>${money(f.forecast)}</b></span><span class="${f.forecastHeadroom<0?'budget-warning':'budget-safe'}">${f.forecastHeadroom<0?'Dépassement':'Marge'} <b>${money(Math.abs(f.forecastHeadroom))}</b></span></div></div>
  <div class="stat"><div class="stat-icon">${icon('chef',22)}</div><strong>${f.cooked}<small> / ${n}</small></strong><span>journées cuisinées</span></div>
  <div class="stat"><div class="stat-icon">${icon('basket',22)}</div><strong>${f.bought}<small> / ${f.total}</small></strong><span>courses enregistrées</span></div></section>
- <div class="meta"><span>${icon('fish',16)} ${countProtein} jours viande ou poisson</span><span>${icon('leaf',16)} ${n-countProtein} journées végétariennes</span><span>Déjeuner = dîner</span></div>
+ <div class="meta"><span>${icon('fish',16)} ${countProtein} jours viande ou poisson</span><span>${icon('leaf',16)} ${n-countProtein} journées végétariennes</span><span>1 plat africain / semaine · 2 jours</span></div>
  ${f.unknownCount?`<div class="banner caution">${icon('alert')} <span>${f.unknownCount} produit(s) ajouté(s) sans prix : la prévision du budget est incomplète. Renseigne leur prix dans « Courses ».</span></div>`:''}
  <nav class="tabs" aria-label="Sections">${[['menus','calendar','Menus'],['courses','basket','Courses'],['depenses','wallet','Dépenses'],['suivi','archive','Suivi']].map(([id,ico,label])=>`<button class="tab ${activeTab===id?'active':''}" data-action="tab" data-tab="${id}" aria-current="${activeTab===id?'page':'false'}">${icon(ico,18)}<span>${label}</span></button>`).join('')}</nav>
  <div id="screen">${activeTab==='menus'?renderMenus(month,days):activeTab==='courses'?renderCourses(month):activeTab==='depenses'?renderFinance(month,f):renderHistory(month,f)}</div>
@@ -83,11 +83,11 @@ function weekHeader(month,months=false){
 }
 function renderMenus(month,dates){
  const from=selectedWeek*7, meals=month.meals.slice(from,from+7);
- return `<div class="section-title"><div><span class="overline">MENU PROPOSÉ</span><h2>Les plats de la semaine</h2><p>Un plat par jour, cuisiné pour le midi et le soir.</p></div><button class="button outline" data-action="goto-shopping">${icon('basket',17)} Liste M&S</button></div>
+ return `<div class="section-title"><div><span class="overline">MENU PROPOSÉ</span><h2>Les plats de la semaine</h2><p>Un plat africain différent par semaine, cuisiné une fois pour deux jours. Autres repas variés.</p></div><button class="button outline" data-action="goto-shopping">${icon('basket',17)} Liste M&S</button></div>
  ${weekHeader(month)}<div class="meal-grid">${meals.map((dish,i)=>{
  const j=from+i, date=dates[j],kind=dish.kind==='V'?'green':'protein';return `<article class="meal-card ${dish.cooked?'is-cooked':''}"><div class="day"><strong>${date.getDate()}</strong><small>${date.toLocaleDateString('fr-FR',{weekday:'short',month:'short'})}</small></div>
- <div class="meal-main"><div class="tags"><span class="tag ${kind}">${esc(KIND_NAMES[dish.kind]||'Plat')}</span>${dish.cooked?'<span class="tag cooked">✓ Cuisiné</span>':''}</div><h3>${esc(dish.name)}</h3><p><b>Petit-déjeuner :</b> ${esc(BREAKFASTS[j%3])}</p><small class="meal-note">${dish.ingredients.length} ingrédients · Midi et soir</small></div>
- <div class="meal-buttons"><button class="button mini ${dish.cooked?'light':'outline'}" data-action="cook" data-index="${j}">${dish.cooked?'✓ Fait':icon('chef',15)+' Cuisiné'}</button><button class="icon-button" title="Modifier le plat et ses ingrédients" data-action="edit-meal" data-index="${j}">${icon('pen',18)}</button><button class="icon-button" title="Échanger deux dates" data-action="swap-meal" data-index="${j}">${icon('swap',18)}</button></div>
+ <div class="meal-main"><div class="tags"><span class="tag ${kind}">${esc(KIND_NAMES[dish.kind]||'Plat')}</span>${dish.african?'<span class="tag protein">Africain</span>':''}${dish.batchRole==='prepare'?'<span class="tag">2 jours · 1 cuisson</span>':''}${dish.batchRole==='reheat'?'<span class="tag">Réchauffage</span>':''}${dish.cooked?'<span class="tag cooked">✓ Cuisiné</span>':''}</div><h3>${esc(dish.name)}</h3><p><b>Petit-déjeuner :</b> ${esc(BREAKFASTS[j%BREAKFASTS.length])}</p><small class="meal-note">${dish.batchRole==='reheat'?'Repas de la veille · Aucun achat en double':dish.batchRole==='prepare'?dish.ingredients.length+' ingrédients · Pour deux jours (midi et soir)':dish.ingredients.length+' ingrédients · Midi et soir'}</small></div>
+ <div class="meal-buttons"><button class="button mini ${dish.cooked?'light':'outline'}" data-action="cook" data-index="${j}" ${dish.batchRole==='reheat'&&!month.meals[j-1]?.cooked&&!dish.cooked?'disabled':''}>${dish.cooked?(dish.batchRole==='reheat'?'✓ Servi':'✓ Fait'):dish.batchRole==='reheat'?'Réchauffé':icon('chef',15)+' Cuisiné'}</button><button class="icon-button" title="${dish.batchRole==='reheat'?'Modifier depuis le premier jour':'Modifier le plat et ses ingrédients'}" ${dish.batchRole==='reheat'?'disabled':''} data-action="edit-meal" data-index="${j}">${icon('pen',18)}</button><button class="icon-button" title="Échanger deux dates" data-action="swap-meal" data-index="${j}">${icon('swap',18)}</button></div>
  </article>`}).join('')}</div>
  <div class="tip"><span>${icon('basket',20)} Un ingrédient ajouté à un plat apparaît dans les courses à prévoir.</span><button class="button primary" data-action="goto-shopping">Voir les courses ${icon('right',15)}</button></div>`;
 }
@@ -108,14 +108,14 @@ function renderCourses(month){
  const skipped=changes.filter(x=>x.delta>0&&month.autoPurchases[x.id]?.skip);
  const total=rows.reduce((a,x)=>a+Number(x.estimate??0),0), unknown=rows.filter(x=>!x.bought&&x.estimate==null).length;
  const group=groupBySupplier(rows.filter(x=>!search||x.name.toLowerCase().includes(search.toLowerCase())));
- return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viande et poisson en début de mois ; M&S chaque semaine.</p></div><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div>
+ return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viande et poisson en début de mois ; M&S et lait Yeo Valley chaque semaine.</p></div><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div>
  <div class="choice-row"><button class="button ${!isMonthly?'primary':'outline'}" data-action="shopping-week">Courses M&S · semaine</button><button class="button ${isMonthly?'primary':'outline'}" data-action="shopping-month">Viande & poisson · mois</button></div>
  ${isMonthly?`<div class="banner success">${icon('cart',20)} <div><b>Une seule commande au début du mois</b><span>Hubbard, agneau, cuisses halal, cabillaud et maquereau, plus fonio/niébé. Portionner et congeler en respectant les dates.</span></div></div>`:weekHeader(month,true)}
  ${cuts.length?`<div class="banner caution">${icon('alert')} <div><b>Ingrédients moins nécessaires après modification</b><span>${cuts.map(x=>`${esc(x.name)} (−${x.quantity} ${esc(x.unit)})`).join(' · ')}. Vérifie si tu peux réduire l'achat initial, sans perdre les produits déjà achetés.</span></div></div>`:''}
  <div class="shopping-tools"><input id="search-products" placeholder="Rechercher un ingrédient..." value="${esc(search)}" aria-label="Rechercher un ingrédient"/><span>${rows.filter(x=>x.bought).length}/${rows.length} achetés</span></div>
  ${group.length?group.map(([shop,list])=>`<section class="shop-panel"><header><strong>${esc(shop)}</strong><span>${money(list.reduce((s,i)=>s+Number(i.estimate??0),0))} prévus</span></header><div class="product-list">${list.map(renderShopItem).join('')}</div></section>`).join(''):`<div class="empty">Aucun produit correspondant.</div>`}
  ${hidden.length||skipped.length?`<details class="dismissed"><summary>Produits écartés (${hidden.length+skipped.length}) — rétablir</summary>${hidden.map(x=>`<div><span>${esc(x.name)} · ${esc(x.qty)}</span><button class="button outline small" data-action="restore-product" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}${skipped.map(x=>`<div><span>${esc(x.name)} · ${x.quantity} ${esc(x.unit)}</span><button class="button outline small" data-action="restore-auto" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}</details>`:''}
- <div class="shop-bottom"><span>Les prix sont modifiables après l’achat. Les nouveaux ingrédients sans prix rendent la prévision incomplète.</span><b>Panier affiché : ${money(total)}${unknown?' + '+unknown+' prix à renseigner':''}</b></div>`;
+ <div class="shop-bottom"><span>Prix indicatifs. Farine et ingrédients de pâtisserie ajoutés ; masquer les options inutiles ou déjà en stock. Les nouveaux ingrédients sans prix rendent la prévision incomplète.</span><b>Panier affiché : ${money(total)}${unknown?' + '+unknown+' prix à renseigner':''}</b></div>`;
 }
 function renderFinance(month,f){
  const groups=new Map();
@@ -152,6 +152,7 @@ function readIngredientFields(){
  const name=dialog.querySelector('#dish-name')?.value;const kind=dialog.querySelector('#dish-kind')?.value;
  if(name!=null)draft.name=name;if(kind!=null)draft.kind=kind;
 }
+function mealBatchIngredients(i,index){const ingredients=clone(MEAL_INGREDIENTS[i]);return getMonth().meals[index].batchRole==='prepare'?ingredients.map(x=>({...x,quantity:x.quantity*2})):ingredients;}
 function openDialog(html){dialog.innerHTML=html;dialog.showModal();dialog.scrollTop=0;}
 function openMeal(index,swap=false){
  const month=getMonth(),meal=month.meals[index],dates=activeDates();modalType=swap?'swap':'dish';draft={index,name:meal.name,kind:meal.kind,ingredients:clone(meal.ingredients),target:index};
@@ -159,7 +160,7 @@ function openMeal(index,swap=false){
   openDialog(`<div class="dialog-head"><div><span class="overline">RÉORGANISER</span><h2 id="editor-title">Changer le jour du repas</h2><p>${esc(long(dates[index]))} · ${esc(meal.name)}</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
   <label class="field"><span>Échanger avec</span><select id="target-day">${month.meals.map((d,i)=>`<option value="${i}" ${i===Math.min(index+1,month.meals.length-1)?'selected':''}>${esc(fmt(dates[i]))} · ${esc(d.name)}</option>`).join('')}</select></label><div class="banner caution">${icon('alert')} Un échange entre semaines met à jour la liste des ingrédients à prévoir. Les plats déjà cuisinés sont protégés.</div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-swap">Échanger les jours</button></div>`);
  }else{
- openDialog(`<div class="dialog-head"><div><span class="overline">RECETTE MODIFIABLE</span><h2 id="editor-title">Modifier le plat</h2><p>${esc(long(dates[index]))} · midi et soir</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
+ openDialog(`<div class="dialog-head"><div><span class="overline">RECETTE MODIFIABLE</span><h2 id="editor-title">Modifier le plat</h2><p>${esc(long(dates[index]))} · ${meal.batchRole==='prepare'?'une seule préparation pour deux jours':'midi et soir'}</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
  <div class="edit-body"><label class="field"><span>Partir d'une recette du programme</span><select id="template-choice"><option value="custom">Plat actuel / personnalisé</option>${BASE_MENU.map((m,i)=>`<option value="${i}">${esc(m.name)}</option>`).join('')}</select></label>
  <div class="edit-main"><label class="field"><span>Nom du plat</span><input id="dish-name" value="${esc(draft.name)}" /></label><label class="field"><span>Type</span><select id="dish-kind">${Object.entries(KIND_NAMES).map(([v,n])=>`<option value="${v}" ${v===draft.kind?'selected':''}>${esc(n)}</option>`).join('')}</select></label></div>
  <div class="ingredient-heading"><h3>Ingrédients du plat</h3><button class="button outline small" data-action="add-ingredient">${icon('plus',15)} Ajouter un ingrédient</button></div><div id="ingredient-rows">${ingredientFields()}</div>
@@ -190,7 +191,7 @@ function onAction(action,btn){
  case 'open-period':state.selectedPeriod=index;selectedWeek=0;activeTab='menus';save();break;
  case 'previous-week':selectedWeek=Math.max(0,selectedWeek-1);render();break;
  case 'next-week':selectedWeek=Math.min(weeks()-1,selectedWeek+1);render();break;
- case 'cook':{const m=month.meals[index];m.cooked=!m.cooked;m.cookedAt=m.cooked?new Date().toISOString():null;save();flash(m.cooked?'Plat marqué cuisiné':'Validation retirée');break;}
+ case 'cook':{try{const cooked=toggleCooked(month,index);save();flash(cooked?(month.meals[index].batchRole==='reheat'?'Repas réchauffé et servi':'Préparation validée'):'Validation retirée')}catch(err){flash(err.message,'error')}break;}
  case 'edit-meal':openMeal(index);break;
  case 'swap-meal':openMeal(index,true);break;
  case 'shopping-month':shopMode='monthly';search='';render();break;
@@ -244,7 +245,7 @@ dialog.addEventListener('click',e=>{
 });
 dialog.addEventListener('change',e=>{
  if(e.target.id==='template-choice'&&e.target.value!=='custom'){
-  readIngredientFields();const i=Number(e.target.value);draft.name=BASE_MENU[i].name;draft.kind=BASE_MENU[i].kind;draft.ingredients=clone(MEAL_INGREDIENTS[i]);
+  readIngredientFields();const i=Number(e.target.value);draft.name=BASE_MENU[i].name;draft.kind=BASE_MENU[i].kind;draft.ingredients=mealBatchIngredients(i,draft.index);
   dialog.querySelector('#dish-name').value=draft.name;dialog.querySelector('#dish-kind').value=draft.kind;dialog.querySelector('#ingredient-rows').innerHTML=ingredientFields();
  }
 });

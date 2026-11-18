@@ -11,13 +11,13 @@ Application web/PWA **en français**, entièrement statique, prête pour GitHub 
 ## Fonctions
 
 - Calendrier du **20 novembre au 20 décembre 2026**, puis cycles mensuels suivants, conservés séparément.
-- 31 plats de base, dont 20 journées avec viande ou poisson ; trois petits-déjeuners récurrents.
+- 31 journées, avec un plat africain différent dans chacun des cinq blocs hebdomadaires. Chaque plat africain couvre deux jours consécutifs (midi et soir) et n’est cuisiné qu’une fois. 7 petits-déjeuners rotatifs, dont gâteaux ou muffins facultatifs.
 - **Modifier un plat** : intitulé, catégorie, ingrédients, quantité, magasin et prix prévu ; partir d'une autre recette de base ou saisir un plat personnalisé.
 - **Échanger les jours** (avec protection des journées déjà cuisinées).
 - **Suggestions de courses automatiques** : différence entre les ingrédients de la recette initiale et la recette modifiée, y compris lorsqu'on déplace un plat entre deux semaines. Les ingrédients qui deviennent moins nécessaires sont signalés ; la liste achetée n'est jamais supprimée silencieusement.
 - **Produit absent de la liste de base** : ajout à la recette ou directement au panier, quantité, prix et magasin. Une absence de prix est signalée et rend le budget prévisionnel incomplet.
-- **Achats de début de mois** : viande halal Saffron Alley, poisson Dining Solutions, maquereau M&S et produits de l'épicerie africaine. **M&S chaque semaine** : légumes, fruits, laitages premium, épicerie, dont 3 kg de yaourt grec pour chacune des quatre semaines complètes (2 kg pendant les 3 derniers jours).
-- **Budget** plafonné initialement à **850 £**, panier de référence de **829,14 £**. Prix M&S indicatifs, à corriger d'après les tickets.
+- **Achats de début de mois** : viande halal Saffron Alley, poisson Dining Solutions, maquereau M&S et produits de l'épicerie africaine. **Chaque semaine** : légumes, fruits, produits M&S premium et **4 bouteilles Yeo Valley de 2 L = 8 L** ; 3 kg de yaourt grec sur chacune des quatre semaines complètes (2 kg les trois derniers jours), 30 œufs par semaine complète (12 dans les trois derniers jours). Deux paquets de farine blanche 1,5 kg dans la période et options gâteaux/muffins (sucre, beurre, levure, vanille).
+- **Budget** plafonné initialement à **850 £** ; panier prévisionnel recalculé **1 039,64 £** après ajustement des protéines, de la consommation réelle de lait et des possibilités de pâtisserie. Les prix sont indicatifs et modifiables. Prix M&S indicatifs, à corriger d'après les tickets.
 - Suivi des dépenses payées, achats cochés, dépenses supplémentaires, jours cuisinés, historique par mois.
 - **Sauvegarde JSON** à exporter et restaurer. Le stockage est local au navigateur, pas partagé automatiquement entre plusieurs téléphones.
 - PWA installable sur écran d'accueil et utilisable hors connexion après le premier chargement des ressources.
@@ -33,7 +33,7 @@ Application web/PWA **en français**, entièrement statique, prête pour GitHub 
 
 ### Conditions de calcul
 
-Le panier initial provient de la liste optimisée du 18 novembre 2026, avec 850 £ de plafond et 829,14 £ de montant estimé. Le détail des conditionnements a été **regroupé par fournisseur pour les achats mensuels**. Les quantités d'ingrédients par recette sont indicatives, non des ordonnances nutritionnelles.
+Le panier recalculé le 18 novembre 2026 est estimé à 1 039,64 £, avec un plafond initial de 850 £ : le dépassement prévisionnel est affiché, sans optimisation fictive. Le détail des conditionnements a été **regroupé par fournisseur pour les achats mensuels**. Les quantités d'ingrédients par recette sont indicatives, non des ordonnances nutritionnelles.
 
 Pour une recette modifiée, les **écarts positifs** de quantité produisent une suggestion d'achat, et les écarts négatifs une alerte de sur-achat potentiel. Si les achats initiaux sont conditionnés en paquets/cartons, l'application ne les réduit pas automatiquement pour éviter de supposer qu'un paquet partiel peut être acheté. Une suggestion sans prix reste visible comme « prix manquant », sans être artificiellement incluse à 0 £ dans une prévision présentée comme certaine. L'application n'actualise **pas** les tarifs du magasin en temps réel.
 
@@ -73,4 +73,20 @@ Les achats réels et les recettes modifiées sont stockés dans le navigateur ou
 npm test
 ```
 
-Tests du calendrier, budget, fournisseurs, yogourt grec, ajout d'ingrédient, prix manquant, échange de jours, historique des achats et import/export.
+Tests du calendrier, cuisson de deux jours, budget, lait Yeo Valley, œufs, farine, yaourt grec, modification des plats, prix manquant, déplacement de blocs, achats réels et migration des sauvegardes antérieures.
+
+### Repas africains en deux jours — fonctionnement
+
+Le premier jour comprend toutes les quantités de la cuisson (quatre services pour cinq personnes : deux déjeuners et deux dîners). Le lendemain est noté « Réchauffage » : aucun ingrédient supplémentaire n'est additionné. La validation du jour 2 est refusée tant que la préparation du jour 1 n'est pas validée. Une modification du jour de préparation est répercutée sur le jour de réchauffage. Les permutations entre paires sont permises et les blocs restent consécutifs ; un déplacement qui créerait deux plats africains dans la même semaine est bloqué.
+
+| Semaine du programme | Plat africain (2 jours) |
+| --- | --- |
+| 1 | Mafé d'agneau |
+| 2 | Riz à la viande d'agneau |
+| 3 | Poulet yassa |
+| 4 | Thiéboudienne au poisson |
+| 5 (3 jours) | Thiou au poulet |
+
+La farine et les ingrédients de pâtisserie sont des **réserves** : le choix de préparer un gâteau ou des muffins reste facultatif. La prévision financière inclut cette réserve tant qu'elle n'est pas retirée des courses. Lait Yeo Valley 2 L estimé à 3,15 £ par bouteille, vendu chez différents supermarchés ; l'utilisateur peut choisir entier ou demi-écrémé. Les prix des viandes sont indicatifs sauf les Hubbard au tarif fournisseur (1,6 kg+ = 25,95 £ ; 2,6 kg+ = 34,45 £).
+
+**Sauvegardes existantes :** les données v2 sont migrées vers v3. Les plats déjà cuisinés et les achats payés ne sont pas écrasés ; si un ancien achat de lait ou de protéines est inférieur au nouveau besoin, un complément non coché est créé.
