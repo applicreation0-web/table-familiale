@@ -1,130 +1,72 @@
-# Table Familiale — menus & budget
+# Table Familiale — menus, achats et plafond de 900 £
 
-**Application web publiée :** https://table-familiale-ibrahima-diallo-4768.vercel.app/
+**Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
+**Dépôt :** https://github.com/applicreation0-web/table-familiale  
+**Version des données : v8** — mise à jour du 18 novembre 2026.
 
-**Code source GitHub :** https://github.com/applicreation0-web/table-familiale
+## Règles du programme familial
 
-**Android :** APK de test compilé et signé en mode débogage par GitHub Actions (artefact `table-familiale-android-debug`). Cette signature de débogage ne garantit pas la continuité des mises à jour entre compilations. La signature privée définitive est une étape distincte.
+Famille de **cinq personnes** (deux adultes et trois enfants), aliments halal, qualité M&S/Saffron Alley, suivi des achats réels et plafond **strict de 900 £** par période. Les produits sans prix ne sont pas considérés comme gratuits.
 
-Application web/PWA **en français**, entièrement statique, prête pour GitHub Pages. Pour une famille de 5 personnes, 2 adultes et 3 enfants : repas halal. Les plats africains sont préparés une seule fois, servis une fois par jour pendant deux jours (10 portions au total).
+- Un **plat principal pour cinq personnes par jour** (5 portions ; non pas 10 portions de midi + soir), petit-déjeuner séparé.
+- Un **plat africain différent par bloc de sept jours** : mafé d'agneau, riz à la viande, poulet yassa, yassa poisson, thiou au poulet. Préparation pour **deux jours consécutifs**, une seule cuisson de **10 portions**, servies en deux repas de 5 portions (une fois/jour).
+- **31 jours** pour la première période, du 20 novembre au 20 décembre 2026. Les périodes suivantes respectent la durée réelle des mois, avec menus adaptés aux jours disponibles.
+- **16 journées viande**, **7 poisson**, **8 végétariennes**. Aucun plat actif au maquereau ; les anciennes recettes restent dans le catalogue historique pour éviter la perte de sauvegardes.
+- **4 bouteilles Yeo Valley 2 L par semaine complète (8 L)** ; yaourt grec M&S Collection 3 kg/semaine complète ; **24 œufs** par semaine sans pâtisserie optionnelle, **30** si option activée. Les œufs requis pour les quiches font partie du besoin de base, pas de l'option pâtisserie.
+- M&S prioritaire pour les fruits, légumes, saumons, laitages et pâte brisée ; Saffron Alley pour les viandes halal ; Dining Solutions pour le carton de cabillaud du yassa.
 
-## Fonctions
+## Poissons et deux nouvelles quiches
 
-- Calendrier du **20 novembre au 20 décembre 2026**, puis cycles mensuels suivants, conservés séparément.
-- 31 journées, avec un plat africain différent dans chacun des cinq blocs hebdomadaires. Chaque plat africain couvre deux jours consécutifs à raison d’un repas familial par jour (10 portions au total) et n’est cuisiné qu’une fois. 7 petits-déjeuners rotatifs, dont gâteaux ou muffins facultatifs.
-- **Modifier un plat** : intitulé, catégorie, ingrédients, quantité, magasin et prix prévu ; partir d'une autre recette de base ou saisir un plat personnalisé.
-- **Échanger les jours** (avec protection des journées déjà cuisinées).
-- **Suggestions de courses automatiques** : différence entre les ingrédients de la recette initiale et la recette modifiée, y compris lorsqu'on déplace un plat entre deux semaines. Les ingrédients qui deviennent moins nécessaires sont signalés ; la liste achetée n'est jamais supprimée silencieusement.
-- **Produit absent de la liste de base** : ajout à la recette ou directement au panier, quantité, prix et magasin. Une absence de prix est signalée et rend le budget prévisionnel incomplet.
-- **Achats de début de mois** : viande halal Saffron Alley, poisson Dining Solutions, maquereau M&S et produits de l'épicerie africaine. **Chaque semaine** : légumes, fruits, produits M&S premium et **4 bouteilles Yeo Valley de 2 L = 8 L** ; 3 kg de yaourt grec sur chacune des quatre semaines complètes (2 kg les trois derniers jours), 24 œufs par semaine complète, ou 30 avec pâtisserie (12 dans les trois derniers jours). Deux paquets de farine blanche 1,5 kg dans la période et options gâteaux/muffins (sucre, beurre, levure, vanille).
-- **Budget** plafonné strictement à **900 £** ; panier standard **893,45 £** sans pâtisserie, au lieu de 1 039,64 £ avant rationalisation (gain indicatif **146,19 £**). Pâtisserie facultative via un bouton par semaine. Les tarifs sont indicatifs et modifiables. Prix M&S indicatifs, à corriger d'après les tickets.
-- Suivi des dépenses payées, achats cochés, dépenses supplémentaires, jours cuisinés, historique par mois.
-- **Sauvegarde JSON** à exporter et restaurer. Le stockage est local au navigateur, pas partagé automatiquement entre plusieurs téléphones.
-- PWA installable sur écran d'accueil et utilisable hors connexion après le premier chargement des ressources.
+| Jour du programme | Plat | Quantité principale |
+|---|---|---|
+| 3, 8, 15 | Saumon frais M&S et légumes/féculents | Cinq filets d'environ 130 g, soit ~650 g/repas |
+| 13 | **Grande quiche au saumon frais M&S** et pommes de terre | Quatre filets ~520 g, 6 œufs, 320 g pâte brisée, 900 g pommes de terre, 200 ml lait, 80 g fromage |
+| 21 | **Grande quiche aux épinards** et pommes de terre | 800 g épinards, 6 œufs, 320 g pâte brisée, 1,1 kg pommes de terre, 200 ml lait |
+| 23 | Saumon fumé M&S en fines tranches, œufs, boulgour et poivrons | 200 g saumon fumé, 5 œufs, 350 g boulgour |
+| 25–26 | **Yassa au cabillaud**, oignons, citron et riz | 1,8 kg de cabillaud Dining Solutions pour 10 portions |
 
-## Utilisation
+Le paquet M&S de quatre filets contient approximativement **520 g**. **Cinq paquets (20 filets, 2,6 kg)** couvrent 15 filets pour les trois premiers plats, puis quatre filets pour la quiche, laissant un filet en réserve au congélateur. Un seul carton Dining Solutions de 1,8 kg est prévu pour les deux jours de yassa. Le saumon fumé sert de complément protéiné à un plat complet : limiter le sel ajouté.
 
-1. Ouvrir l'onglet **Menus**, cliquer sur le crayon d'une journée.
-2. Modifier le plat ou choisir un autre plat existant ; cliquer sur **Ajouter un ingrédient** si nécessaire. Indiquer sa quantité, son magasin et, idéalement, son prix.
-3. Enregistrer. L'onglet **Courses** propose les ingrédients supplémentaires nécessaires et signale ceux qui deviennent moins nécessaires.
-4. En début de mois, sélectionner **Viande & poisson · mois** ; pour les courses fraîches, sélectionner **Courses M&S · semaine**.
-5. Cocher un produit acheté puis corriger son montant réel si différent ; consulter **Dépenses**.
-6. Exporter régulièrement la sauvegarde dans **Suivi**.
+**Quiches :** chaque pâte brisée M&S de **320 g à 2 £** est prévue dans une semaine distincte. La quiche saumon utilise le fromage déjà présent dans cette semaine (150 g pour l'autre quiche et 80 g pour celle au saumon = 230 g sur 250 g achetés). La quiche épinards utilise le lait Yeo Valley à la place de la crème et l'achat total d'épinards de sa semaine passe à **2 × 900 g**, couvrant les deux recettes (800 g + 800 g). Aucun ajout de viande, ni cuisson fantôme, ni double facturation.
 
-### Conditions de calcul
+## Deux grands pots de noix bio
 
-Le panier de référence a été optimisé sans supprimer de repas : 921,25 £ si toutes les options de pâtisserie sont activées ; **893,45 £ sans pâtisserie** (situation par défaut). Le plafond de 900 £ est strict ; les suppléments et les prix réellement payés provoquent une alerte immédiate dès que la prévision dépasse ce seuil. Le détail des conditionnements a été **regroupé par fournisseur pour les achats mensuels**. Les quantités d'ingrédients par recette sont indicatives, non des ordonnances nutritionnelles.
+Demande conservée : **deux grands pots de 500 g**, soit 1 kg de cerneaux de noix issus de l'agriculture biologique. Le produit confirmé est **Organic Walnut Halves 500g (Sussex Wholefoods)** chez Healthy Supplies, **8,35 £ les 500 g**, soit **16,70 £** pour 2 sachets. **Les contenants hermétiques de 500 g ne sont pas fournis** : prévoir deux pots existants pour transvaser les sachets. L'option M&S Organic Walnuts vérifiée se présente en **pot de 180 g**, donc trop petit pour un « grand pot » de 500 g.
 
-Pour une recette modifiée, les **écarts positifs** de quantité produisent une suggestion d'achat, et les écarts négatifs une alerte de sur-achat potentiel. Si les achats initiaux sont conditionnés en paquets/cartons, l'application ne les réduit pas automatiquement pour éviter de supposer qu'un paquet partiel peut être acheté. Une suggestion sans prix reste visible comme « prix manquant », sans être artificiellement incluse à 0 £ dans une prévision présentée comme certaine. L'application n'actualise **pas** les tarifs du magasin en temps réel.
+Liens : [noix bio 500 g Healthy Supplies](https://www.healthysupplies.co.uk/walnuts-organic-500g-sussex.html), [pots M&S bio 180 g](https://www.ocado.com/products/m-s-organic-walnuts/673023011).
 
-## Lancement local
+Le tarif de livraison Healthy Supplies sous le seuil de gratuité est **à confirmer** ; une **provision de 5 £** est comptée séparément au panier pour éviter de sous-estimer le budget. La gratuité n'est annoncée qu'à partir d'environ 49–50 £ de produits selon la page officielle. Les trois anciens achats hebdomadaires de noix non bio, 200 g chacun, sont remplacés. Pour les jeunes enfants, servir les noix finement moulues, jamais entières si risque de fausse route.
 
-Aucune dépendance à installer pour la version web ni pour les tests. Node.js 22+ est conseillé pour les tests et le build :
+## Finances et contrôle de la qualité
+
+**Panier prévisionnel sans pâtisserie optionnelle : 896,58 £**, dont 5 £ de réserve pour la livraison des noix. Le plafond est **900 £**, soit une **marge fragile de 3,42 £**. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
+
+Sources de prix indicatifs, à vérifier avant de passer commande :
+- [Pâte brisée M&S 320 g — 2 £](https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011)
+- [Saumon frais M&S 4 filets 520 g — 10,25 £](https://www.ocado.com/products/m-s-4-scottish-salmon-fillets-skin-on/505278011)
+- [Noix bio 500 g — 8,35 £](https://www.healthysupplies.co.uk/walnuts-organic-500g-sussex.html)
+- [Conditions de livraison Healthy Supplies](https://www.healthysupplies.co.uk/deliveryoptions.html)
+
+Les économies supplémentaires ont été limitées à des **quantités inutiles** (courgettes, semoule, ail), avec des prix recalculés à partir du prix de référence. Le magasin peut toutefois imposer un paquet plus grand ; cette différence doit être reportée comme coût réel. La qualité des poulets Hubbard, de l'agneau halal, du lait Yeo Valley, des produits M&S et des noix biologiques n'est pas déclassée.
+
+L'application affiche clairement les **prix provisoires**, la marge fragile, les dépenses payées et les alertes si le panier réel dépasse 900 £. Les achats déjà cochés ne sont jamais remplacés par de faux reçus moins chers.
+
+## Utilisation, sauvegardes et migrations
+
+Le navigateur conserve les périodes, achats, plats modifiés et reçus **localement**. L'onglet Suivi permet d'exporter une sauvegarde JSON avant changement de téléphone ou nettoyage de cache. Les versions **v2 à v7 migrent vers v8** : repas cuisinés, recettes personnalisées, achats payés et produits personnels conservés. Les mackerels ou noix déjà payés restent dans les comptes ; l'utilisateur doit vérifier son stock avant de re-commander les alternatives. Une recette déjà faite n'est pas secrètement remplacée par une quiche.
+
+La PWA peut être installée depuis Chrome Android (« Ajouter à l'écran d'accueil ») et peut fonctionner hors connexion après la mise en cache. La publication GitHub **ne redéploie pas automatiquement** Vercel ; il faut déployer le commit vérifié en production.
+
+## Tests et livrables
 
 ```bash
 npm test
 npm run build
-python3 -m http.server 4173
+node --check app.js
+node --check model.js
+node --check meal-plan.js
 ```
 
-Ouvrir `http://localhost:4173`. Le dossier `dist/` contient la version statique prête pour GitHub Pages. Le fichier `index.html` est à la racine, aucune configuration Vite/React nécessaire.
+Les tests auditent : calendrier, portions, types viande/poisson/végétarien, deux quiches, stock des ingrédients (œufs, épinards, saumon, pâte), noix bio, budget 900 £, pâtisserie facultative, achats mensuels et hebdomadaires, menus modifiables, dépenses réellement payées, migrations historiques et non-régression de l'état cuisiné.
 
-## Publication et installation
-
-### Version web installable (recommandée)
-
-Ouvrir **https://table-familiale-ibrahima-diallo-4768.vercel.app/** depuis Chrome sur Android, puis dans le menu du navigateur choisir **Installer l'application** ou **Ajouter à l'écran d'accueil** selon les options disponibles. La version web a été publiée sur Vercel à partir des sources vérifiées dans ce dépôt. Elle ne dépend pas de l'activation de GitHub Pages.
-
-Les modifications du code GitHub ne redéploient **pas automatiquement** cette version Vercel : il faut publier la version mise à jour.
-
-### APK Android de test
-
-Le workflow `.github/workflows/android-debug.yml` compile l'APK Android et place `app-debug.apk` dans l'artefact **table-familiale-android-debug** de l'exécution GitHub Actions réussie. Le débogage est signé avec une clé de test propre à la compilation ; pour des mises à jour sans désinstallation, établir une signature privée permanente conservée en sécurité. Aucune clé de l'application sport n'est réutilisée.
-
-### Intégration GitHub
-
-`.github/workflows/pages.yml` exécute les tests et construit la version web en archive GitHub Actions. GitHub Pages n'est pas activé sur ce dépôt ; le site web est publié sur Vercel.
-
-Les achats réels et les recettes modifiées sont stockés dans le navigateur ou l'application locale. Prévoir une exportation JSON régulière (onglet **Suivi**) avant changement de téléphone ou effacement des données.
-
-## Vérifications
-
-```bash
-npm test
-```
-
-Tests du calendrier, cuisson de deux jours, budget, lait Yeo Valley, œufs, farine, yaourt grec, modification des plats, prix manquant, déplacement de blocs, achats réels et migration des sauvegardes antérieures.
-
-### Repas africains en deux jours — fonctionnement
-
-Le premier jour comprend les ingrédients de **10 portions**, réparties sur deux jours : cinq personnes mangent ce plat **une seule fois chaque jour**. Il ne s'agit pas de 20 portions. Pour un plat au riz, cuire de préférence le riz frais le deuxième jour ; garder le poisson cuit refroidi rapidement au réfrigérateur et le réchauffer une seule fois. Le lendemain est noté « Réchauffage » : aucun ingrédient supplémentaire n'est additionné. La validation du jour 2 est refusée tant que la préparation du jour 1 n'est pas validée. Une modification du jour de préparation est répercutée sur le jour de réchauffage. Les permutations entre paires sont permises et les blocs restent consécutifs ; un déplacement qui créerait deux plats africains dans la même semaine est bloqué.
-
-| Semaine du programme | Plat africain (2 jours) |
-| --- | --- |
-| 1 | Mafé d'agneau |
-| 2 | Riz à la viande d'agneau |
-| 3 | Poulet yassa |
-| 4 | Yassa au poisson, oignons citronnés et riz (cabillaud) |
-| 5 (3 jours) | Thiou au poulet |
-
-La farine et les ingrédients de pâtisserie sont facultatifs : le choix de préparer un gâteau ou des muffins se fait semaine par semaine. Le panier sans pâtisserie n'inclut pas les achats en option. Lait Yeo Valley 2 L estimé à 3,15 £ par bouteille, vendu chez différents supermarchés ; l'utilisateur peut choisir entier ou demi-écrémé. Les prix des viandes sont indicatifs sauf les Hubbard au tarif fournisseur (1,6 kg+ = 25,95 £ ; 2,6 kg+ = 34,45 £).
-
-**Sauvegardes existantes :** les données v2, v3 et v4 sont migrées vers v5. Le thiéboudienne non préparé et non personnalisé est remplacé automatiquement par le yassa poisson ; une recette déjà préparée ou modifiée est conservée. Les plats déjà cuisinés et les achats payés ne sont pas écrasés ; si un ancien achat de lait ou de protéines est inférieur au nouveau besoin, un complément non coché est créé.
-
-### Optimisation financière et qualité — mise à jour du 18 novembre
-
-Aucune réduction des 8 L de lait Yeo Valley par semaine complète, des 3 kg de yaourt grec M&S, des portions de Hubbard/agneau et des fruits quotidiens. Les portions de saumon frais sont dimensionnées pour deux adultes et trois enfants (environ 680 g par service), avec féculents et légumes. Le panier est désormais ajusté aux quantités par recette et aux conditionnements : 12 boîtes de maquereau au lieu de 18, niébé inutilisé retiré, fonio augmenté de 500 g à 1 kg pour la cuisson réelle, certains légumes hebdomadaires diminués, d'autres augmentés pour couvrir les plats, accompagnements oubliés ajoutés (quinoa, pâtes, riz, poivrons, lentilles, pain complet). Les aubergines et le chou du thiéboudienne sont retirés après son remplacement par le yassa au poisson.
-
-La pâtisserie n'est plus supposée hebdomadaire : sans pâtisserie, panier de **24 œufs** par semaine complète ; si activée, **30 œufs** et ingrédients en option. Les œufs déjà achetés sont respectés et un complément distinct est suggéré si besoin. Un bouton « déjà en stock » évite les achats redondants et peut être annulé. Les achats et prix payés ne sont jamais recalculés fictivement. Les économies dépendent de l'inventaire réel.
-
-Comparaison de prix : le lait Yeo Valley 2 L reste valorisé à 3,15 £ dans le budget ; des offres identiques moins chères peuvent être vérifiées auprès d'autres enseignes. Aucun prix promotionnel temporaire n'est supposé permanent.
-
-Les anciennes sauvegardes v2 et v3 sont reconnues et migrées en v4, avec conservation des reçus, des menus déjà cuisinés, des achats payés et des modifications manuelles ; les écarts de conditionnement pour les achats déjà enregistrés donnent lieu à une alerte de réconciliation.
-
-### Circuit Android officiel (signature privée)
-
-Le workflow **.github/workflows/android-release-private.yml** construit, signe et vérifie un APK stable pour les mises à jour successives, avec empreinte SHA-256. Il doit être déclenché manuellement par GitHub Actions sur une branche officielle vérifiée ; aucune signature automatique de débogage ne doit être appelée « officielle ».
-
-Avant son premier lancement, configurer les quatre secrets GitHub Actions du dépôt : `TABLE_FAMILIALE_KEYSTORE_BASE64` (clé JKS de Table Familiale encodée en base64), `TABLE_FAMILIALE_STORE_PASSWORD`, `TABLE_FAMILIALE_KEY_ALIAS`, `TABLE_FAMILIALE_KEY_PASSWORD`. **Sauvegarder hors ligne le keystore initial** : une clé différente empêcherait une mise à jour sans désinstallation. Ne jamais committer, publier, journaliser ou envoyer la clé ni les mots de passe en clair.
-
-La release Android privée n'est pas considérée comme publiée tant que le workflow n'a pas terminé avec succès sur la branche officielle et produit l'artefact `table-familiale-android-officiel`. L'APK de débogage reste un canal de test distinct.
-
-### Remplacement du thiéboudienne par le yassa au poisson
-
-Quatrième bloc hebdomadaire : **1,8 kg de cabillaud**, **1,2 kg de riz sec**, **1,4 kg d’oignons**, **6 citrons** et environ **120 g de moutarde de Dijon**, plus ail/huile/assaisonnement déjà prévu au panier. Cette préparation représente **10 portions (5 personnes × 2 jours × 1 repas par jour)**. Le cabillaud n’est pas commandé en supplément : il remplace le thiéboudienne à quantité identique. Le panier par défaut passe à **893,45 £**, soit **6,55 £ de marge prévisionnelle** sous le plafond de 900 £ ; prix de moutarde indicatif.
-
-### Plafond strict 900 £ — nouveau panier poisson Dining + M&S
-
-Panier de référence sans pâtisserie : **893,45 £**, marge théorique **6,55 £** sous le plafond absolu **900 £**. Les achats effectivement payés ne sont jamais modifiés pour cacher un dépassement. Attention : prix et conditionnements M&S et livraison Dining variables, à vérifier en caisse. Les versions historiques v2 à v6 sont migrées vers v7, sans écraser les modifications individuelles ni les achats payés.
-
-**Huit journées poisson :**
-- Yassa poisson **2 jours** : 1 carton de **1,8 kg cabillaud** Dining Solutions Direct à **64,97 £** (10 portions, 5 par jour)
-- Saumon frais M&S **3 jours** : **4 paquets × 4 filets, 520 g / £10,25** = **2,08 kg / 41 £**. La recette prévoit 680 g par repas pour deux adultes et trois enfants (2,04 kg utilisés) ; un filet reste au congélateur. Acheter **2 paquets semaine 1**, **1 paquet semaine 2** et **1 paquet semaine 3** ; congeler immédiatement les filets non utilisés en respectant la durée et les conseils de l'emballage. Comparer le poids réel des paquets M&S au point de vente
-- Saumon fumé M&S en fines tranches **1 jour** : **2 paquets × 100 g = 200 g / 10 £**, servi avec **5 œufs**, **350 g de boulgour**, **800 g de poivrons** et **600 g de tomates concassées**. C'est un plat complet et non une portion équivalente en grammes au saumon frais. Limiter le sel ajouté
-- Maquereau M&S **2 jours** : 12 boîtes au total, inchangées
-
-**Coût des achats cabillaud + saumons** : **115,97 £** (64,97 + 41 + 10), contre **112,97 £** pour le scénario JJ précédent. Le panier complet augmente de **3 £**, mais évite l'achat JJ et respecte les enseignes demandées.
-
-Produits consultés : [Dining Solutions](https://diningsolutionsdirect.com/collections/seafood), [saumon frais M&S 4 filets](https://www.ocado.com/products/m-s-4-scottish-salmon-fillets-skin-on/505278011), [saumon écossais fumé M&S tranché](https://www.ocado.com/products/m-s-scottish-oak-smoked-salmon-slices/505092011). Aucun tarif promotionnel n'est supposé permanent. L'application doit conserver une alerte de marge fragile.
-
-**Important :** si un ancien carton JJ de cabillaud a déjà été réellement acheté, son reçu reste conservé et la nouvelle liste M&S ne le remplace pas fictivement. Il faut réconcilier le stock de cabillaud existant avec les futurs achats de saumon avant d'acheter, pour éviter une commande en double.
+**Android :** le workflow `.github/workflows/android-debug.yml` produit un APK de **test**. Le workflow `.github/workflows/android-release-private.yml` prépare une version stable signée, mais exige une **clé de signature permanente configurée en secrets GitHub** et son exécution concluante. Aucune APK de débogage ne doit être appelée « release officielle ». Le canal web/PWA officiel est distinct.
