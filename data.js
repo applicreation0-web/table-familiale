@@ -900,8 +900,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-2",
     "name": "Carottes",
-    "qty": "3 kg",
-    "price": 3,
+    "qty": "2 kg",
+    "price": 2,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -920,8 +920,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-4",
     "name": "Oignons",
-    "qty": "1 kg",
-    "price": 1.4,
+    "qty": "1,5 kg",
+    "price": 2.1,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -958,20 +958,10 @@ export const BASE_SHOPPING = [
     "category": "F"
   },
   {
-    "id": "base-3-9",
-    "name": "Chou blanc",
-    "qty": "1 pièce",
-    "price": 1.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "F"
-  },
-  {
     "id": "base-3-11",
     "name": "Citrons",
-    "qty": "4 pièces",
-    "price": 1.4,
+    "qty": "6 pièces",
+    "price": 2.1,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1110,8 +1100,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-27",
     "name": "Tomates concassées",
-    "qty": "7 × 400 g",
-    "price": 4.9,
+    "qty": "5 × 400 g",
+    "price": 3.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1479,18 +1469,8 @@ export const BASE_SHOPPING = [
   {
     "id": "rightsize-3-0",
     "name": "Riz",
-    "qty": "1 kg",
-    "price": 2,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "S"
-  },
-  {
-    "id": "rightsize-3-1",
-    "name": "Aubergines",
-    "qty": "1 kg",
-    "price": 3,
+    "qty": "2 × 1 kg",
+    "price": 4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1561,6 +1541,16 @@ export const BASE_SHOPPING = [
     "name": "Pâtes complètes",
     "qty": "500 g",
     "price": 1,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S"
+  },
+  {
+    "id": "yassa-poisson-moutarde",
+    "name": "Moutarde de Dijon (yassa poisson)",
+    "qty": "1 pot 200 g",
+    "price": 1.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
