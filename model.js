@@ -202,11 +202,15 @@ function migrateLegacyMonth(month){
     if(previous.bought){
       // Ne jamais prétendre que la nouvelle quantité a déjà été achetée.
       const oldLait=previous.name==='Lait';
-      const oldEggs=previous.name==='Œufs';
-      if(oldLait||oldEggs){
+      const oldEggs=previous.name==='Œufs'&&previous.week<4;
+      const oldFish=previous.id==='month-4'&&previous.qty==='2 cartons (3,6 kg)';
+      const oldLamb=previous.id==='month-2'&&previous.qty==='2 kg';
+      if(oldLait||oldEggs||oldFish||oldLamb){
         const week=previous.week;
-        extras.push({id:'topup-v3-'+previous.id,name:item.name+' — complément',qty:oldLait?(week<4?'2 × 2 L':'1 × 2 L'):'6 œufs',
-          price:oldLait?(week<4?6.30:3.15):2.60,supplier:item.supplier,purchase:'weekly',week,
+        const qty=oldLait?(week<4?'2 × 2 L':'1 × 2 L'):oldEggs?'6 œufs':oldFish?'1 carton (1,8 kg)':'3,5 kg';
+        const price=oldLait?(week<4?6.30:3.15):oldEggs?2.60:oldFish?64.97:75.08;
+        extras.push({id:'topup-v3-'+previous.id,name:item.name+' — complément',qty,price,
+          supplier:item.supplier,purchase:previous.purchase,week,
           bought:false,actual:null,hidden:false});
       }
     }
