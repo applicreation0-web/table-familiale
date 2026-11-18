@@ -200,8 +200,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-4",
     "name": "Courgettes",
-    "qty": "3 kg",
-    "price": 8.4,
+    "qty": "2,5 kg",
+    "price": 7,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -240,8 +240,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-12",
     "name": "Ail",
-    "qty": "3 têtes",
-    "price": 1.1,
+    "qty": "2 têtes",
+    "price": 0.75,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -332,16 +332,6 @@ export const BASE_SHOPPING = [
     "name": "Flocons d’avoine",
     "qty": "1 kg",
     "price": 1.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 0,
-    "category": "S"
-  },
-  {
-    "id": "base-0-22",
-    "name": "Noix à moudre",
-    "qty": "200 g",
-    "price": 3.2,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -490,8 +480,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-12",
     "name": "Ail",
-    "qty": "3 têtes",
-    "price": 1.1,
+    "qty": "2 têtes",
+    "price": 0.75,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -588,16 +578,6 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-1-22",
-    "name": "Noix à moudre",
-    "qty": "200 g",
-    "price": 3.2,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 1,
-    "category": "S"
-  },
-  {
     "id": "base-1-23",
     "name": "Quinoa",
     "qty": "500 g",
@@ -620,8 +600,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-25",
     "name": "Semoule de couscous",
-    "qty": "1 kg",
-    "price": 1.5,
+    "qty": "500 g",
+    "price": 0.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -680,8 +660,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-3",
     "name": "Courgettes",
-    "qty": "2 kg",
-    "price": 5.6,
+    "qty": "1,5 kg",
+    "price": 4.2,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -710,8 +690,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-6",
     "name": "Épinards surgelés",
-    "qty": "900 g",
-    "price": 2.5,
+    "qty": "2 × 900 g (1,8 kg)",
+    "price": 5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -760,8 +740,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-11",
     "name": "Ail",
-    "qty": "3 têtes",
-    "price": 1.1,
+    "qty": "2 têtes",
+    "price": 0.75,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -842,16 +822,6 @@ export const BASE_SHOPPING = [
     "name": "Flocons d’avoine",
     "qty": "1 kg",
     "price": 1.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 2,
-    "category": "S"
-  },
-  {
-    "id": "base-2-21",
-    "name": "Noix à moudre",
-    "qty": "200 g",
-    "price": 3.2,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -970,8 +940,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-12",
     "name": "Ail",
-    "qty": "3 têtes",
-    "price": 1.1,
+    "qty": "2 têtes",
+    "price": 0.75,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1068,16 +1038,6 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
-    "id": "base-3-22",
-    "name": "Semoule de couscous",
-    "qty": "1 kg",
-    "price": 1.5,
-    "supplier": "M&S",
-    "purchase": "weekly",
-    "week": 3,
-    "category": "S"
-  },
-  {
     "id": "base-3-23",
     "name": "Boulgour",
     "qty": "500 g",
@@ -1150,8 +1110,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-4-8",
     "name": "Ail",
-    "qty": "3 têtes",
-    "price": 1.1,
+    "qty": "1 tête",
+    "price": 0.38,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
@@ -1299,16 +1259,6 @@ export const BASE_SHOPPING = [
     "priceStatus": "provisional",
     "priceDetails": "Tarif fournisseur 64,97 £ ; livraison annoncée gratuite au-delà de 50 £, à vérifier",
     "sourceUrl": "https://diningsolutionsdirect.com/collections/seafood"
-  },
-  {
-    "id": "month-5",
-    "name": "Maquereau M&S nature 125 g",
-    "qty": "12 boîtes",
-    "price": 18.6,
-    "supplier": "M&S",
-    "purchase": "monthly",
-    "week": -1,
-    "category": "S"
   },
   {
     "id": "month-6",
@@ -1606,6 +1556,68 @@ export const BASE_SHOPPING = [
     "category": "D",
     "priceStatus": "provisional",
     "sourceUrl": "https://www.ocado.com/products/m-s-scottish-oak-smoked-salmon-slices/505092011"
+  },
+  {
+    "id": "organic-walnuts-large-2x500",
+    "name": "Noix bio en cerneaux — 2 grands pots de 500 g (à remplir avec 2 sachets)",
+    "qty": "2 × 500 g = 1 kg (contenants réutilisables non inclus)",
+    "price": 16.7,
+    "supplier": "Healthy Supplies",
+    "purchase": "monthly",
+    "week": -1,
+    "category": "S",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.healthysupplies.co.uk/walnuts-organic-500g-sussex.html",
+    "priceDetails": "£8.35 × 2, expédiés en sachets; prévoir deux pots hermétiques réutilisables."
+  },
+  {
+    "id": "organic-walnuts-delivery",
+    "name": "Livraison Healthy Supplies (provision à confirmer)",
+    "qty": "1 livraison, plafond prévisionnel de £5",
+    "price": 5,
+    "supplier": "Healthy Supplies",
+    "purchase": "monthly",
+    "week": -1,
+    "category": "S",
+    "priceStatus": "provisional",
+    "priceDetails": "Gratuité dès £49 environ; coût sous ce seuil non confirmé. Ajuster au panier réel.",
+    "sourceUrl": "https://www.healthysupplies.co.uk/deliveryoptions.html"
+  },
+  {
+    "id": "quiche-salmon-fresh-week1",
+    "name": "M&S 4 Scottish Salmon Fillets Skin On (pour quiche au saumon)",
+    "qty": "1 paquet × 520 g = 4 filets (avec 1 filet réservé du stock)",
+    "price": 10.25,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 1,
+    "category": "D",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-4-scottish-salmon-fillets-skin-on/505278011"
+  },
+  {
+    "id": "quiche-pastry-week1",
+    "name": "Pâte brisée M&S prête à dérouler (grande quiche)",
+    "qty": "1 rouleau × 320 g",
+    "price": 2,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 1,
+    "category": "S",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011"
+  },
+  {
+    "id": "quiche-pastry-week2",
+    "name": "Pâte brisée M&S prête à dérouler (grande quiche)",
+    "qty": "1 rouleau × 320 g",
+    "price": 2,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 2,
+    "category": "S",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011"
   }
 ];
 
