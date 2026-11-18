@@ -26,13 +26,13 @@ export function makeMonth(index=0){
   const meals=dates.map((d,i)=>{
     const plan=FAMILY_PLAN[i%FAMILY_PLAN.length];
     return {id:dateISO(d),name:plan.name,kind:plan.kind,african:plan.african,
-      batchRole:plan.batchRole,ingredients:clone(plan.ingredients),originalIndex:i%31,
+      batchRole:plan.batchRole,servings:plan.servings,mealsPerDay:plan.mealsPerDay,ingredients:clone(plan.ingredients),originalIndex:i%31,
       cooked:false,cookedAt:null};
   });
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
   return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:4, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:5, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -196,7 +196,7 @@ export function swapDishes(month,a,b){
   const pick=(x)=>x.map(i=>clone(month.meals[i]));
   const aItems=pick([...Array(A.len)].map((_,j)=>A.start+j));
   const bItems=pick([...Array(B.len)].map((_,j)=>B.start+j));
-  const copyFields=(src,dest)=>{for(const k of ['name','kind','ingredients','originalIndex','african','batchRole'])dest[k]=clone(src[k]??null);};
+  const copyFields=(src,dest)=>{for(const k of ['name','kind','ingredients','originalIndex','african','batchRole','servings','mealsPerDay'])dest[k]=clone(src[k]??null);};
   aItems.forEach((x,j)=>copyFields(x,month.meals[B.start+j]));
   bItems.forEach((x,j)=>copyFields(x,month.meals[A.start+j]));
   const tooMany=[...Array(Math.ceil(month.meals.length/7)).keys()].some(w=>month.meals.slice(w*7,w*7+7).filter(x=>x.african&&x.batchRole==='prepare').length>1);
@@ -303,8 +303,46 @@ function migrateOptimisedBasket(month,index){
   month.reconcileWarnings=[...(month.reconcileWarnings||[]),...conflicts];
   return month;
 }
+// Mise à jour v4 → v5 : ne pas écraser une recette modifiée ou déjà cuisinée.
+// Les deux journées restent solidaires et les dépenses effectivement payées demeurent intactes.
+const legacyFishYassaDay={
+ name:'Thiéboudienne au poisson et légumes',kind:'F',african:true,batchRole:'prepare',
+ ingredients:[
+  {name:'Cabillaud',quantity:1800,unit:'g',supplier:'Dining Solutions',price:null},
+  {name:'Riz',quantity:1200,unit:'g',supplier:'M&S',price:null},
+  {name:'Carottes',quantity:1200,unit:'g',supplier:'M&S',price:null},
+  {name:'Chou blanc',quantity:800,unit:'g',supplier:'M&S',price:null},
+  {name:'Aubergines',quantity:800,unit:'g',supplier:'M&S',price:null},
+  {name:'Tomates concassées',quantity:700,unit:'g',supplier:'M&S',price:null},
+  {name:'Oignons',quantity:700,unit:'g',supplier:'M&S',price:null}
+ ]
+};
+function migrateFishYassa(month,index){
+ const first=month.meals?.[24],second=month.meals?.[25];
+ const untouched=first&&!first.cooked&&first.name===legacyFishYassaDay.name&&first.kind==='F'&&
+   first.batchRole==='prepare'&&JSON.stringify(first.ingredients)===JSON.stringify(legacyFishYassaDay.ingredients)&&
+   second&&!second.cooked&&second.name===first.name&&second.batchRole==='reheat'&&
+   Array.isArray(second.ingredients)&&second.ingredients.length===0;
+ if(untouched){
+   const fresh=makeMonth(index);
+   // Garder les identifiants de jours et toutes les validations existantes.
+   for(const i of [24,25])
+     month.meals[i]={...month.meals[i],...clone(fresh.meals[i]),id:month.meals[i].id};
+   migrateOptimisedBasket(month,index);
+ }else{
+   // Une préparation passée/personnalisée ne doit ni changer de recette
+   // ni voir sa liste de courses reconstituée sans contrôle.
+   month.reconcileWarnings??=[];
+   if(first?.name===legacyFishYassaDay.name)
+     month.reconcileWarnings.push({name:'Plat africain du quatrième bloc : recette déjà cuisinée ou personnalisée'});
+ }
+ for(const m of month.meals||[]){
+   if(m.african&&m.batchRole){m.servings??=10;m.mealsPerDay??=1;}
+ }
+ return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -319,6 +357,11 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))
       raw.months[key]=migrateOptimisedBasket({...month,index:Number(key)},Number(key));
     raw.version=4;
+  }
+  if(raw.version===4){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateFishYassa({...month,index:Number(key)},Number(key));
+    raw.version=5;
   }
   for(const month of Object.values(raw.months)){
     month.bakingWeeks??={};
