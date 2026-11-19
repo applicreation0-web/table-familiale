@@ -5,6 +5,9 @@ on:
     paths:
       - 'app.js'
       - 'model.js'
+      - 'pricing.js'
+      - 'receipt.js'
+      - 'receipt-ocr.js'
       - 'recipes.js'
       - 'meal-plan.js'
       - 'data.js'
@@ -22,6 +25,9 @@ on:
     paths:
       - 'app.js'
       - 'backup.js'
+      - 'pricing.js'
+      - 'receipt.js'
+      - 'receipt-ocr.js'
       - 'model.js'
       - 'data.js'
       - 'package.json'
@@ -91,7 +97,7 @@ jobs:
           test -s "$APK"
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep -F "name='app.tablefamiliale.menus'"
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump permissions "$APK" | tee android-permissions.txt
-          if grep -E 'android.permission.(CAMERA|RECORD_AUDIO|ACCESS_FINE_LOCATION|READ_SMS|READ_CONTACTS|QUERY_ALL_PACKAGES)' android-permissions.txt; then
+          if grep -E 'android.permission.(RECORD_AUDIO|ACCESS_FINE_LOCATION|READ_SMS|READ_CONTACTS|QUERY_ALL_PACKAGES)' android-permissions.txt; then
             echo "::error::Autorisation Android non prévue."
             exit 1
           fi
