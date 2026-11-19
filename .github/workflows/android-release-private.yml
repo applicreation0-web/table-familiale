@@ -28,6 +28,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
       - name: Vérifier les secrets de signature
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.TABLE_FAMILIALE_KEYSTORE_BASE64 }}
@@ -69,7 +70,11 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          if ! ./gradlew assembleRelease --no-daemon; then
+            echo "::warning::Gradle/Maven a échoué ; nouvelle résolution des dépendances."
+            sleep 12
+            ./gradlew assembleRelease --no-daemon --refresh-dependencies
+          fi
       - name: Signer et vérifier l'APK privé
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.TABLE_FAMILIALE_KEYSTORE_BASE64 }}
