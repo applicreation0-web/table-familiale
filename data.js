@@ -249,13 +249,15 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-0-13",
-    "name": "Pommes M&S sélection",
+    "name": "Pommes M&S Braeburn britanniques",
     "qty": "12 pièces",
-    "price": 6.6,
+    "price": 3.6,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011"
   },
   {
     "id": "base-0-14",
@@ -359,13 +361,15 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-0-27",
-    "name": "Huile olive M&S extra vierge",
+    "name": "Huile d’olive vierge extra Ocado",
     "qty": "1 L",
-    "price": 9,
-    "supplier": "M&S",
+    "price": 7.75,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 0,
-    "category": "S"
+    "category": "S",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-extra-virgin-olive-oil/436849011"
   },
   {
     "id": "base-0-28",
@@ -489,13 +493,15 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-1-13",
-    "name": "Pommes M&S sélection",
+    "name": "Pommes M&S Braeburn britanniques",
     "qty": "12 pièces",
-    "price": 6.6,
+    "price": 3.6,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011"
   },
   {
     "id": "base-1-14",
@@ -749,13 +755,15 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-2-12",
-    "name": "Pommes M&S sélection",
+    "name": "Pommes M&S Braeburn britanniques",
     "qty": "12 pièces",
-    "price": 6.6,
+    "price": 3.6,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011"
   },
   {
     "id": "base-2-13",
@@ -949,13 +957,15 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-3-13",
-    "name": "Pommes M&S sélection",
+    "name": "Pommes M&S Braeburn britanniques",
     "qty": "12 pièces",
-    "price": 6.6,
+    "price": 3.6,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011"
   },
   {
     "id": "base-3-14",
@@ -1119,13 +1129,15 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-4-9",
-    "name": "Pommes M&S sélection",
+    "name": "Pommes M&S Braeburn britanniques",
     "qty": "6 pièces",
-    "price": 3.3,
+    "price": 1.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011"
   },
   {
     "id": "base-4-10",
@@ -1329,56 +1341,66 @@ export const BASE_SHOPPING = [
     "id": "baking-5",
     "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
     "category": "S",
-    "optional": false
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "baking-6",
     "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
     "category": "S",
-    "optional": false
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "baking-7",
     "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
     "category": "S",
-    "optional": false
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "baking-8",
     "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
     "category": "S",
-    "optional": false
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "baking-9",
     "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
     "category": "S",
-    "optional": false
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "rightsize-0-0",
