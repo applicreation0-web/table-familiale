@@ -322,6 +322,10 @@ function onAction(action,btn){
      const complete=!!dialog.querySelector('#receipt-full-week')?.checked;
      if(complete&&chosen.some(x=>!x.selectedId))
        throw Error('Pour déclarer la semaine achetée, rapprocher chaque ligne ou la classer hors liste.');
+     if(complete&&(receiptDraft.parsed.ticketTotal==null||
+       receiptDraft.parsed.reconciliationGap==null||
+       Math.abs(receiptDraft.parsed.reconciliationGap)>0.02))
+       throw Error('Le total du ticket ne correspond pas aux articles et remises : ne pas déclarer la semaine complète.');
      const result=applyReceiptReview(state,month,receiptDraft.parsed,chosen,{supplier});
      const planning=complete?noteCompletedReceiptWeek(month,selectedWeek,chosen,{supplier,fingerprint:receiptDraft.parsed.fingerprint}):null;
      receiptDraft=null;dialog.close();save();
