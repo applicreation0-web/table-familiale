@@ -1,12 +1,6 @@
 name: Android privé — release signée
 on:
-  workflow_dispatch:
-  # Déclenchement ponctuel autorisé par la mise à jour de CE workflow sur main.
-  # Les modifications ordinaires du menu ne signent pas automatiquement une APK.
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/android-release-private.yml'
+  workflow_dispatch: # Signature volontaire et uniquement avec la clé de référence configurée.
 permissions:
   contents: read
 
@@ -89,6 +83,8 @@ jobs:
           test -s "$RUNNER_TEMP/table-familiale-release.jks"
           RAW="android/app/build/outputs/apk/release/app-release-unsigned.apk"
           test -s "$RAW"
+          APP_VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")"
+          APK_FILE="release/table-familiale-${APP_VERSION}-prive-signe.apk"
           mkdir -p release
           "$ANDROID_HOME/build-tools/36.0.0/zipalign" -p -f 4 "$RAW" release/app-release-aligned.apk
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" sign \
@@ -96,23 +92,31 @@ jobs:
             --ks-key-alias "$RELEASE_KEY_ALIAS" \
             --ks-pass env:RELEASE_STORE_PASSWORD \
             --key-pass env:RELEASE_KEY_PASSWORD \
-            --out release/table-familiale-1.0.12-prive-signe.apk \
+            --out "$APK_FILE" \
             release/app-release-aligned.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/table-familiale-1.0.12-prive-signe.apk
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging release/table-familiale-1.0.12-prive-signe.apk | tee release/APP_INFO.txt
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK_FILE"
+          CERT="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK_FILE" |
+            sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1 |
+            tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          EXPECTED="ac9d558b77ecf89aac18460cda14d1231d5dd089fcb788cdf55161af6ae220da"
+          if [ "$CERT" != "$EXPECTED" ]; then
+            echo "::error::Certificat différent de l'identité Android privée de référence."
+            exit 1
+          fi
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK_FILE" | tee release/APP_INFO.txt
           grep -F "name='app.tablefamiliale.menus'" release/APP_INFO.txt
-          grep -F "versionName='1.0.12'" release/APP_INFO.txt
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump permissions release/table-familiale-1.0.12-prive-signe.apk | tee release/PERMISSIONS.txt
+          grep -F "versionName='${APP_VERSION}'" release/APP_INFO.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump permissions "$APK_FILE" | tee release/PERMISSIONS.txt
           if grep -E 'android.permission\.(RECORD_AUDIO|ACCESS_FINE_LOCATION|READ_SMS|READ_CONTACTS|QUERY_ALL_PACKAGES)' release/PERMISSIONS.txt; then
             echo "::error::Autorisations Android supplémentaires inattendues."
             exit 1
           fi
-          sha256sum release/table-familiale-1.0.12-prive-signe.apk > release/SHA256SUMS
+          sha256sum "$APK_FILE" > release/SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: table-familiale-android-officiel
           path: |
-            release/table-familiale-1.0.12-prive-signe.apk
+            release/*.apk
             release/SHA256SUMS
             release/APP_INFO.txt
             release/PERMISSIONS.txt
