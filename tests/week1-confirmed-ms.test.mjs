@@ -61,7 +61,10 @@ test('ticket local complet : réconciliation exacte sans masquer les frais ou in
  assert.equal(preview.parsed.discountTotal,-1);
  assert.equal(preview.rows.length,10);
  assert.ok(preview.matched>0&&preview.extras>0);
- assert.ok(preview.rows.every(r=>r.selectedId&&r.quantityConfirmed===false));
+ assert.ok(preview.rows.every(r=>!!r.selectedId));
+ assert.ok(preview.rows.some(r=>r.sku==='29087914'&&r.quantityConfirmed));
+ assert.ok(preview.rows.filter(r=>r.sku==='29089635').every(r=>r.quantityConfirmed));
+ assert.ok(preview.rows.some(r=>r.sku==='00671729'&&!r.quantityConfirmed));
  const stale=syntheticPaidWeek().replace('Balance to Pay £','Balance to Pay £999');
  assert.throws(()=>prepareQuickReceipt(stale,month,0));
 });
