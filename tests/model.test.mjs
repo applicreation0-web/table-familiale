@@ -171,7 +171,7 @@ test('Fruits préférés uniquement : raisins, fraises, poires ; deux huiles de 
    const pears=items.filter(x=>x.name.startsWith('Poires Ocado à mûrir'));
    const grapes=items.filter(x=>x.name==='Raisins rouges sans pépins M&S');
    const berries=items.filter(x=>x.name==='Fraises M&S');
-   assert.equal(pears.length,2);
+   assert.equal(pears.length,1); // Second sachet facultatif et rétablissable.
    assert.ok(pears.every(x=>x.qty==='1 × 6 poires'&&x.estimate===1.7));
    assert.equal(grapes.length,1);
    assert.equal(grapes[0].estimate,w<4?5.3:2.65);
