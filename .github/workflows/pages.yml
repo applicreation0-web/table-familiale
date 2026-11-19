@@ -15,7 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check app.js && node --check model.js && node --check meal-plan.js
+      - run: npm install --no-audit --no-fund
+      - run: node --check app.js && node --check model.js && node --check meal-plan.js && node --check pricing.js && node --check receipt.js && node --check receipt-ocr.js
       - run: npm test
       - run: npm run build
       - uses: actions/upload-artifact@v4
