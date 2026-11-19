@@ -27,16 +27,16 @@ test('31 jours : exactement un plat africain par semaine, 2 jours et une cuisson
  }
  assert.equal(m.meals.filter(x=>x.kind!=='V').length,23);
 });
-test('Lait Yeo Valley 8L, 24 oeufs sans pâtisserie et yaourt 3kg chaque semaine',()=>{
+test('Lait Yeo Valley 4L, 24 oeufs sans pâtisserie et yaourt 3kg chaque semaine',()=>{
  const m=makeMonth(0);
  for(let w=0;w<4;w++){
   const rows=shoppingEntries(m,w,false);
-  assert.equal(rows.find(x=>x.name.includes('Yeo Valley'))?.qty,'4 × 2 L (8 L)');
+  assert.equal(rows.find(x=>x.name.includes('Yeo Valley'))?.qty,'2 × 2 L (4 L)');
   assert.equal(rows.find(x=>x.name==='Œufs')?.qty,'2 × 12 (24 œufs)');
   assert.equal(rows.find(x=>x.name==='Yaourt grec M&S Collection')?.qty,'3 × 1 kg');
  }
  const last=shoppingEntries(m,4,false);
- assert.equal(last.find(x=>x.name.includes('Yeo Valley'))?.qty,'2 × 2 L (4 L)');
+ assert.equal(last.find(x=>x.name.includes('Yeo Valley'))?.qty,'1 × 2 L (2 L)');
  assert.equal(last.find(x=>x.name==='Œufs')?.qty,'1 × 12 (12 œufs)');
  assert.equal(last.find(x=>x.name==='Yaourt grec M&S Collection')?.qty,'2 × 1 kg');
  assert.equal(m.groceries.filter(x=>x.name.includes('Farine blanche')).length,2);
@@ -193,7 +193,7 @@ test('Fruits préférés uniquement : raisins, fraises, poires ; deux huiles de 
  assert.equal(shoppingEntries(m,0,true).filter(x=>x.name==='Huile de tournesol M&S').length,1);
  const butter=m.groceries.filter(x=>x.name.startsWith('Beurre M&S'));
  assert.equal(butter.length,5);
- assert.ok(butter.every(x=>x.qty==='250 g'&&x.price===1.85));
+ assert.ok(butter.every(x=>x.qty==='250 g'&&x.price===3.75));
  const carrots=m.groceries.filter(x=>x.name==='Carottes');
  assert.equal(carrots.reduce((s,x)=>parseInt(x.qty,10)+s,0),14);
  assert.equal(carrots.reduce((s,x)=>s+x.price,0),10.5);
@@ -213,7 +213,7 @@ test('Pain £3.50, beurre hebdomadaire et 24 œufs maxi avec ou sans pâtisserie
      setBakingWeek(m,w,baking);
      const rows=shoppingEntries(m,w,false);
      assert.equal(rows.filter(x=>x.name.startsWith('Beurre M&S')).length,1);
-     assert.equal(rows.find(x=>x.name.startsWith('Beurre M&S')).estimate,1.85);
+     assert.equal(rows.find(x=>x.name.startsWith('Beurre M&S')).estimate,3.75);
      assert.equal(rows.find(x=>x.name==='Pain complet M&S')?.estimate,3.5);
      const eggs=rows.find(x=>x.name==='Œufs');
      assert.equal(eggs.qty,w<4?'2 × 12 (24 œufs)':'1 × 12 (12 œufs)');
@@ -461,7 +461,7 @@ test('Migration v6 des quatre plats au cabillaud vers le saumon sans perdre les 
  assert.equal(restored.meals[22].kind,'G');
  assert.equal(restored.meals[24].ingredients.find(x=>x.name==='Cabillaud').supplier,'Dining Solutions');
  assert.equal(restored.groceries.find(x=>x.id==='month-4').price,64.97);
- assert.equal(finance(restored).forecast,Math.round((878.78-12.60+12.70)*100)/100);
+ assert.equal(finance(restored).forecast,Math.round((878.78-6.20+12.70)*100)/100);
  assert.deepEqual(suggestedPurchases(restored),[]);
 });
 test('Ancien poisson déjà payé : la facture JJ est préservée et la marge ne doit pas être inventée',()=>{
