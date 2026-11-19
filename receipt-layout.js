@@ -24,5 +24,7 @@ export function reconstructReceiptRows(result){
    .filter((x,i,arr)=>i===0||x.text!==arr[i-1].text||Math.abs(x.x-arr[i-1].x)>4)
    .map(x=>x.text).join(' ')).join('\n');
  // Ne jamais remplacer un OCR textuel exploitable par une reconstruction vide.
- return joined.trim()||raw;
+ const pricedRows=source=>String(source||'').split(/\r?\n/)
+   .filter(line=>/[A-Za-zÀ-ÿ]{2}/.test(line)&&/\d{1,5}[.,]\d{2}/.test(line)).length;
+ return pricedRows(joined)>=pricedRows(raw)?joined.trim()||raw:raw;
 }
