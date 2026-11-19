@@ -1,5 +1,26 @@
 # Table Familiale — menus, courses, suivi local et budget de 900 £
 
+## 1.0.15 — Semaine 1 vérifiée et menus sans saumon
+
+**Première semaine : 20–26 novembre 2026**. Le saumon de la journée 3 est retiré dès l'ouverture de l'application, conformément à l'absence d'achat signalée. Cela ne valide **aucune dépense** et ne suppose **aucun stock** de poisson, viande, lait ou légumes. Les menus déjà cuisinés ou édités manuellement ne sont jamais remplacés.
+
+**Ticket M&S transmis par l'utilisateur :** 43 lignes d'articles ; **117,15 £** d'articles, **−1,50 £** de remboursement parking, soit **115,65 £** payés. La photo et la transcription intégrale ne sont PAS committées dans ce dépôt public. La prise en compte comptable dans l'application nécessite **une seule importation locale** de la transcription du ticket (Courses → Lire un ticket → Charger le ticket M&S .txt → vérifier le total → confirmer les achats et adapter les menus). Il n'existe pas de synchronisation automatique de la conversation ChatGPT vers le stockage du navigateur/appareil.
+
+| Jour | Menu après import d'un ticket complet confirmé |
+|---|---|
+| 1 | Poulet Hubbard rôti, pommes de terre et légumes ; carottes limitées à 450 g |
+| 2 | Gratin pommes de terre, brocolis, œufs et betteraves ; fromage non certifié retiré |
+| 3 | Couscous complet aux courgettes, tomates et œufs — **aucun saumon** |
+| 4–5 | Mafé d'agneau sur deux jours ; carottes ramenées à 500 g au total |
+| 6 | Cuisses de poulet basquaise et quinoa |
+| 7 | Fusilli complets aux brocolis, tomates et œufs — lentilles non identifiées remplacées |
+
+Ces ajustements de menus ne deviennent effectifs que si les ingrédients de remplacement sont reconnus dans le ticket complet et les plats sont toujours modifiables ou annulables. Les **950 g de carottes** correspondent aux recettes adaptées, pour **1 kg acheté** par code produit connu ; les autres conditionnements non prouvés ne sont pas considérés comme des quantités garanties. L'inventaire de protéines achetées séparément (viande halal, Dining Solutions) reste à vérifier et ces achats ne sont pas crédités automatiquement.
+
+**Import en une confirmation :** seul le rapprochement à code-barres reconnu est automatique ; les lignes restantes sont comptabilisées « hors liste » après vérification explicite du récapitulatif. Aucune ligne ne peut être omise dans le mode ticket complet ; le total doit se réconcilier au centime près (tolérance OCR de 0,02 £). La transaction entière est validée sur une copie de la sauvegarde et n'est écrite localement qu'en cas de réussite. Aucun reçu personnel ne doit être poussé dans GitHub.
+
+**Contrôle familial :** cinq assiettes pour deux adultes et trois enfants, équivalent indicatif de quatre portions adultes, sans âges précis. Le nombre d'œufs du programme est contrôlé avec le maximum hebdomadaire et le petit-déjeuner ; vérifier l'appétit et les restes. L'APK Android officielle requiert toujours signature privée et test de la caméra sur téléphone réel.
+
 ## 1.0.14 — Réorganisation automatique sur ticket hebdomadaire M&S
 
 Le moteur antérieur rapprochait les prix sans modifier le planning alimentaire. La nouvelle règle démarre **uniquement après validation par l'utilisateur d'un ticket complet de la semaine** : chaque ligne doit être associée à un achat prévu ou acceptée comme dépense hors liste. Sans cette confirmation, une absence sur le ticket ne signifie **jamais** une rupture de stock.
