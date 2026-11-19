@@ -73,6 +73,17 @@ jobs:
             sleep 12
             ./gradlew assembleDebug --no-daemon --refresh-dependencies
           fi
+      - name: Vérifier aussi le package release non signé avant toute signature
+        run: |
+          set -euo pipefail
+          cd android
+          if ! ./gradlew assembleRelease --no-daemon; then
+            echo "::warning::Nouvelle tentative de compilation release après une erreur Maven."
+            sleep 12
+            ./gradlew assembleRelease --no-daemon --refresh-dependencies
+          fi
+          test -s app/build/outputs/apk/release/app-release-unsigned.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | grep -F "name='app.tablefamiliale.menus'"
       - name: Auditer la configuration de l'APK de test
         run: |
           set -euo pipefail
