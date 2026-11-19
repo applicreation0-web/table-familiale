@@ -123,7 +123,7 @@ export function recommendReceiptMatches(parsed,month,week){
    const eanPattern=SKU_NAMES[line.sku];
    const barcodeEntry=eanPattern&&entries.find(item=>eanPattern.test(item.name)&&
      (item.purchase==='monthly'||item.week===week));
-   const selectedId=repeated?earlier:barcodeEntry?.id||canSuggest?first.id:'';
+   const selectedId=repeated?earlier:(barcodeEntry?.id||(canSuggest?first.id:''));
    if(selectedId){used.add(selectedId);byPrintedLabel.set(norm(line.label),selectedId);}
    const shownCandidates=barcodeEntry&&!candidates.some(x=>x.id===barcodeEntry.id)?
       [{id:barcodeEntry.id,label:barcodeEntry.name,week:barcodeEntry.week,score:1,adjusted:1},...candidates].slice(0,5):
