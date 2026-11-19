@@ -37,7 +37,9 @@ export function makeMonth(index=0){
       batchRole:plan.batchRole,servings:plan.servings,mealsPerDay:plan.mealsPerDay,ingredients:clone(plan.ingredients),originalIndex:i%31,
       cooked:false,cookedAt:null};
   });
-  const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
+  const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,
+    hidden:x.name.startsWith('Poires Ocado')&&x.name.includes('sachet 2/2'),
+    overrideQty:null,overridePrice:null}));
   const month={index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],notes:'',createdAt:new Date().toISOString()};
   calibrateCarrotsFromMeals(month); // Recommandation en sacs bio de 1kg au prix réellement observé.
   return month;
@@ -588,6 +590,16 @@ function migrateChildPortions(month){
   meal.ingredients=clone(nextIngredients);
   scaled++;
  }
+ // Un seul sachet de 6 poires par semaine en hypothèse de départ.
+ // Le second reste rétablissable depuis Courses, sans supprimer d'historique.
+ let optionalPearBags=0;
+ for(const item of month.groceries||[]){
+  if(!item.name.startsWith('Poires Ocado')||!item.name.includes('sachet 2/2')||
+     item.bought||item.hidden||item.inStock||item.overrideQty!=null||item.overridePrice!=null)continue;
+  item.hidden=true;optionalPearBags++;
+ }
+ if(optionalPearBags)month.reconcileWarnings.push({name:
+   'Poires : deuxième sachet de 6 rendu facultatif (rétablissable depuis Courses)'});
  const carrots=calibrateCarrotsFromMeals(month);
  if(kept>0)month.reconcileWarnings.push({name:
    'Portions : '+kept+' journée(s) cuisinée(s) ou personnalisée(s) préservées ; vérifier leurs besoins de courses'});
