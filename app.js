@@ -201,6 +201,57 @@ function openExpense(){
 function setAutoEstimate(itemId,cost){
  const month=getMonth();month.autoPurchases[itemId]={...month.autoPurchases[itemId],plannedPrice:cost};save();
 }
+
+function openReceiptDialog(){
+ receiptDraft=null;modalType='receipt';
+ openDialog(`<div class="dialog-head"><div><span class="overline">TICKET DE CAISSE</span><h2 id="editor-title">Lire et rapprocher un ticket</h2><p>Aucun achat n’est ajouté sans confirmation. Le texte du ticket reste temporaire et local.</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
+ <div class="edit-body">
+ <div class="action-line"><button class="button primary" data-action="photo-receipt" ${nativeReceiptAvailable(window.Capacitor)?'':'disabled title="Photo disponible dans la nouvelle APK Android"'}>${icon('upload',16)} Photo ou galerie Android</button></div>
+ <p>Sur le site web, ou si la photo n’est pas lisible, coller le texte du ticket ci-dessous. Le total imprimé ne sera jamais compté comme un article.</p>
+ <label class="field"><span>Texte reconnu (facultatif si photo Android)</span><textarea id="receipt-text" rows="8" placeholder="M&S Strawberries 4.00&#10;Red grapes 2.65&#10;TOTAL 6.65"></textarea></label>
+ <div class="banner caution">Vérifiez les prix, les remises, les quantités, le magasin et le total. Les tickets flous ou les lignes ambiguës ne sont pas validés automatiquement.</div>
+ </div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="parse-receipt">Analyser le ticket</button></div>`);
+}
+function showReceiptReview(parsed){
+ const month=getMonth();
+ if(month.receiptImports?.some(x=>x.fingerprint===parsed.fingerprint))
+   throw Error('Ce ticket est déjà enregistré dans cette période.');
+ if(!parsed.lines.length)throw Error('Aucune ligne avec description et prix reconnue. Vérifiez le texte ou recommencez la photo.');
+ const rows=recommendReceiptMatches(parsed,month,selectedWeek);
+ receiptDraft={parsed,rows};
+ const entries=allShoppingEntries(month).filter(x=>!x.bought&&!x.hidden&&!x.inStock);
+ const preferred=entries.filter(x=>x.purchase==='monthly'||x.week===selectedWeek);
+ const shopOptions=selectOptions(SUPPLIERS,'M&S');
+ const listHtml=rows.map((r,i)=>{
+   const prioritized=r.candidates.map(x=>x.id);
+   const selected=[...new Set([...prioritized,...preferred.map(x=>x.id)])];
+   const options=selected.map(id=>{
+     const item=entries.find(x=>x.id===id);
+     if(!item)return '';
+     const label=item.name+' · '+(item.purchase==='monthly'?'mois':'semaine '+(item.week+1));
+     return `<option value="${esc(id)}" ${r.selectedId===id?'selected':''}>${esc(label)}</option>`;
+   }).join('');
+   return `<div class="receipt-line" style="display:grid;gap:8px;padding:12px 0;border-bottom:1px solid var(--line,#ddd)">
+    <label><b>${esc(r.label)}</b> <small>· ${esc(r.confidence)}</small></label>
+    <div class="field-grid"><label class="field"><span>Montant payé (£)</span><input data-receipt-amount="${i}" type="number" min="0" step="0.01" value="${r.amount.toFixed(2)}" /></label>
+    <label class="field"><span>Rapprocher de</span><select data-receipt-select="${i}"><option value="">Ignorer cette ligne</option><option value="extra">Nouvelle dépense hors liste</option>${options}</select></label></div>
+   </div>`;
+ }).join('');
+ openDialog(`<div class="dialog-head"><div><span class="overline">VÉRIFICATION OBLIGATOIRE</span><h2 id="editor-title">Ticket : ${rows.length} lignes reconnues</h2><p>Choisir les articles à enregistrer. Les lignes sans correspondance restent ignorées, sauf si tu sélectionnes « Nouvelle dépense hors liste ».</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
+ <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Total lu</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Somme des lignes OCR</small><strong>${money(parsed.recognizedTotal)}</strong></div></div>
+ <p>Une différence peut correspondre à une promotion, une ligne manquante, une livraison ou une erreur de lecture. Elle n’est jamais ajoutée automatiquement.</p>
+ <label class="field"><span>Magasin du ticket (pour dépenses hors liste)</span><select id="receipt-supplier">${shopOptions}</select></label>
+ ${listHtml}
+ </div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="commit-receipt">Confirmer les lignes sélectionnées</button></div>`);
+}
+async function readReceiptPhoto(){
+ try{
+   flash('Lecture locale du ticket en cours…');
+   const text=await captureReceiptText(window.Capacitor);
+   const parsed=parseReceiptText(text);
+   showReceiptReview(parsed);
+ }catch(e){flash(e.message||'Lecture photo impossible','error');}
+}
 function onAction(action,btn){
  const month=getMonth(),id=btn.dataset.id,index=Number(btn.dataset.index);
  switch(action){
