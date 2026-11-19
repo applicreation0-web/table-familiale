@@ -1,13 +1,20 @@
 # Table Familiale — menus, achats et plafond de 900 £
 
-## Révision vérifiée au 19 novembre 2026 — ticket M&S réel (PR #11)
+## Préparation de Table Familiale 1.0.13 — ticket M&S complet, hors viande/Dining Solutions
 
-Le ticket photographié contient **43 lignes d'articles totalisant 117,15 £** et une remise parking de **1,50 £** : montant réglé **115,65 £**. La transcription de ce ticket est désormais un test de régression du parseur (EAN à gauche, montant suivi de « < », texte OCR multi-colonnes, montant dû et remises). **Cela ne valide pas encore le traitement d'une véritable photo sur Android**, qui nécessite une recette sur téléphone.
+Le ticket utilisateur est le panier complet des achats hors **viandes halal** et **Dining Solutions**. Total 43 lignes : **117,15 £ de produits**, remise parking **−1,50 £**, **115,65 £ réellement payés**. La transcription papier et une mise en page OCR simulée servent de tests automatiques ; **la prise de photo Android n'a pas encore été validée sur le téléphone réel**.
 
-Prix de référence confirmé auprès de M&S pour **Organic Mixed Eggs x12 à 5,40 £ le paquet**, cohérent avec le reçu (deux paquets = 24 œufs pour 10,80 £). Le modèle v12 utilise **10,80 £ pour chacune des quatre semaines complètes** et **5,40 £ pour la semaine partielle** ; les achats déjà payés, les prix manuels et les observations apprises restent prioritaires et intacts. L'ancien budget de 8,80 £/24 œufs était sous-estimé.
+Références vérifiées par code-barres et ligne de caisse : **œufs M&S bio, 12 unités à 5,40 £**, **lait entier Yeo Valley bio, 2 L à 3,10 £**, **beurre Lescure AOP doux, 250 g à 3,75 £**, **carottes M&S bio, 1 kg à 1,60 £**. Les libellés issus du ticket sont rapprochés par EAN, sans validation automatique des achats.
 
-**Panier v12 à quantités inchangées** : **898,08 £ sans pâtisserie facultative** (marge 1,92 £), ou **903,88 £ si la pâtisserie est activée les cinq semaines** (dépassement de 3,88 £). Ces montants demeurent provisoires : quantités de lait, produits achetés hors liste et formats réels demandent une confrontation à plusieurs tickets. Ne pas réduire la consommation à partir d'un ticket isolé ni qualifier ce panier de garanti sous 900 £.
+- Lait : les **quatre semaines complètes** passent de 8 L / 12,60 £ à **4 L / 6,20 £**, et la semaine partielle de 4 L / 6,30 £ à **2 L / 3,10 £**. Ce calibrage porte sur les achats usuels ; le stock réel peut être différent.
+- Œufs : le plafond demeure 24 par semaine complète et prix **10,80 £** ; semaine partielle 12 œufs à **5,40 £**, sous réserve de consommations déjà réalisées.
+- Beurre : 250 g **toutes les semaines** à **3,75 £**, qualité Lescure conservée.
+- Carottes : **1 kg acheté** sur le ticket, alors que la semaine 1 du panier prévoit 4 kg et les recettes réclament **3,2 kg**. Ne pas réduire ces recettes ou acheter seulement 1 kg sans afficher cet écart ; l'écran de ticket présente l'incohérence pour décision humaine.
+- Autres produits (café, noix, farine, huile, etc.) : distinguer achat de réserve, achat mensuel et réapprovisionnement hebdomadaire, avant extrapolation.
 
+**Prévision recalibrée partielle du cycle (viande et Dining Solutions inchangés)** : **878,78 £ sans pâtisserie facultative** ou **884,58 £ si la pâtisserie est activée les cinq semaines**. Ce résultat **n'est pas une validation du plafond de 900 £** : les autres écarts de panier, les achats supplémentaires, les tailles non identifiées et les besoins des recettes restent à réconcilier. Aucune quantité déjà achetée, aucun achat payé et aucune personnalisation ne doivent être écrasés pendant la migration v11 → v12 des données.
+
+**État : correctifs PR #11 non fusionnés, release 1.0.13 non publiée tant que les tests et le contrôle matériel photo ne sont pas terminés.**
 
 **Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
 **Dépôt :** https://github.com/applicreation0-web/table-familiale  
