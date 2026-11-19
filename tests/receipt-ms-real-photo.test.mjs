@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parseReceiptText,applyReceiptReview,recommendReceiptMatches} from '../receipt.js';
 import {reconstructReceiptRows} from '../receipt-layout.js';
-import {newState,finance,validateImport} from '../model.js';
+import {newState,finance,validateImport,makeMonth} from '../model.js';
+import {compareReceiptToPlan} from '../receipt-benchmark.js';
 
 // Transcription de référence du ticket M&S photographié le 19/11/2026.
 // Le test porte sur le parseur, pas sur une prétendue validation de caméra réelle.
@@ -154,4 +155,34 @@ test('migration v11→v12 : revaloriser uniquement les œufs non achetés, sans 
  assert.equal(now[2].price,10.8);
  assert.equal(now[4].price,5.4);
  assert.equal(validateImport(migrated).months['0'].groceries.find(x=>x.id===now[2].id).price,10.8);
+});
+
+test('panier complet sauf viande/Dining : quantités certifiées des achats reproductibles',()=>{
+ const month=makeMonth(0),receipt=parseReceiptText(transcript);
+ const observed=compareReceiptToPlan(receipt,month,0);
+ const map=Object.fromEntries(observed.map(x=>[x.key,x]));
+ assert.equal(observed.length,4);
+ assert.deepEqual([map.milk.actualQty,map.milk.plannedQty,map.milk.actualPrice],[4,4,6.2]);
+ assert.deepEqual([map.eggs.actualQty,map.eggs.plannedQty,map.eggs.actualPrice],[24,24,10.8]);
+ assert.deepEqual([map.butter.actualQty,map.butter.plannedQty,map.butter.actualPrice],[250,250,3.75]);
+ assert.deepEqual([map.carrots.actualQty,map.carrots.plannedQty,map.carrots.recipeNeed],[1,4,3.2]);
+ assert.equal(finance(month).forecast,878.78);
+});
+test('ancien prix appris du lait 8L ramené au format réel 4L sans modifier les achats historiques',()=>{
+ const s=newState(),m=s.months['0'],milks=m.groceries.filter(x=>x.name.startsWith('Lait Yeo Valley'));
+ s.version=11;
+ for(const item of milks){
+   item.qty=item.week<4?'4 × 2 L (8 L)':'2 × 2 L (4 L)';
+   item.price=item.week<4?12.60:6.30;
+   item.learnedPrice=item.week<4?12.40:6.20;
+ }
+ milks[0].bought=true;milks[0].actual=12.35;
+ const updated=validateImport(JSON.parse(JSON.stringify(s)));
+ const next=updated.months['0'].groceries.filter(x=>x.name.startsWith('Lait Yeo Valley'));
+ assert.equal(next[0].actual,12.35);
+ assert.equal(next[0].qty,'4 × 2 L (8 L)');
+ assert.equal(next[1].qty,'2 × 2 L (4 L)');
+ assert.equal(next[1].learnedPrice,6.20);
+ assert.equal(next[4].qty,'1 × 2 L (2 L)');
+ assert.equal(next[4].learnedPrice,3.10);
 });
