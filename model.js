@@ -110,7 +110,7 @@ function plannedGrocery(month,item){
       targetWeek=active[0]; // Les ingrédients de base apparaissent dans la semaine de cuisine.
     }else if(!isBakingWeek(month,item.week))return null;
   }
-  const planned={...item,week:targetWeek,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.learnedPrice??item.price};
+  const planned={...item,week:targetWeek,kind:'base',qty:item.bought&&item.receiptQtyText?item.receiptQtyText:(item.overrideQty??item.qty),estimate:item.overridePrice??item.learnedPrice??item.price};
   if(item.name==='Œufs'&&item.week<4&&!item.bought&&!item.overrideQty){
     planned.qty='2 × 12 (24 œufs)';
     if(item.overridePrice==null)planned.estimate=item.learnedPrice??10.80;
