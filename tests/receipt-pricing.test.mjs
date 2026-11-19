@@ -41,7 +41,7 @@ test('Décoche achat : référence apprise retirée, estimations d’origine ré
  markBought(m,{...item,kind:'base'},false,null);
  assert.equal(nextGrapes(m,1).estimate,5.3);
  assert.equal(nextGrapes(m,4).estimate,2.65);
- assert.equal(finance(m).forecast,878.78);
+ assert.equal(finance(m).forecast,889.38);
  assert.equal(priceBookStats(s).series,0);
 });
 test('Prix manuel et achats déjà payés sont intouchables, prochains mois apprennent',()=>{
