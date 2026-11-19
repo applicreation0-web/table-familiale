@@ -89,6 +89,12 @@ export function parseReceiptText(raw){
    reconciliationGap:ticketTotal==null?null:round(recognizedTotal+discountTotal-ticketTotal),
    date:date?date[3]+'-'+date[2]+'-'+date[1]:null,rawLineCount:input.length};
 }
+const SKU_NAMES={
+ '5036589201601':/^Lait Yeo Valley/,
+ '3282380060219':/^Beurre M&S/,
+ '29089635':/^Œufs$/,
+ '29087914':/^Carottes$/
+};
 export function recommendReceiptMatches(parsed,month,week){
  const entries=allShoppingEntries(month).filter(e=>!e.bought&&!e.hidden&&!e.inStock);
  const used=new Set(),byPrintedLabel=new Map();
@@ -113,9 +119,17 @@ export function recommendReceiptMatches(parsed,month,week){
    // d'un même article prévu. Les regrouper, avec vérification à l'import.
    const earlier=byPrintedLabel.get(norm(line.label));
    const repeated=earlier&&candidates.some(x=>x.id===earlier&&x.score>=0.65);
-   const selectedId=repeated?earlier:canSuggest?first.id:'';
+   // EAN validé > libellé abrégé. Toujours une proposition, jamais un achat auto.
+   const eanPattern=SKU_NAMES[line.sku];
+   const barcodeEntry=eanPattern&&entries.find(item=>eanPattern.test(item.name)&&
+     (item.purchase==='monthly'||item.week===week));
+   const selectedId=repeated?earlier:barcodeEntry?.id||canSuggest?first.id:'';
    if(selectedId){used.add(selectedId);byPrintedLabel.set(norm(line.label),selectedId);}
-   result.push({...line,selectedId,confidence:canSuggest?'probable':'à vérifier',candidates:candidates.slice(0,5)});
+   const shownCandidates=barcodeEntry&&!candidates.some(x=>x.id===barcodeEntry.id)?
+      [{id:barcodeEntry.id,label:barcodeEntry.name,week:barcodeEntry.week,score:1,adjusted:1},...candidates].slice(0,5):
+      candidates.slice(0,5);
+   result.push({...line,selectedId,confidence:barcodeEntry?'code-barres à confirmer':canSuggest?'probable':'à vérifier',
+     candidates:shownCandidates});
  }
  return result;
 }
