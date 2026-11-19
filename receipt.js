@@ -228,6 +228,14 @@ export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={})
            found.receiptQtyText=packageQty.text;
            found.receiptQty=packageQty.value;
            found.receiptQtyUnit=packageQty.unit;
+           found.receiptPackCount=packageQty.packageCount;
+           found.receiptPackUnknown=false;
+         }else{
+           // Un code et un montant prouvent un achat, pas un poids non imprimé.
+           found.receiptQtyText=row.lineCount+(row.lineCount>1?' emballages':' emballage')+' · poids/format à vérifier';
+           found.receiptPackCount=row.lineCount;
+           found.receiptQty=null;found.receiptQtyUnit=null;
+           found.receiptPackUnknown=true;
          }
        }
      }
