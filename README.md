@@ -2,7 +2,7 @@
 
 **Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
 **Dépôt :** https://github.com/applicreation0-web/table-familiale  
-**Version des données : v9 (correctif non publié)** — mise à jour du 19 novembre 2026.
+**Version des données : v10 (correctif non publié)** — mise à jour du 19 novembre 2026.
 
 ## Règles du programme familial
 
@@ -39,7 +39,7 @@ Le tarif de livraison Healthy Supplies sous le seuil de gratuité est **à confi
 
 ## Finances et contrôle de la qualité
 
-**Panier optimisé sans pâtisserie optionnelle : 888,38 £**, dont 5 £ de provision pour la livraison des noix. Le plafond demeure **900 £** : **marge prévisionnelle de 11,62 £** à vérifier sur un vrai panier avant publication. Le pain complet est provisionné à **3,50 £ l'unité** sur cinq semaines, prix communiqué par l'utilisateur sans référence produit vérifiée. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
+**Panier révisé sans pâtisserie optionnelle : 889,08 £**, dont 5 £ de provision pour la livraison des noix. Le plafond demeure **900 £** : **marge prévisionnelle de 10,92 £** à vérifier sur un vrai panier avant publication. Le pain complet est provisionné à **3,50 £ l'unité** sur cinq semaines, prix communiqué par l'utilisateur sans référence produit vérifiée. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
 
 Sources de prix indicatifs, à vérifier avant de passer commande :
 - [Pâte brisée M&S 320 g — 2 £](https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011)
@@ -53,7 +53,7 @@ L'application affiche clairement les **prix provisoires**, la marge fragile, les
 
 ## Utilisation, sauvegardes et migrations
 
-Le navigateur conserve les périodes, achats, plats modifiés et reçus **localement**. L'onglet Suivi permet d'exporter une sauvegarde JSON avant changement de téléphone ou nettoyage de cache. Les versions **v2 à v8 migrent vers v9** : repas cuisinés, recettes personnalisées, achats payés et produits personnels conservés. Les mackerels ou noix déjà payés restent dans les comptes ; l'utilisateur doit vérifier son stock avant de re-commander les alternatives. Une recette déjà faite n'est pas secrètement remplacée par une quiche.
+Le navigateur conserve les périodes, achats, plats modifiés et reçus **localement**. L'onglet Suivi permet d'exporter une sauvegarde JSON avant changement de téléphone ou nettoyage de cache. Les versions **v2 à v9 migrent vers v10** : repas cuisinés, recettes personnalisées, achats payés et produits personnels conservés. Les mackerels ou noix déjà payés restent dans les comptes ; l'utilisateur doit vérifier son stock avant de re-commander les alternatives. Une recette déjà faite n'est pas secrètement remplacée par une quiche.
 
 La PWA peut être installée depuis Chrome Android (« Ajouter à l'écran d'accueil ») et peut fonctionner hors connexion après la mise en cache. La publication GitHub **ne redéploie pas automatiquement** Vercel ; il faut déployer le commit vérifié en production.
 
@@ -82,28 +82,43 @@ La release Android privée est générée par `.github/workflows/android-release
 Les contrôles automatisés ont été réalisés sur Linux CI ; un essai de la feuille de partage et de l'import sur un vrai téléphone Android reste à faire.
 
 
-## Optimisation de panier du 19 novembre 2026 — cible 888,38 £
+## Préférences de fruits et huiles — correction du 19 novembre 2026
 
-Les quantités et portions restent celles du programme familial initial. Les substitutions de conditionnements conservent la marque M&S pour les pommes, beurre, carottes et pommes de terre. L'huile Ocado reste de catégorie **vierge extra**, volume **1 litre**, avec un changement explicite de marque.
+**Les pommes (fruit), les bananes et les clémentines sortent du nouveau panier**. Les pommes de terre restent bien sûr au menu. Raisins, fraises et poires sont les seuls fruits proposés pour le panier de base. Fraises et raisins restent M&S ; les poires Ocado « Ripen at Home » sont une substitution économique avec 6 poires moyennes par sachet. La disponibilité, la maturité et l'appréciation du produit restent à vérifier à la livraison.
 
-| Poste | Coût avant optimisation | Coût retenu | Économie |
-|---|---:|---:|---:|
-| 54 pommes M&S, 9 lots de 6 Braeburn | 29,70 £ | 16,20 £ | 13,50 £ |
-| Beurre M&S doux : 5 × 250 g | 14,50 £ | 9,25 £ | 5,25 £ |
-| Huile d’olive vierge extra : 1 L | 9,00 £ | 7,75 £ | 1,25 £ |
-| Carottes britanniques M&S : 14 kg | 14,00 £ | 10,50 £ | 3,50 £ |
-| Pommes de terre blanches M&S : 14 kg, 7 sacs de 2 kg | 16,80 £ | 9,80 £ | 7,00 £ |
-| **Économies totales** | | | **30,50 £** |
+| Période | Raisins M&S | Fraises M&S | Poires Ocado |
+|---|---|---|---|
+| Semaine complète, × 4 | 2 barquettes × 500 g = 1 kg, **5,30 £/semaine** | 1 barquette × 400 g, **4 £/semaine** | 2 sachets × 6 poires = 12, **3,40 £/semaine** |
+| Dernière semaine de 3 jours | 1 barquette de 500 g, **2,65 £** | Aucune (éviter le gaspillage) | 2 sachets × 6 poires, **3,40 £** |
+| **Total du cycle** | **4,5 kg / 23,85 £** | **1,6 kg / 16 £** | **60 poires / 17 £** |
 
-Le panier initial après les exigences beurre/œufs/pain était à **918,88 £** ; après les cinq corrections sourcées, il descend à **888,38 £** sans pâtisserie, soit **11,62 £ de marge** sous le plafond de 900 £. Le pain reste à **3,50 £ × 5 = 17,50 £**, tarif fourni par l'utilisateur. Le beurre est prévu chaque semaine (y compris la dernière semaine partielle), les œufs sont plafonnés à **24/semaine complète** (12 la semaine partielle), y compris pour pâtisseries, quiches et petits-déjeuners.
+Le remplacement représente un budget fruits de **56,85 £**, contre **59,40 £** pour les quatre fruits de l'ancien panier : **2,55 £ économisés** sans conserver des fruits que la famille n'aime pas. L'allocation des fruits ne constitue pas une prescription nutritionnelle personnalisée et la disponibilité de fraises fraîches en novembre/décembre peut varier. Conserver au froid, consommer les fraises tôt après la livraison, puis les raisins, et faire mûrir les poires progressivement. Pour les jeunes enfants, couper les raisins en quatre dans le sens de la longueur afin de réduire le risque d'étouffement.
 
-La pâtisserie reste facultative : si elle est sélectionnée pour les cinq semaines, **le budget avec tous les ingrédients facultatifs prévus dans l'application est de 894,18 £**, soit 5,82 £ de marge. Aucune hausse automatique des œufs ; l'écran précise les œufs consacrés aux plats, réservés aux petits-déjeuners et restants pour pâtisserie.
+**Deux huiles distinctes, qualité maintenue :**
+- **Huile d'olive vierge extra M&S 1 L : 9 £**, catégorie supérieure obtenue directement d'olives par procédés mécaniques ; pour assaisonnements et cuisson douce. Le précédent prix de 7,75 £ concernait un autre produit Ocado.
+- **Huile de tournesol M&S 1 L : 2 £** pour la cuisson ; achat mensuel distinct.
 
-Sources des tarifs catalogue consultés le 19 novembre 2026 :
-- [Pommes M&S Braeburn 6 pour 1,80 £](https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011)
-- [Beurre M&S British Unsalted 250 g pour 1,85 £](https://www.ocado.com/products/m-s-british-unsalted-butter/505453011)
-- [Huile d’olive vierge extra Ocado 1 L à 7,75 £](https://www.ocado.com/products/ocado-extra-virgin-olive-oil/436849011)
-- [Carottes M&S British 1 kg à 0,75 £](https://www.ocado.com/products/m-s-british-carrots/518554011)
-- [Pommes de terre M&S White 2 kg à 1,40 £](https://www.ocado.com/products/m-s-white-potatoes/519668011)
+Les deux huiles sont comptées ensemble à **11 £**, contre 7,75 £ auparavant : **+3,25 £**, et 2 litres disponibles au lieu d'un seul.
 
-**Réserve de publication :** les prix sont indicatifs, dépendent des stocks et du code postal ; la livraison des noix reste provisionnée à 5 £ sans confirmation. Même avec les tests au vert, seul un panier réel permet de garantir le plafond au moment du paiement. Les sauvegardes v8→v9 conservent les reçus, plats cuisinés, stocks et modifications personnelles.
+**Budget de référence du cycle :**
+
+| Ligne | Montant |
+|---|---:|
+| Panier audité avant changement des fruits/huiles | 888,38 £ |
+| Substitution des fruits (−2,55 £) | 885,83 £ |
+| Ajout du tournesol et huile d'olive M&S (+3,25 £) | **889,08 £** |
+| Plafond ferme | 900,00 £ |
+| **Marge sans pâtisserie facultative** | **10,92 £** |
+| **Panier avec pâtisserie activée toutes les semaines** | **894,88 £** |
+| Marge avec toutes les pâtisseries facultatives | 5,12 £ |
+
+Le pain reste provisionné à **3,50 £ l'unité** sur cinq semaines, beurre 250 g chaque semaine, œufs **24 maximum** par semaine complète et 12 en semaine partielle, y compris la pâtisserie. Le menu principal, les portions, le lait et le yaourt ne sont pas modifiés.
+
+Sources catalogue Ocado consultées le 19 novembre 2026 :
+- [Raisins rouges sans pépins M&S, 500 g à 2,65 £](https://www.ocado.com/products/m-s-seedless-red-grapes/518292011)
+- [Fraises M&S, 400 g à 4,00 £](https://www.ocado.com/products/m-s-strawberries/517983011)
+- [Poires Ocado Ripen at Home, 6 à 1,70 £](https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011)
+- [Huile de tournesol M&S, 1 L à 2,00 £](https://www.ocado.com/products/m-s-sunflower-oil/505990011)
+- [Huile d'olive vierge extra M&S, 1 L à 9,00 £](https://www.ocado.com/products/M-S-Extra-Virgin-Olive-Oil/528611011)
+
+**Publication :** version de préparation non publiée jusqu'aux tests CI et à la vérification du vrai panier avec disponibilité locale. Le coût de livraison des noix est encore une provision de 5 £ ; la marge n'est pas garantie. Sur import v9→v10, aucun achat payé, recette cuisinée ou stock annoté n'est réécrit. Si des fruits ou huiles de l'ancien panier sont déjà achetés, un avertissement demande un rapprochement de stock plutôt qu'un faux reçu modifié.
