@@ -93,13 +93,23 @@ jobs:
             --key-pass env:RELEASE_KEY_PASSWORD \
             --out release/table-familiale-1.0.8-prive-signe.apk \
             release/app-release-aligned.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/table-familiale-officiel.apk
-          sha256sum release/table-familiale-officiel.apk > release/SHA256SUMS
-          rm -f "$RUNNER_TEMP/table-familiale-release.jks" release/app-release-aligned.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/table-familiale-1.0.8-prive-signe.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging release/table-familiale-1.0.8-prive-signe.apk | tee release/APP_INFO.txt
+          grep -F "name='app.tablefamiliale.menus'" release/APP_INFO.txt
+          grep -F "versionName='1.0.8'" release/APP_INFO.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump permissions release/table-familiale-1.0.8-prive-signe.apk | tee release/PERMISSIONS.txt
+          if grep -E 'android.permission\.(CAMERA|RECORD_AUDIO|ACCESS_FINE_LOCATION|READ_SMS|READ_CONTACTS|QUERY_ALL_PACKAGES)' release/PERMISSIONS.txt; then
+            echo "::error::Autorisations Android supplémentaires inattendues."
+            exit 1
+          fi
+          sha256sum release/table-familiale-1.0.8-prive-signe.apk > release/SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: table-familiale-android-officiel
           path: |
-            release/table-familiale-officiel.apk
+            release/table-familiale-1.0.8-prive-signe.apk
             release/SHA256SUMS
+            release/APP_INFO.txt
+            release/PERMISSIONS.txt
           if-no-files-found: error
+          retention-days: 7
