@@ -105,7 +105,8 @@ function bakingSwitch(month){
 function renderMenus(month,dates){
  const from=selectedWeek*7, meals=month.meals.slice(from,from+7);
  return `<div class="section-title"><div><span class="overline">MENU PROPOSÉ</span><h2>Les plats de la semaine</h2><p>Un plat africain par semaine : 10 portions cuisinées pour cinq personnes, une fois par jour pendant deux jours. Autres repas variés.</p></div><button class="button outline" data-action="goto-shopping">${icon('basket',17)} Liste M&S</button></div>
- ${weekHeader(month)}${bakingSwitch(month)}${month.receiptWeeks?.[selectedWeek]?.complete?
+ ${weekHeader(month)}${bakingSwitch(month)}${month.receiptWeeks?.[selectedWeek]?.complete&&month.receiptWeeks[selectedWeek].warnings?.length?
+  '<div class="banner caution">'+icon('alert')+' <span>'+month.receiptWeeks[selectedWeek].warnings.map(esc).join(' · ')+'</span></div>':''}${month.receiptWeeks?.[selectedWeek]?.complete?
   '<div class="banner success">'+icon('check')+' <span>Courses M&S de cette semaine confirmées sur ticket. Repas adaptés selon les produits reconnus. Les quantités et les achats séparés restent à vérifier.</span></div>':''}
   <div class="meal-grid">${meals.map((dish,i)=>{
  const j=from+i, date=dates[j],kind=dish.kind==='V'?'green':'protein';return `<article class="meal-card ${dish.cooked?'is-cooked':''}"><div class="day"><strong>${date.getDate()}</strong><small>${date.toLocaleDateString('fr-FR',{weekday:'short',month:'short'})}</small></div>
@@ -220,7 +221,7 @@ function openReceiptDialog(){
  receiptDraft=null;modalType='receipt';
  openDialog(`<div class="dialog-head"><div><span class="overline">TICKET DE CAISSE</span><h2 id="editor-title">Lire et rapprocher un ticket</h2><p>Aucun achat n’est ajouté sans confirmation. Le texte du ticket reste temporaire et local.</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
  <div class="edit-body">
- <div class="action-line"><button class="button primary" data-action="photo-receipt" ${nativeReceiptAvailable(window.Capacitor)?'':'disabled title="Photo disponible dans la nouvelle APK Android"'}>${icon('upload',16)} Photo ou galerie Android</button></div>
+ <div class="action-line"><button class="button primary" data-action="photo-receipt" ${nativeReceiptAvailable(window.Capacitor)?'':'disabled title="Photo disponible dans la nouvelle APK Android"'}>${icon('upload',16)} Photo ou galerie Android</button><label class="button outline" style="cursor:pointer">${icon('upload',16)} Charger un ticket .txt <input id="receipt-file" type="file" accept=".txt,text/plain" style="display:none" /></label></div>
  <p>Sur le site web, ou si la photo n’est pas lisible, coller le texte du ticket ci-dessous. Le total imprimé ne sera jamais compté comme un article.</p>
  <label class="field"><span>Texte reconnu (facultatif si photo Android)</span><textarea id="receipt-text" rows="8" placeholder="M&S Strawberries 4.00&#10;Red grapes 2.65&#10;TOTAL 6.65"></textarea></label>
  <div class="banner caution">Vérifiez les prix, les remises, les quantités, le magasin et le total. Les tickets flous ou les lignes ambiguës ne sont pas validés automatiquement.</div>
@@ -405,6 +406,18 @@ dialog.addEventListener('click',e=>{
  const btn=e.target.closest('button[data-action]');if(btn){e.preventDefault();onAction(btn.dataset.action,btn)}
 });
 dialog.addEventListener('change',e=>{
+ if(e.target.id==='receipt-full-week'&&e.target.checked){
+  let n=0;
+  for(const select of dialog.querySelectorAll('[data-receipt-select]'))
+   if(!select.value){select.value='extra';n++;}
+  if(n)flash(n+' ligne(s) sans rapprochement préparée(s) comme dépenses hors liste : vérifier avant validation.');
+ }
+ if(e.target.id==='receipt-file'){
+  const file=e.target.files?.[0];
+  if(file)void file.text().then(text=>showReceiptReview(parseReceiptText(text)))
+   .catch(err=>flash('Ticket non importé : '+err.message,'error'));
+  return;
+ }
  if(e.target.id==='template-choice'&&e.target.value!=='custom'){
   readIngredientFields();
    const choice=e.target.value;
