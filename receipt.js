@@ -104,7 +104,8 @@ const SKU_NAMES={
  '29095773':/^Citrons$/,
  '00199032':/^Ail$/,
  '29481385':/^Yaourt grec M&S Collection$/,
- '29091188':/^Fromage M&S/,
+ // Le cheddar râpé n'est pas assimilé au fromage à présure végétale
+ // sans contrôle de l'emballage (régime halal).
  '29495511':/^Flocons d’avoine$/,
  '00821964':/^Tomates concassées$/,
  '29173204':/^Purée de cacahuètes$/,
