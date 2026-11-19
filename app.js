@@ -235,11 +235,12 @@ function showReceiptReview(parsed){
     <label><b>${esc(r.label)}</b> <small>· ${esc(r.confidence)}</small></label>
     <div class="field-grid"><label class="field"><span>Montant payé (£)</span><input data-receipt-amount="${i}" type="number" min="0" step="0.01" value="${r.amount.toFixed(2)}" /></label>
     <label class="field"><span>Rapprocher de</span><select data-receipt-select="${i}"><option value="">Ignorer cette ligne</option><option value="extra">Nouvelle dépense hors liste</option>${options}</select></label></div>
+    <label style="display:flex;gap:8px;align-items:center"><input data-receipt-qty="${i}" type="checkbox" /> <span>J’ai vérifié que la quantité/format achetés correspondent au produit choisi (autorise le recalcul du prix futur)</span></label>
    </div>`;
  }).join('');
  openDialog(`<div class="dialog-head"><div><span class="overline">VÉRIFICATION OBLIGATOIRE</span><h2 id="editor-title">Ticket : ${rows.length} lignes reconnues</h2><p>Choisir les articles à enregistrer. Les lignes sans correspondance restent ignorées, sauf si tu sélectionnes « Nouvelle dépense hors liste ».</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
  <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Total lu</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Somme des lignes OCR</small><strong>${money(parsed.recognizedTotal)}</strong></div></div>
- <p>Une différence peut correspondre à une promotion, une ligne manquante, une livraison ou une erreur de lecture. Elle n’est jamais ajoutée automatiquement.</p>
+ <p>Une différence peut correspondre à une promotion, une ligne manquante, une livraison ou une erreur de lecture. Elle n’est jamais ajoutée automatiquement. Pour chaque achat, vérifiez aussi la quantité : un sachet de 500 g ne doit pas être assimilé à une prévision de 1 kg.</p>
  <label class="field"><span>Magasin du ticket (pour dépenses hors liste)</span><select id="receipt-supplier">${shopOptions}</select></label>
  ${listHtml}
  </div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="commit-receipt">Confirmer les lignes sélectionnées</button></div>`);
