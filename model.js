@@ -534,7 +534,7 @@ function migrateFruitOilPreferences(month,index){
 // v11 -> v12 : calibration confirmée sur ticket M&S complet, hors
 // viande et Dining Solutions. Ne jamais modifier les achats payés, stocks
 // personnalisés ni les prix explicitement saisis par l'utilisateur.
-function migrateRealStaplePrices(month){
+function migrateRealStaplePrices(month,{addSupplementalMilk=true}={}){
  for(const item of month.groceries||[]){
    if(item.bought||item.overridePrice!=null)continue;
    if(item.name==='Œufs'){
@@ -554,6 +554,16 @@ function migrateRealStaplePrices(month){
    }else if(item.name==='Beurre M&S (usage hebdomadaire)'){
      // Le code-barres 3282380060219 correspond au Lescure AOP 250g.
      item.price=3.75;
+   }
+ }
+ // La troisième bouteille du ticket est un lait M&S bio de 4 pintes,
+ // différent des deux flacons Yeo Valley. Ne pas l'attribuer au prix de Yeo.
+ // Ajout aux périodes à venir uniquement : les achats historiques restent intacts.
+ if(addSupplementalMilk){
+   const present=new Set(month.groceries.map(i=>i.id));
+   for(const item of BASE_SHOPPING.filter(i=>i.id.startsWith('receipt-ms-organic-milk-week'))){
+     if(item.week>=Math.ceil(month.meals.length/7)||present.has(item.id))continue;
+     month.groceries.push({...clone(item),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null});
    }
  }
  return month;
@@ -607,7 +617,8 @@ export function validateImport(raw){
   }
   if(raw.version===10)raw.version=11;
   if(raw.version===11){
-    for(const month of Object.values(raw.months))migrateRealStaplePrices(month);
+    for(const [key,month] of Object.entries(raw.months))
+      migrateRealStaplePrices(month,{addSupplementalMilk:Number(key)>=Number(raw.selectedPeriod??0)});
     raw.version=12;
   }
   raw.priceBook??={};
