@@ -90,6 +90,10 @@ test('semaine 1 après ticket confirmé : 7 jours, sans saumon, carottes 950g, �
  assert.equal(month.meals[1].ingredients.some(x=>x.name==='Fromage'),false);
  assert.ok(weeklyEggSummary(month,0).mealsUsed+weeklyEggSummary(month,0).breakfastEggs<=24);
  assert.equal(month.groceries.find(x=>x.name==='Carottes'&&x.week===0).receiptQty,1);
+ const carrotLearning=state.priceBook['m et s|carottes|g']||state.priceBook['m s|carottes|g'];
+ assert.ok(carrotLearning,'Référence de carottes M&S apprise par kg');
+ assert.ok(Math.abs(carrotLearning.unitPrice-0.0016)<0.00000001,
+   '1,60 £ divisé par 1 000 g réellement achetés, pas par 3 000 g prévus');
  const broccoli=shoppingEntries(month,0,false).find(x=>x.name==='Brocolis frais M&S');
  assert.equal(broccoli.receiptPackUnknown,true);
  assert.equal(broccoli.qty,'1 emballage · poids/format à vérifier');
