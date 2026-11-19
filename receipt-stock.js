@@ -1,4 +1,5 @@
 import {FAMILY_PLAN} from './meal-plan.js';
+import {optimizeFirstWeekFromReceipt} from './week1-plan.js';
 
 // Moteur local : ne conserve ni photo, ni texte brut, ni identité, ni paiement.
 // Un article absent d'un ticket PARTIEL ne prouve jamais une absence de stock.
@@ -132,8 +133,11 @@ export function restoreAutoAdjustedMeal(month,index){
  const old=meal.autoAdjusted.previous;
  Object.assign(meal,{...clone(old)});
  delete meal.autoAdjusted;
- for(const item of month.groceries||[])if(item.autoDeferred&&item.week===Math.floor(index/7)){
+ // Une restauration de carottes ou d’œufs ne rétablit jamais le saumon.
+ if(/saumon|salmon/i.test(String(old.name||''))){
+  for(const item of month.groceries||[])if(item.autoDeferred&&item.week===Math.floor(index/7)&&/saumon|salmon/i.test(item.name)){
    item.hidden=false;delete item.autoDeferred;
+  }
  }
  return meal;
 }
@@ -164,6 +168,12 @@ export function noteCompletedReceiptWeek(month,week,rows,{supplier='M&S',fingerp
  month.receiptWeeks[week].absentPlanLines=absent;
  if(absent)result.warnings.push(absent+' références non identifiées sur le ticket : retirées des dépenses futures de cette semaine, sans les compter comme achetées. Vérifier la réserve et les ingrédients indispensables.');
  if(otherStores)result.warnings.push('Poires futures : achat M&S préféré, format et prix à confirmer plutôt que conserver le prix Ocado.');
+ if(week===0&&Number(month.index)===0){
+  const optimized=optimizeFirstWeekFromReceipt(month,rows,month.receiptWeeks[week].categories);
+  result.changed.push(...optimized.changed);
+  result.warnings.push(...optimized.warnings);
+ }
  month.receiptWeeks[week].warnings=result.warnings;
+ month.receiptWeeks[week].adjustedMeals=result.changed.map(x=>x.index);
  return result;
 }
