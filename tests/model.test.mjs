@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {BASE_MENU,BASE_SHOPPING} from '../data.js';
 import {MEAL_INGREDIENTS} from '../recipes.js';
 import {FAMILY_PLAN} from '../meal-plan.js';
-import {makeMonth,periodDays,finance,ingredientChanges,suggestedPurchases,saveDish,swapDishes,toggleCooked,shoppingEntries,markBought,markInStock,setBakingWeek,isBakingWeek,validateImport,newState,HARD_CEILING} from '../model.js';
+import {makeMonth,periodDays,finance,ingredientChanges,suggestedPurchases,saveDish,swapDishes,toggleCooked,shoppingEntries,markBought,markInStock,setBakingWeek,isBakingWeek,weeklyEggSummary,validateImport,newState,HARD_CEILING} from '../model.js';
 
 test('31 jours : exactement un plat africain par semaine, 2 jours et une cuisson',()=>{
  assert.equal(BASE_MENU.length,31);
@@ -42,12 +42,12 @@ test('Lait Yeo Valley 8L, 24 oeufs sans pâtisserie et yaourt 3kg chaque semaine
  assert.equal(m.groceries.filter(x=>x.name.includes('Farine blanche')).length,2);
  assert.ok(m.groceries.some(x=>x.name.includes('Levure chimique')));
 });
-test('La prévision standard est sous 900£, sans prix cachés',()=>{
+test('La prévision révèle correctement le dépassement 900£',()=>{
  const estimated=Math.round(BASE_SHOPPING.reduce((s,x)=>s+x.price,0)*100)/100;
- assert.equal(estimated,922.68);
+ assert.equal(estimated,924.68);
  const f=finance(makeMonth(0));
- assert.equal(f.forecast,894.88);
- assert.equal(f.forecastHeadroom,5.12);
+ assert.equal(f.forecast,918.88);
+ assert.equal(f.forecastHeadroom,-18.88);
  assert.equal(f.paid,0);
 });
 test('Achats mensuels : un carton de cabillaud Dining et 5,5kg agneau, sans double compte',()=>{
@@ -131,7 +131,7 @@ test('Import v2 préserve plats cuisinés et achats effectivement payés',()=>{
  m.meals[3].cooked=true;
  const milk=m.groceries.find(x=>x.id==='base-0-17');milk.name='Lait';milk.qty='4 L';milk.price=3.30;milk.bought=true;milk.actual=3.30;
  const loaded=validateImport(JSON.parse(JSON.stringify(legacy)));
- assert.equal(loaded.version,8);
+ assert.equal(loaded.version,9);
  assert.equal(loaded.months['0'].meals[3].cooked,true);
  assert.equal(loaded.months['0'].meals[4].batchRole,null);
  assert.equal(loaded.months['0'].groceries.find(x=>x.id===milk.id).qty,'4 L');
@@ -142,7 +142,7 @@ test('Les achats réels sont conservés dans les dépenses',()=>{
  const m=makeMonth(0),item=shoppingEntries(m,0,false)[0];
  markBought(m,item,true,6.99);
  assert.equal(finance(m).paid,6.99);
- assert.equal(finance(m).forecast,Math.round((894.88-item.estimate+6.99)*100)/100);
+ assert.equal(finance(m).forecast,Math.round((918.88-item.estimate+6.99)*100)/100);
  markBought(m,item,false,null);
  assert.equal(finance(m).paid,0);
 });
@@ -151,18 +151,59 @@ test('Pâtisserie facultative, ingrédients réservés uniquement aux semaines a
  const m=makeMonth(0);
  assert.equal(isBakingWeek(m,0),false);
  assert.ok(!shoppingEntries(m,0,false).some(x=>x.name.includes('Levure chimique')));
- assert.ok(!shoppingEntries(m,0,false).some(x=>x.name.startsWith('Beurre M&S')));
+ assert.ok(shoppingEntries(m,0,false).some(x=>x.name.startsWith('Beurre M&S')));
  assert.equal(shoppingEntries(m,0,false).find(x=>x.name==='Œufs').qty,'2 × 12 (24 œufs)');
  setBakingWeek(m,3,true);
  const w3=shoppingEntries(m,3,false);
  assert.ok(w3.some(x=>x.name.includes('Levure chimique')));
  assert.ok(w3.some(x=>x.name.startsWith('Beurre M&S')));
- assert.equal(w3.find(x=>x.name==='Œufs').qty,'2 × 12 + 1 × 6 (30 œufs)');
+ assert.equal(w3.find(x=>x.name==='Œufs').qty,'2 × 12 (24 œufs)');
  assert.ok(!shoppingEntries(m,0,false).some(x=>x.name.includes('Levure chimique')));
  setBakingWeek(m,3,false);
- assert.equal(finance(m).forecast,894.88);
+ assert.equal(finance(m).forecast,918.88);
 });
 
+test('Pain £3.50, beurre hebdomadaire et 24 œufs maxi avec ou sans pâtisserie',()=>{
+ const m=makeMonth(0);
+ for(let w=0;w<5;w++){
+   for(const baking of [false,true]){
+     setBakingWeek(m,w,baking);
+     const rows=shoppingEntries(m,w,false);
+     assert.equal(rows.filter(x=>x.name.startsWith('Beurre M&S')).length,1);
+     assert.equal(rows.find(x=>x.name.startsWith('Beurre M&S')).estimate,2.9);
+     assert.equal(rows.find(x=>x.name==='Pain complet M&S')?.estimate,3.5);
+     const eggs=rows.find(x=>x.name==='Œufs');
+     assert.equal(eggs.qty,w<4?'2 × 12 (24 œufs)':'1 × 12 (12 œufs)');
+     assert.ok(!rows.some(x=>/complément/i.test(x.name)&&/œufs/i.test(x.name)));
+     const summary=weeklyEggSummary(m,w);
+     assert.ok(summary.mealsUsed<=24);
+     assert.equal(summary.max,24);
+   }
+   setBakingWeek(m,w,false);
+ }
+ assert.equal(finance(m).forecast,918.88);
+ assert.equal(finance(m).forecastHeadroom,-18.88);
+});
+test('Migration v8 : nouveau panier sans modifier anciens reçus ou repas cuisinés',()=>{
+ const old=newState();old.version=8;
+ const m=old.months['0'];
+ const bread=m.groceries.find(x=>x.id==='rightsize-0-4');
+ bread.bought=true;bread.actual=3.75;bread.price=1.6;
+ const eggs=m.groceries.find(x=>x.id==='base-0-19');
+ eggs.bought=true;eggs.qty='2 × 12 + 1 × 6 (30 œufs)';eggs.actual=11.40;
+ m.meals[0].cooked=true;m.meals[0].cookedAt='2026-11-19';
+ m.groceries=m.groceries.filter(x=>x.id!=='baking-9');
+ const newer=validateImport(structuredClone(old));
+ assert.equal(newer.version,9);
+ const x=newer.months['0'];
+ assert.equal(x.groceries.find(z=>z.id===bread.id).actual,3.75);
+ assert.equal(x.groceries.find(z=>z.id===eggs.id).qty,'2 × 12 + 1 × 6 (30 œufs)');
+ assert.equal(x.groceries.find(z=>z.id==='rightsize-1-1').price,3.5);
+ assert.equal(x.groceries.find(z=>z.id==='base-1-19').qty,'2 × 12 (24 œufs)');
+ assert.ok(x.groceries.some(z=>z.id==='baking-9'));
+ assert.equal(x.meals[0].cooked,true);
+ assert.ok(x.reconcileWarnings.some(z=>/30 œufs/.test(z.name)));
+});
 test('Le garde-manger n’est pas compté dans le panier, mais reste rétablissable',()=>{
  const m=makeMonth(0);
  const first=shoppingEntries(m,0,false)[0];
@@ -181,7 +222,7 @@ test('Un achat de 24 œufs ne devient pas fictivement 30 lors d’une pâtisseri
  markBought(m,e,true,e.estimate);
  setBakingWeek(m,0,true);
  assert.equal(shoppingEntries(m,0,false).find(x=>x.name==='Œufs').qty,'2 × 12 (24 œufs)');
- assert.equal(suggestedPurchases(m).find(x=>x.id==='baking-eggs-0')?.qty,'6 œufs');
+ assert.ok(!suggestedPurchases(m).some(x=>x.id==='baking-eggs-0'));
  assert.equal(finance(m).paid,e.estimate);
 });
 test('Réconciliation v3 : aucune perte de dépense ou de correction personnelle',()=>{
@@ -191,7 +232,7 @@ test('Réconciliation v3 : aucune perte de dépense ou de correction personnelle
  item.qty='3 kg';item.price=3.60;item.bought=true;item.actual=3.85;
  m.manualItems.push({id:'manual-original',name:'Épice achetée',qty:'1',price:2,supplier:'M&S',purchase:'weekly',week:0,bought:true,actual:2,hidden:false});
  const updated=validateImport(JSON.parse(JSON.stringify(raw)));
- assert.equal(updated.version,8);
+ assert.equal(updated.version,9);
  const next=updated.months['0'];
  assert.equal(next.groceries.find(x=>x.id==='base-0-0').qty,'3 kg');
  assert.equal(next.groceries.find(x=>x.id==='base-0-0').actual,3.85);
@@ -230,7 +271,7 @@ test('Yassa poisson remplace le thiéboudienne : dix portions, même cabillaud',
  assert.equal(w3.find(x=>x.name==='Riz')?.qty,'2 × 1 kg');
  assert.ok(w3.some(x=>x.name.includes('Moutarde de Dijon')));
  assert.ok(!w3.some(x=>x.name==='Chou blanc'||x.name==='Aubergines'));
- assert.equal(finance(m).forecast,894.88);
+ assert.equal(finance(m).forecast,918.88);
 });
 test('Migration v4 : yassa poisson apparaît sans effacer les achats payés',()=>{
  const raw=newState();raw.version=4;
@@ -252,7 +293,7 @@ test('Migration v4 : yassa poisson apparaît sans effacer les achats payés',()=
  m.groceries.push({id:'rightsize-3-1',name:'Aubergines',qty:'1 kg',price:3,supplier:'M&S',
    purchase:'weekly',week:3,bought:false,actual:null,hidden:false});
  const loaded=validateImport(JSON.parse(JSON.stringify(raw))),n=loaded.months['0'];
- assert.equal(loaded.version,8);
+ assert.equal(loaded.version,9);
  assert.match(n.meals[24].name,/Yassa au poisson/);
  assert.equal(n.meals[25].name,n.meals[24].name);
  assert.equal(n.meals[24].servings,10);
@@ -270,7 +311,7 @@ test('Migration v4 : une recette poisson personnalisée ou déjà cuisinée rest
  m.groceries.push({id:'custom-fish-item',name:'Persil',qty:'1 botte',price:1.5,supplier:'M&S',
    purchase:'weekly',week:3,bought:false,actual:null,hidden:false});
  const loaded=validateImport(JSON.parse(JSON.stringify(raw))),n=loaded.months['0'];
- assert.equal(loaded.version,8);
+ assert.equal(loaded.version,9);
  assert.equal(n.meals[24].name,'Yassa poisson version familiale');
  assert.ok(n.meals[24].ingredients.some(x=>x.name==='Persil'));
  assert.ok(n.groceries.some(x=>x.id==='custom-fish-item'));
@@ -280,8 +321,8 @@ test('Le plafond de 900£ est réellement appliqué et la marge reste visible',(
  const m=makeMonth(0),f=finance(m);
  assert.equal(HARD_CEILING,900);
  assert.equal(m.budget,900);
- assert.equal(f.forecast,894.88);
- assert.equal(f.forecastHeadroom,5.12);
+ assert.equal(f.forecast,918.88);
+ assert.equal(f.forecastHeadroom,-18.88);
  assert.equal(f.unknownCount,0);
 });
 
@@ -314,8 +355,8 @@ test('Quatre paquets de saumon frais répartis sans rachat, deux paquets fumés'
  assert.equal(salmon.reduce((v,x)=>v+x.estimate,0),41);
  const smoked=shoppingEntries(m,3,false).find(x=>x.id==='ms-smoked-salmon-week-3');
  assert.equal(smoked.estimate,10);
- assert.equal(finance(m).forecast,894.88);
- assert.equal(finance(m).forecastHeadroom,5.12);
+ assert.equal(finance(m).forecast,918.88);
+ assert.equal(finance(m).forecastHeadroom,-18.88);
 });
 test('Migration v6 des quatre plats au cabillaud vers le saumon sans perdre les reçus',()=>{
  const legacy=newState();legacy.version=6;
@@ -334,14 +375,14 @@ test('Migration v6 des quatre plats au cabillaud vers le saumon sans perdre les 
  const bought=m.groceries.find(x=>x.id==='base-0-17');
  bought.bought=true;bought.actual=12.70;
  const out=validateImport(structuredClone(legacy));
- assert.equal(out.version,8);
+ assert.equal(out.version,9);
  const restored=out.months['0'];
  assert.equal(restored.groceries.find(x=>x.id==='base-0-17').actual,12.70);
  assert.equal(restored.meals[2].name.includes('Saumon frais M&S'),true);
  assert.equal(restored.meals[22].kind,'G');
  assert.equal(restored.meals[24].ingredients.find(x=>x.name==='Cabillaud').supplier,'Dining Solutions');
  assert.equal(restored.groceries.find(x=>x.id==='month-4').price,64.97);
- assert.equal(finance(restored).forecast,Math.round((894.88-12.60+12.70)*100)/100);
+ assert.equal(finance(restored).forecast,Math.round((918.88-12.60+12.70)*100)/100);
  assert.deepEqual(suggestedPurchases(restored),[]);
 });
 test('Ancien poisson déjà payé : la facture JJ est préservée et la marge ne doit pas être inventée',()=>{
@@ -410,8 +451,8 @@ test('Deux grands contenants de noix bio : un kilo et aucun réassort hebdomadai
  assert.ok(all.some(x=>x.id==='organic-walnuts-delivery'&&x.price===5));
  assert.ok(!all.some(x=>x.name==='Noix à moudre'));
  assert.ok(!all.some(x=>x.id==='month-5'));
- assert.equal(finance(m).forecast,894.88);
- assert.equal(finance(m).forecastHeadroom,5.12);
+ assert.equal(finance(m).forecast,918.88);
+ assert.equal(finance(m).forecastHeadroom,-18.88);
 });
 
 test('Conditionnement des quiches : deux pâtes, un paquet de saumon en plus, épinards et œufs suffisants',()=>{
@@ -463,7 +504,7 @@ test('Migration v7 : maquereau non préparé devient quiche sans valider de repa
    m.groceries.push({id,name:'Noix à moudre',qty:'200 g',price:3.20,supplier:'M&S',
      purchase:'weekly',week,bought:false,actual:null,hidden:false});
  const loaded=validateImport(structuredClone(raw));
- assert.equal(loaded.version,8);
+ assert.equal(loaded.version,9);
  const out=loaded.months['0'];
  assert.match(out.meals[12].name,/quiche au saumon/i);
  assert.match(out.meals[20].name,/quiche aux épinards/i);
@@ -472,7 +513,7 @@ test('Migration v7 : maquereau non préparé devient quiche sans valider de repa
  assert.equal(out.groceries.some(x=>x.id==='base-1-22'),false);
  assert.equal(out.groceries.find(x=>x.id==='organic-walnuts-large-2x500').price,15);
  assert.deepEqual(suggestedPurchases(out),[]);
- assert.equal(finance(out).forecast,894.88);
+ assert.equal(finance(out).forecast,918.88);
 });
 
 test('Migration v7 : repas cuisiné et achat maquereau déjà payé restent inchangés',()=>{
@@ -501,10 +542,10 @@ test('Migration v7 : repas cuisiné et achat maquereau déjà payé restent inch
 test('Stress budget : les frais réels et les ajouts déclenchent un dépassement sans faux rabais',()=>{
  const m=makeMonth(0);
  let f=finance(m);
- assert.equal(f.forecast,894.88);
+ assert.equal(f.forecast,918.88);
  m.extraExpenses.push({id:'shipping-extra',amount:7.49,supplier:'Healthy Supplies',label:'Surcoût livraison',date:'2026-11-18'});
  f=finance(m);
- assert.equal(f.forecast,902.37);
+ assert.equal(f.forecast,926.37);
  assert.equal(f.forecastHeadroom,-2.37);
  const item=shoppingEntries(m,1,false).find(x=>x.id==='quiche-salmon-fresh-week1');
  markBought(m,item,true,11.25);
