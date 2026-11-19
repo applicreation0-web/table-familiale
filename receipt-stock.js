@@ -52,6 +52,17 @@ const isUnedited=(meal,index)=>{
    JSON.stringify(meal.ingredients||[])===JSON.stringify(baseline.ingredients||[]);
 };
 function nonSalmonRecipe(counts){
+ // Préférer les légumes sans présumer que le cheddar acheté contient une
+ // présure végétale (la ligne de ticket ne prouve pas sa conformité halal).
+ if(categoryHas(counts,'pasta')&&categoryHas(counts,'courgette')&&categoryHas(counts,'tomato')){
+  return {name:'Pennes complètes aux courgettes et tomates',kind:'V',
+   ingredients:[
+    {name:'Pâtes complètes',quantity:350,unit:'g',supplier:'M&S',price:null},
+    {name:'Courgettes',quantity:450,unit:'g',supplier:'M&S',price:null},
+    {name:'Tomates concassées',quantity:300,unit:'g',supplier:'M&S',price:null},
+    ...(categoryHas(counts,'garlic')?[{name:'Ail',quantity:1,unit:'pièce',supplier:'M&S',price:null}]:[])
+   ]};
+ }
  if(categoryHas(counts,'pasta')&&categoryHas(counts,'courgette')&&categoryHas(counts,'cheddar')){
   return {name:'Pennes complètes aux courgettes et cheddar',kind:'V',
    ingredients:[
@@ -112,6 +123,7 @@ export function rearrangeMissingSalmon(month,week,{force=false}={}){
   }
  }
  if(changed.length)warnings.push('Vérifier les quantités restantes : le ticket confirme des produits, pas leurs portions disponibles après chaque repas.');
+ if(changed.some(x=>x.to.includes('cheddar')))warnings.push('Vérifier la présure végétale ou la conformité halal du cheddar ; le ticket seul ne certifie pas cet ingrédient.');
  return {changed,warnings};
 }
 export function restoreAutoAdjustedMeal(month,index){
