@@ -160,12 +160,14 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-0",
     "name": "Pommes de terre",
-    "qty": "4 kg",
-    "price": 4.8,
+    "qty": "2 × 2 kg (4 kg)",
+    "price": 2.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-0-1",
@@ -386,12 +388,14 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-0",
     "name": "Pommes de terre",
-    "qty": "2 kg",
-    "price": 2.4,
+    "qty": "1 × 2 kg (2 kg)",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-1-2",
@@ -650,12 +654,14 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-0",
     "name": "Pommes de terre",
-    "qty": "4 kg",
-    "price": 4.8,
+    "qty": "2 × 2 kg (4 kg)",
+    "price": 2.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-2-2",
@@ -874,12 +880,14 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-0",
     "name": "Pommes de terre",
-    "qty": "2 kg",
-    "price": 2.4,
+    "qty": "1 × 2 kg (2 kg)",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-3-2",
@@ -1088,12 +1096,14 @@ export const BASE_SHOPPING = [
   {
     "id": "base-4-0",
     "name": "Pommes de terre",
-    "qty": "2 kg",
-    "price": 2.4,
+    "qty": "1 × 2 kg (2 kg)",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-4-1",
