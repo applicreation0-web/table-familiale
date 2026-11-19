@@ -4,7 +4,7 @@
 
 **Première semaine : 20–26 novembre 2026**. Le saumon de la journée 3 est retiré dès l'ouverture de l'application, conformément à l'absence d'achat signalée. Cela ne valide **aucune dépense** et ne suppose **aucun stock** de poisson, viande, lait ou légumes. Les menus déjà cuisinés ou édités manuellement ne sont jamais remplacés.
 
-**Ticket M&S transmis par l'utilisateur :** 43 lignes d'articles ; **117,15 £** d'articles, **−1,50 £** de remboursement parking, soit **115,65 £** payés. La photo et la transcription intégrale ne sont PAS committées dans ce dépôt public. La prise en compte comptable dans l'application nécessite **une seule importation locale** de la transcription du ticket (Courses → Lire un ticket → Charger le ticket M&S .txt → vérifier le total → confirmer les achats et adapter les menus). Il n'existe pas de synchronisation automatique de la conversation ChatGPT vers le stockage du navigateur/appareil.
+**Ticket personnel :** les lignes de produits, montants et remboursements restent dans un fichier local transmis uniquement à l'utilisateur ; la base de code publique ne doit contenir ni photo de caisse, ni transcription, ni total personnel. L'application contrôle le montant réel au centime près pendant l'import, sans le publier. La prise en compte comptable dans l'application nécessite **une seule importation locale** de la transcription du ticket (Courses → Lire un ticket → Charger le ticket M&S .txt → vérifier le total → confirmer les achats et adapter les menus). Il n'existe pas de synchronisation automatique de la conversation ChatGPT vers le stockage du navigateur/appareil.
 
 | Jour | Menu après import d'un ticket complet confirmé |
 |---|---|
