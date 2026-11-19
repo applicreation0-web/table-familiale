@@ -94,7 +94,24 @@ const SKU_NAMES={
  '00328739':/^Lait bio entier M&S 4 pintes/,
  '3282380060219':/^Beurre M&S/,
  '29089635':/^Œufs$/,
- '29087914':/^Carottes$/
+ '29087914':/^Carottes$/,
+ '00147217':/^Pommes de terre$/,
+ '00019477':/^Patates douces$/,
+ '00853538':/^Oignons$/,
+ '00233620':/^Courgettes$/,
+ '00848503':/^Brocolis frais M&S$/,
+ '00652230':/^Betteraves cuites$/,
+ '29095773':/^Citrons$/,
+ '00199032':/^Ail$/,
+ '29481385':/^Yaourt grec M&S Collection$/,
+ '29091188':/^Fromage M&S/,
+ '29495511':/^Flocons d’avoine$/,
+ '00821964':/^Tomates concassées$/,
+ '29173204':/^Purée de cacahuètes$/,
+ '29330812':/^Quinoa$/,
+ '00671729':/^Pâtes complètes$/,
+ '00089241':/^Pâtes complètes$/,
+ '00905350':/^Poivrons$/
 };
 export function recommendReceiptMatches(parsed,month,week){
  const entries=allShoppingEntries(month).filter(e=>!e.bought&&!e.hidden&&!e.inStock);
