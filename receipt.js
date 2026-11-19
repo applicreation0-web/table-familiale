@@ -80,7 +80,7 @@ export function recommendReceiptMatches(parsed,month,week){
 export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={}){
  if(!receipt?.fingerprint||!Array.isArray(rows))throw Error('Ticket invalide');
  month.receiptImports??=[];
- if(month.receiptImports.some(x=>x.fingerprint===receipt.fingerprint))
+ if(Object.values(state.months||{}).some(period=>(period.receiptImports||[]).some(x=>x.fingerprint===receipt.fingerprint)))
    throw Error('Ce ticket a déjà été rapproché : aucun achat ajouté en double.');
  const byId=new Map(allShoppingEntries(month).map(x=>[x.id,x]));
  const seen=new Set(),pending=[];
