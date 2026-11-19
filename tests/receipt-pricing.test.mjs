@@ -114,6 +114,14 @@ test('Lignes sans produit : seulement les dépenses hors liste explicitement cho
  assert.equal(m.extraExpenses[0].supplier,'Ocado');
  assert.ok(!JSON.stringify(m.receiptImports).includes('AUBERGINE'));
 });
+test('Le même ticket ne peut pas être encaissé sur une autre période',()=>{
+ const s=newState(),first=s.months['0'],r=parseReceiptText('STRAWBERRIES 4.00');
+ const row={...r.lines[0],selectedId:'extra'};
+ applyReceiptReview(s,first,r,[row]);
+ s.months['1']=makeMonth(1);s.selectedPeriod=1;
+ assert.throws(()=>applyReceiptReview(s,s.months['1'],r,[row]),/déjà été rapproché/);
+ assert.equal(finance(s.months['1']).paid,0);
+});
 test('Validation atomique : un produit introuvable annule tout le ticket',()=>{
  const s=newState(),m=s.months['0'];
  const r=parseReceiptText('STRAWBERRIES 4.50\nGRAPES 2.65\nTOTAL 7.15');
