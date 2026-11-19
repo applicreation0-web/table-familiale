@@ -1,6 +1,21 @@
 # Table Familiale — menus, courses, suivi local et budget de 900 £
 
-## Version de développement 1.0.13 · données v13
+## 1.0.14 — Réorganisation automatique sur ticket hebdomadaire M&S
+
+Le moteur antérieur rapprochait les prix sans modifier le planning alimentaire. La nouvelle règle démarre **uniquement après validation par l'utilisateur d'un ticket complet de la semaine** : chaque ligne doit être associée à un achat prévu ou acceptée comme dépense hors liste. Sans cette confirmation, une absence sur le ticket ne signifie **jamais** une rupture de stock.
+
+- **Importer le ticket sans caméra :** Courses → Lire un ticket → Charger un ticket .txt, puis cocher « Ce ticket couvre toutes les courses M&S de cette semaine », vérifier les correspondances et confirmer. La photo Android reste utilisable sur l'APK native ; le scanner natif sur téléphone réel reste à valider.
+- L'application conserve seulement une synthèse locale de catégories reconnues, pas la photo ni la transcription détaillée du ticket. Les achats confirmés sont imputés au prix réellement payé, les doublons d'un même article sont regroupés, et les remises réconciliées seulement sur un ticket complet.
+- Si un repas **non cuisiné et non personnalisé** de la semaine demande du saumon, alors que le ticket complet confirmé n'en contient pas, et que pâtes, courgettes et fromage sont effectivement identifiés, ce repas devient « Pennes complètes aux courgettes et cheddar ». Une option « Rétablir » est affichée pour annuler. Les achats de saumon absents du ticket ne sont pas considérés payés.
+- Les lignes de courses non achetées de cette semaine sont retirées du **reste à acheter**, avec alerte sur les ingrédients et quantités qu'il reste à vérifier ; aucun reçu ou stockage fictif n'est créé.
+- La politique M&S s'applique aux courses de semaine confirmées. Les références précédentes chez Ocado redeviennent des **poires M&S à prix inconnu**, à chiffrer avant achat. Les viandes halal, Dining Solutions et références spécialisées historiquement prévues hors M&S ne peuvent pas être présentées comme disponibles ou halal chez M&S sans vérification.
+- Ne pas appliquer un total théorique si le ticket déjà payé est disponible ; un reçu incomplet ne clôture pas la semaine. Les menus déjà cuisinés, les modifications manuelles, le suivi des dépenses et les anciennes sauvegardes restent protégés.
+
+**Confidentialité :** aucun détail du ticket familial complet n'est ajouté dans le code ou les tests. Les scénarios de test utilisent des lignes fictives. L'utilisateur peut importer son propre .txt localement, qui ne doit pas être téléversé dans GitHub. Les anciennes traces de l'historique Git ne sont pas purgées par cette révision.
+
+**Publication Android :** la version de paquet est 1.0.14. Un build Android de test n'est pas une APK privée signée ; la signature permanente et le test de la caméra sur appareil réel restent des contrôles distincts.
+
+## Version de développement 1.0.14 · données v13
 
 Cette branche est une **proposition de mise à jour** : elle n'est pas la version Android officielle tant qu'une APK signée avec le certificat de référence n'a pas été produite et vérifiée. Le code est soumis aux tests GitHub Actions. La caméra réelle doit encore être contrôlée sur téléphone.
 
