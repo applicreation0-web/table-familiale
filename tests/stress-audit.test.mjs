@@ -155,11 +155,13 @@ test('STRESS injection montants non finis, négatifs, 10k+: aucune mutation',()=
  }
  assert.deepEqual(m.receiptImports,[]);
 });
-test('STRESS deux lignes vers un achat identique : strictement interdit',()=>{
+test('STRESS deux emballages pour un achat prévu : cumuler sans double achat',()=>{
  const s=newState(),m=s.months['0'],r=parseReceiptText('STRAWBERRIES 2.00\nSTRAWBERRIES 2.00');
  const id=grocery(m,'Fraises M&S',0).id;
- assert.throws(()=>applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id}))),/deux lignes/);
- assert.equal(finance(m).paid,0);
+ const out=applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id})));
+ assert.equal(out.matched,1);
+ assert.equal(finance(m).paid,4);
+ assert.throws(()=>applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id}))),/déjà été rapproché/);
 });
 test('STRESS OCR malveillant: pas de photo ni ticket brut dans historique JSON',()=>{
  const s=newState(),m=s.months['0'],r=parseReceiptText('PRIVATE RECEIPT LOCATION 1.00\nTOTAL 1.00');
