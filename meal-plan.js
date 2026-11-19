@@ -1,5 +1,6 @@
 import { BASE_MENU } from './data.js';
 import { MEAL_INGREDIENTS } from './recipes.js';
+import {scaleFamilyIngredients} from './family-portions.js';
 
 // Un seul plat africain par semaine : 10 portions (5 convives × 1 repas par jour × 2 jours).
 // Le deuxième jour est une consommation des restes : aucun ingrédient n'est racheté.
@@ -74,7 +75,7 @@ const thiou=[
   ingredient('Oignons',700)
 ];
 
-export const FAMILY_PLAN = [
+export const LEGACY_FAMILY_PLAN = [
   single(6),single(1),salmon(2,'Saumon frais M&S citron, pommes de terre et courgettes'),
   ...batch(3,'Mafé d’agneau, patates douces et fonio','L'),
   single(9),single(14),
@@ -90,6 +91,8 @@ export const FAMILY_PLAN = [
   single(28),
   ...batch(null,'Thiou au poulet, légumes et riz','P',thiou)
 ];
+export const FAMILY_PLAN=LEGACY_FAMILY_PLAN.map(dish=>({...dish,
+  ingredients:scaleFamilyIngredients(dish.ingredients)}));
 if(FAMILY_PLAN.length!==31) throw new Error('Programme familial : 31 jours attendus');
 export const familyWeekStats = (meals,week) => {
   const block=meals.slice(week*7,week*7+7);

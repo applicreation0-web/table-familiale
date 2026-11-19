@@ -41,7 +41,7 @@ test('Décoche achat : référence apprise retirée, estimations d’origine ré
  markBought(m,{...item,kind:'base'},false,null);
  assert.equal(nextGrapes(m,1).estimate,5.3);
  assert.equal(nextGrapes(m,4).estimate,2.65);
- assert.equal(finance(m).forecast,889.08);
+ assert.equal(finance(m).forecast,887.98);
  assert.equal(priceBookStats(s).series,0);
 });
 test('Prix manuel et achats déjà payés sont intouchables, prochains mois apprennent',()=>{
@@ -149,12 +149,14 @@ test('Validation atomique : un produit introuvable annule tout le ticket',()=>{
  assert.equal(finance(m).paid,0);
  assert.equal(m.receiptImports.length,0);
 });
-test('Deux lignes vers le même produit : refus, pas de double dépense',()=>{
+test('Deux lignes pour le même produit : somme des emballages, un seul achat validé',()=>{
  const s=newState(),m=s.months['0'];
  const r=parseReceiptText('STRAWBERRIES 4.00\nSTRAWBERRIES 4.00');
  const id=m.groceries.find(x=>x.name==='Fraises M&S'&&x.week===0).id;
- assert.throws(()=>applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id}))),/deux lignes/);
- assert.equal(finance(m).paid,0);
+ const result=applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id})));
+ assert.equal(result.matched,1);
+ assert.equal(finance(m).paid,8);
+ assert.equal(m.groceries.find(x=>x.id===id).actual,8);
 });
 test('Migration v10 → v11 : reçus historiques, sauvegarde, prix anciens intacts',()=>{
  const raw=newState(),month=raw.months['0'];
@@ -162,7 +164,7 @@ test('Migration v10 → v11 : reçus historiques, sauvegarde, prix anciens intac
  const item=grapes(month);item.bought=true;item.actual=5.75;
  month.extraExpenses.push({id:'facture',label:'Taxi livraison',supplier:'Autre',amount:3.1,date:'2026-11-19'});
  const newer=validateImport(structuredClone(raw));
- assert.equal(newer.version,11);
+ assert.equal(newer.version,13);
  assert.deepEqual(newer.priceBook,{});
  assert.equal(newer.months['0'].groceries.find(x=>x.id===item.id).actual,5.75);
  assert.equal(finance(newer.months['0']).paid,8.85);

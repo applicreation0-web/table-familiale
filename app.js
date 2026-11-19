@@ -3,10 +3,11 @@ import {shareNativeBackup,downloadWebBackup} from './backup.js';
 import {MEAL_INGREDIENTS} from './recipes.js';
 import {applyLearnedPrices,learnFromConfirmedPurchase,forgetConfirmedPurchase,priceBookStats} from './pricing.js';
 import {parseReceiptText,recommendReceiptMatches,applyReceiptReview} from './receipt.js';
+import {compareReceiptToPlan} from './receipt-benchmark.js';
 import {captureReceiptText,nativeReceiptAvailable} from './receipt-ocr.js';
 import {FAMILY_PLAN} from './meal-plan.js';
 import {
- BREAKFASTS, SUPPLIERS, KIND_NAMES, HARD_CEILING, money, period, periodDays, dateISO, clone,
+ BREAKFASTS, FAMILY_PROFILE, quantityAudit, SUPPLIERS, KIND_NAMES, HARD_CEILING, money, period, periodDays, dateISO, clone,
  makeMonth, newState, ingredientChanges, suggestedPurchases, shoppingEntries,
  allShoppingEntries, finance, saveDish, swapDishes, toggleCooked, markBought, markInStock, setBakingWeek, isBakingWeek, weeklyEggSummary, validateImport
 } from './model.js';
@@ -69,7 +70,7 @@ function render(){
  if(selectedWeek>=weeks())selectedWeek=weeks()-1;
  const n=month.meals.length, countProtein=month.meals.filter(m=>m.kind!=='V').length;
  document.title='Table Familiale · '+dates.start.toLocaleDateString('fr-FR',{month:'short',year:'numeric'});
- root.innerHTML=`<div class="topbar"><div class="brand"><span class="brand-icon">${icon('chef',20)}</span><strong>TABLE FAMILIALE</strong></div><span class="top-family">5 personnes · repas halal</span></div>
+ root.innerHTML=`<div class="topbar"><div class="brand"><span class="brand-icon">${icon('chef',20)}</span><strong>TABLE FAMILIALE</strong></div><span class="top-family">2 adultes · 3 enfants (3–10 ans) · halal</span></div>
  <main class="app">
  <header class="intro"><div class="intro-copy"><span class="overline">CARNET DE MENUS & COURSES</span><h1>Le plaisir de <em>bien s'organiser.</em></h1><p>Les repas de toute la famille, les courses de la semaine et le budget maîtrisé.</p></div>
  <div class="period-switch"><button class="icon-button" data-action="previous-period" ${state.selectedPeriod===0?'disabled':''} aria-label="Mois précédent">${icon('left')}</button><span><small>Période suivie</small><b>${fmt(dates.start)} — ${fmt(dates.end)} ${dates.end.getFullYear()}</b></span><button class="icon-button" data-action="next-period" aria-label="Mois suivant">${icon('right')}</button></div></header>
@@ -124,6 +125,15 @@ function renderCourses(month){
  const isMonthly=shopMode==='monthly',rows=shoppingEntries(month,selectedWeek,isMonthly);
  const changes=ingredientChanges(month).filter(x=>isMonthly?x.monthOnly:x.week===selectedWeek&&!x.monthOnly);
  const cuts=changes.filter(x=>x.delta<0);
+ const portionComparisons=isMonthly?[]:quantityAudit(month,selectedWeek);
+ const portionHtml=portionComparisons.length?'<details class="dismissed"><summary>Quantités recalculées pour 2 adultes + 3 enfants · '+portionComparisons.length+' légumes suivis</summary>'+
+  '<div class="quantity-audit">'+portionComparisons.map(q=>
+   '<div><b>'+esc(q.name)+'</b> · Besoin recette '+q.recipeKg+' kg · Sacs conseillés '+q.proposedKg+' kg'+
+   (q.plannedKg!=null?' · Panier '+q.plannedKg+' kg':' · Format à vérifier')+
+   (q.paid?' · Achat payé conservé':q.manuallyChanged?' · Quantité manuelle conservée':'')+
+   '</div>').join('')+
+  '<small>Hypothèse de portions, pas rationnement. Carottes bio à 1,60 £/kg confirmé ; autres prix indicatifs. Ajuster selon appétit et stocks.</small></div></details>':'';
+
  const hidden=[...month.groceries,...month.manualItems].filter(x=>x.hidden&&(isMonthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===selectedWeek));
  const skipped=changes.filter(x=>x.delta>0&&month.autoPurchases[x.id]?.skip);
  const total=rows.reduce((a,x)=>a+Number(x.estimate??0),0), unknown=rows.filter(x=>!x.bought&&x.estimate==null).length;
@@ -131,6 +141,7 @@ function renderCourses(month){
  return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viandes halal, cabillaud Dining et deux grands contenants de noix bio en achats groupés ; saumons M&S et ingrédients des quiches répartis par semaine.</p></div><div class="action-line"><button class="button outline" data-action="scan-receipt">${icon('upload',17)} Lire un ticket</button><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div></div>
  <div class="choice-row"><button class="button ${!isMonthly?'primary':'outline'}" data-action="shopping-week">Courses M&S · semaine</button><button class="button ${isMonthly?'primary':'outline'}" data-action="shopping-month">Achats groupés · mois</button></div>
  ${isMonthly?`<div class="banner success">${icon('cart',20)} <div><b>Une seule commande au début du mois</b><span>Hubbard, agneau, cuisses halal, un carton de cabillaud Dining, fonio et 2 grands pots de noix bio à remplir. Pour les noix, la vente est en sachets de 500 g : les pots réutilisables ne sont pas fournis. Frais de port provisionnés à 5 £, à confirmer.</span></div></div>`:weekHeader(month,true)+bakingSwitch(month)}
+ ${portionHtml}
  ${cuts.length?`<div class="banner caution">${icon('alert')} <div><b>Ingrédients moins nécessaires après modification</b><span>${cuts.map(x=>`${esc(x.name)} (−${x.quantity} ${esc(x.unit)})`).join(' · ')}. Vérifie si tu peux réduire l'achat initial, sans perdre les produits déjà achetés.</span></div></div>`:''}
  <div class="shopping-tools"><input id="search-products" placeholder="Rechercher un ingrédient..." value="${esc(search)}" aria-label="Rechercher un ingrédient"/><span>${rows.filter(x=>x.bought).length}/${rows.length} achetés</span></div>
  ${group.length?group.map(([shop,list])=>`<section class="shop-panel"><header><strong>${esc(shop)}</strong><span>${money(list.reduce((s,i)=>s+Number(i.estimate??0),0))} prévus</span></header><div class="product-list">${list.map(renderShopItem).join('')}</div></section>`).join(''):`<div class="empty">Aucun produit correspondant.</div>`}
@@ -224,6 +235,15 @@ function showReceiptReview(parsed){
  const entries=allShoppingEntries(month).filter(x=>!x.bought&&!x.hidden&&!x.inStock);
  const preferred=entries.filter(x=>x.purchase==='monthly'||x.week===selectedWeek);
  const shopOptions=selectOptions(SUPPLIERS,'M&S');
+ const comparisons=compareReceiptToPlan(parsed,month,selectedWeek);
+ const benchmarkHtml=comparisons.length?'<div class="receipt-benchmark"><h3>Quantités réelles / prévisions</h3>'+
+   comparisons.map(x=>'<div class="receipt-line" style="padding:8px 0"><strong>'+esc(x.label)+'</strong><span>Ticket : '+x.actualQty+' '+esc(x.unit)+' · '+money(x.actualPrice)+
+     (x.plannedQty!=null?' · Prévu : '+x.plannedQty+' '+esc(x.unit):' · Prévision sans correspondance')+
+     (x.recipeNeed!=null?' · Recettes : '+x.recipeNeed+' kg':'')+
+     (x.delta!=null&&x.delta!==0?' <strong>— Écart à vérifier</strong>':'')+
+     '</span></div>').join('')+
+   '<p>Une quantité achetée inférieure à la recette ne doit pas être automatiquement considérée comme suffisante. Vérifier le stock ou modifier les menus.</p></div>':'';
+
  const listHtml=rows.map((r,i)=>{
    const prioritized=r.candidates.map(x=>x.id);
    const selected=[...new Set([...prioritized,...preferred.map(x=>x.id)])];
@@ -241,8 +261,9 @@ function showReceiptReview(parsed){
    </div>`;
  }).join('');
  openDialog(`<div class="dialog-head"><div><span class="overline">VÉRIFICATION OBLIGATOIRE</span><h2 id="editor-title">Ticket : ${rows.length} lignes reconnues</h2><p>Choisir les articles à enregistrer. Les lignes sans correspondance restent ignorées, sauf si tu sélectionnes « Nouvelle dépense hors liste ».</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
- <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Total lu</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Somme des lignes OCR</small><strong>${money(parsed.recognizedTotal)}</strong></div></div>
- <p>Une différence peut correspondre à une promotion, une ligne manquante, une livraison ou une erreur de lecture. Elle n’est jamais ajoutée automatiquement. Pour chaque achat, vérifiez aussi la quantité : un sachet de 500 g ne doit pas être assimilé à une prévision de 1 kg.</p>
+ <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Montant payé sur le ticket</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Articles lus</small><strong>${money(parsed.recognizedTotal)}</strong></div><div class="finance-cell"><small>Remises et remboursements</small><strong>${money(parsed.discountTotal||0)}</strong></div><div class="finance-cell"><small>Écart de lecture</small><strong>${parsed.reconciliationGap==null?'À vérifier':money(parsed.reconciliationGap)}</strong></div></div>
+ ${benchmarkHtml}
+ <p>Vérifiez les quantités achetées et les conditionnements. Plusieurs lignes identiques (par exemple deux boîtes d’œufs) peuvent correspondre au même achat prévu : les montants seront additionnés. Une différence de total n'est jamais corrigée artificiellement.</p><p><b>Attention :</b> « Hors liste » augmente le budget sans retirer un article prévu. Rapprocher les produits du panier lorsqu'ils y figurent pour ne pas les compter deux fois.</p><div class="action-line"><button class="button outline" data-action="receipt-select-extras">Classer les lignes non associées comme hors liste</button></div>
  <label class="field"><span>Magasin du ticket (pour dépenses hors liste)</span><select id="receipt-supplier">${shopOptions}</select></label>
  ${listHtml}
  </div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="commit-receipt">Confirmer les lignes sélectionnées</button></div>`);
@@ -252,6 +273,13 @@ async function readReceiptPhoto(){
    flash('Lecture locale du ticket en cours…');
    const text=await captureReceiptText(window.Capacitor);
    const parsed=parseReceiptText(text);
+   if(!parsed.lines.length){
+     openReceiptDialog();
+     const field=dialog.querySelector('#receipt-text');
+     if(field)field.value=text;
+     flash('Texte extrait mais aucun article isolé : corriger le texte reconnu, puis analyser.','error');
+     return;
+   }
    showReceiptReview(parsed);
  }catch(e){flash(e.message||'Lecture photo impossible','error');}
 }
@@ -263,6 +291,14 @@ function onAction(action,btn){
  case 'parse-receipt':{
    try{showReceiptReview(parseReceiptText(dialog.querySelector('#receipt-text')?.value||''))}
    catch(err){flash(err.message,'error')}
+   break;
+ }
+ case 'receipt-select-extras':{
+   let count=0;
+   for(const select of dialog.querySelectorAll('[data-receipt-select]')){
+     if(select.value===''){select.value='extra';count++;}
+   }
+   flash(count+' ligne(s) classée(s) hors liste, à contrôler avant confirmation');
    break;
  }
  case 'commit-receipt':{

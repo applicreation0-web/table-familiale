@@ -1,7 +1,8 @@
 import { BASE_MENU, BASE_SHOPPING, BASE_BUDGET } from './data.js';
 import { MEAL_INGREDIENTS, BREAKFASTS } from './recipes.js';
-import { FAMILY_PLAN } from './meal-plan.js';
-export { BREAKFASTS };
+import { FAMILY_PLAN,LEGACY_FAMILY_PLAN } from './meal-plan.js';
+import {calibrateCarrotsFromMeals,quantityAudit,FAMILY_PROFILE} from './family-portions.js';
+export { BREAKFASTS, FAMILY_PROFILE, quantityAudit };
 export const HARD_CEILING = 900;
 export const EGG_WEEKLY_MAX = 24;
 export const SUPPLIERS = ['M&S', 'Ocado', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Healthy Supplies', 'Épicerie africaine', 'Autre'];
@@ -36,10 +37,14 @@ export function makeMonth(index=0){
       batchRole:plan.batchRole,servings:plan.servings,mealsPerDay:plan.mealsPerDay,ingredients:clone(plan.ingredients),originalIndex:i%31,
       cooked:false,cookedAt:null};
   });
-  const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
-  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],notes:'',createdAt:new Date().toISOString()};
+  const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,
+    hidden:x.name.startsWith('Poires Ocado')&&x.name.includes('sachet 2/2'),
+    overrideQty:null,overridePrice:null}));
+  const month={index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],notes:'',createdAt:new Date().toISOString()};
+  calibrateCarrotsFromMeals(month); // Recommandation en sacs bio de 1kg au prix réellement observé.
+  return month;
 }
-export function newState(){return {version:11, selectedPeriod:0, months:{'0':makeMonth(0)},priceBook:{}};}
+export function newState(){return {version:13, selectedPeriod:0, months:{'0':makeMonth(0)},priceBook:{}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -108,7 +113,7 @@ function plannedGrocery(month,item){
   const planned={...item,week:targetWeek,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.learnedPrice??item.price};
   if(item.name==='Œufs'&&item.week<4&&!item.bought&&!item.overrideQty){
     planned.qty='2 × 12 (24 œufs)';
-    if(item.overridePrice==null)planned.estimate=8.80;
+    if(item.overridePrice==null)planned.estimate=item.learnedPrice??10.80;
     planned.dynamicEggs=true;
   }
   return planned;
@@ -498,7 +503,7 @@ function migrateWeeklyButterEggsBread(month,index){
           month.reconcileWarnings.push({name:'Semaine '+(item.week+1)+' : ancien panier de 30 œufs ramené à 24'});
         }
         item.qty='2 × 12 (24 œufs)';
-        item.price=8.80;
+        item.price=10.80;
       }
     }
     if(item.name.startsWith('Beurre M&S')&&!item.bought){
@@ -531,8 +536,79 @@ function migrateFruitOilPreferences(month,index){
   month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
   return month;
 }
+// v11 -> v12 : calibration confirmée sur ticket M&S complet, hors
+// viande et Dining Solutions. Ne jamais modifier les achats payés, stocks
+// personnalisés ni les prix explicitement saisis par l'utilisateur.
+function migrateRealStaplePrices(month,{addSupplementalMilk=true}={}){
+ for(const item of month.groceries||[]){
+   if(item.bought||item.overridePrice!=null)continue;
+   if(item.name==='Œufs'){
+     item.price=item.week<4?10.80:5.40;
+   }else if(item.name==='Lait Yeo Valley biologique 2 L (entier ou demi-écrémé)'&&
+           item.overrideQty==null){
+     // Deux bouteilles de 2L pour 7 jours ; une bouteille la semaine partielle.
+     const full=item.week<4;
+     const newQty=full?'2 × 2 L (4 L)':'1 × 2 L (2 L)';
+     if(item.qty!==newQty){
+       // Un prix appris sur l'ancien format 8L/4L doit être ramené au
+       // nouveau conditionnement ; conserver l'observation historique.
+       if(item.learnedPrice!=null)item.learnedPrice=Math.round(item.learnedPrice*50)/100;
+       item.qty=newQty;
+     }
+     item.price=full?6.20:3.10;
+   }else if(item.name==='Beurre M&S (usage hebdomadaire)'){
+     // Le code-barres 3282380060219 correspond au Lescure AOP 250g.
+     item.price=3.75;
+   }
+ }
+ // La troisième bouteille du ticket est un lait M&S bio de 4 pintes,
+ // différent des deux flacons Yeo Valley. Ne pas l'attribuer au prix de Yeo.
+ // Ajout aux périodes à venir uniquement : les achats historiques restent intacts.
+ if(addSupplementalMilk){
+   const present=new Set(month.groceries.map(i=>i.id));
+   for(const item of BASE_SHOPPING.filter(i=>i.id.startsWith('receipt-ms-organic-milk-week'))){
+     if(item.week>=Math.ceil(month.meals.length/7)||present.has(item.id))continue;
+     month.groceries.push({...clone(item),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null});
+   }
+ }
+ return month;
+}
+// v12 -> v13 : redimensionner uniquement les plats encore inchangés et
+// non cuisinés. Toute édition personnalisée, achat payé et ancien reçu reste intact.
+function migrateChildPortions(month){
+ month.reconcileWarnings??=[];
+ const count=(month.meals||[]).length;
+ let kept=0,scaled=0;
+ for(let i=0;i<count;i++){
+  const meal=month.meals[i],old=LEGACY_FAMILY_PLAN[i%31],next=FAMILY_PLAN[i%31];
+  if(!old||!next||meal.cooked||meal.name!==old.name){kept++;continue;}
+  const isFinalHalf=i===count-1&&old.batchRole==='prepare';
+  const oldIngredients=isFinalHalf?old.ingredients.map(x=>({...x,quantity:x.quantity/2})):old.ingredients;
+  const nextIngredients=isFinalHalf?next.ingredients.map(x=>({...x,quantity:x.quantity/2})):next.ingredients;
+  // Un changement manuel de poids ou d'ingrédient ne doit pas être écrasé.
+  if(JSON.stringify(meal.ingredients)!==JSON.stringify(oldIngredients)){kept++;continue;}
+  meal.ingredients=clone(nextIngredients);
+  scaled++;
+ }
+ // Un seul sachet de 6 poires par semaine en hypothèse de départ.
+ // Le second reste rétablissable depuis Courses, sans supprimer d'historique.
+ let optionalPearBags=0;
+ for(const item of month.groceries||[]){
+  if(!item.name.startsWith('Poires Ocado')||!item.name.includes('sachet 2/2')||
+     item.bought||item.hidden||item.inStock||item.overrideQty!=null||item.overridePrice!=null)continue;
+  item.hidden=true;optionalPearBags++;
+ }
+ if(optionalPearBags)month.reconcileWarnings.push({name:
+   'Poires : deuxième sachet de 6 rendu facultatif (rétablissable depuis Courses)'});
+ const carrots=calibrateCarrotsFromMeals(month);
+ if(kept>0)month.reconcileWarnings.push({name:
+   'Portions : '+kept+' journée(s) cuisinée(s) ou personnalisée(s) préservées ; vérifier leurs besoins de courses'});
+ if(carrots.length)month.reconcileWarnings.push({name:
+   'Carottes bio : '+carrots.length+' semaine(s) à sacs de 1 kg, prix ticket 1,60 £/kg (achats antérieurs préservés)'});
+ return {scaled,kept,carrots:carrots.length};
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4,5,6,7,8,9,10,11].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6,7,8,9,10,11,12,13].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -579,6 +655,15 @@ export function validateImport(raw){
     raw.version=10;
   }
   if(raw.version===10)raw.version=11;
+  if(raw.version===11){
+    for(const [key,month] of Object.entries(raw.months))
+      migrateRealStaplePrices(month,{addSupplementalMilk:Number(key)>=Number(raw.selectedPeriod??0)});
+    raw.version=12;
+  }
+  if(raw.version===12){
+    for(const month of Object.values(raw.months))migrateChildPortions(month);
+    raw.version=13;
+  }
   raw.priceBook??={};
   for(const month of Object.values(raw.months)){
     month.receiptImports??=[];

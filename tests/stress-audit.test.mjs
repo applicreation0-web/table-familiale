@@ -10,9 +10,9 @@ test('STRESS 31 jours, panier initial, cinq pâtisseries, seuil strict intact',(
   const s=newState(),m=s.months['0'];
   assert.equal(m.meals.length,31);
   assert.equal(HARD_CEILING,900);
-  assert.equal(finance(m).forecast,889.08);
+  assert.equal(finance(m).forecast,887.98);
   for(let w=0;w<5;w++)setBakingWeek(m,w,true);
-  assert.equal(finance(m).forecast,894.88);
+  assert.equal(finance(m).forecast,893.78);
   assert.equal(m.groceries.filter(x=>x.name==='Œufs').length,5);
  }
 });
@@ -34,8 +34,8 @@ test('STRESS dépenses additionnelles et prévisions : pas de plafond artificiel
  const m=makeMonth(0);
  for(let i=0;i<100;i++)m.extraExpenses.push({id:'extra'+i,label:'livraison '+i,amount:0.99,supplier:'Autre'});
  assert.equal(finance(m).paid,99);
- assert.equal(finance(m).forecast,988.08);
- assert.equal(finance(m).forecastHeadroom,-88.08);
+ assert.equal(finance(m).forecast,986.98);
+ assert.equal(finance(m).forecastHeadroom,-86.98);
  assert.equal(m.budget,900);
 });
 test('STRESS 180 corrections du même prix : une preuve, prix prévisionnel stable',()=>{
@@ -155,11 +155,13 @@ test('STRESS injection montants non finis, négatifs, 10k+: aucune mutation',()=
  }
  assert.deepEqual(m.receiptImports,[]);
 });
-test('STRESS deux lignes vers un achat identique : strictement interdit',()=>{
+test('STRESS deux emballages pour un achat prévu : cumuler sans double achat',()=>{
  const s=newState(),m=s.months['0'],r=parseReceiptText('STRAWBERRIES 2.00\nSTRAWBERRIES 2.00');
  const id=grocery(m,'Fraises M&S',0).id;
- assert.throws(()=>applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id}))),/deux lignes/);
- assert.equal(finance(m).paid,0);
+ const out=applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id})));
+ assert.equal(out.matched,1);
+ assert.equal(finance(m).paid,4);
+ assert.throws(()=>applyReceiptReview(s,m,r,r.lines.map(x=>({...x,selectedId:id}))),/déjà été rapproché/);
 });
 test('STRESS OCR malveillant: pas de photo ni ticket brut dans historique JSON',()=>{
  const s=newState(),m=s.months['0'],r=parseReceiptText('PRIVATE RECEIPT LOCATION 1.00\nTOTAL 1.00');
@@ -190,8 +192,8 @@ test('STRESS la prévision peut dépasser 900 : marge négative honnête après 
  const s=newState(),m=s.months['0'];
  const r=parseReceiptText('SURPRISE SHOPPING 48.75');
  applyReceiptReview(s,m,r,[{...r.lines[0],selectedId:'extra'}]);
- assert.equal(finance(m).forecast,937.83);
- assert.equal(finance(m).forecastHeadroom,-37.83);
+ assert.equal(finance(m).forecast,936.73);
+ assert.equal(finance(m).forecastHeadroom,-36.73);
 });
 test('STRESS prix réel jamais automatiquement propagé à des achats payés',()=>{
  const s=newState(),m=s.months['0'];
