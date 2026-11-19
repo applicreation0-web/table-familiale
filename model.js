@@ -1,7 +1,8 @@
 import { BASE_MENU, BASE_SHOPPING, BASE_BUDGET } from './data.js';
 import { MEAL_INGREDIENTS, BREAKFASTS } from './recipes.js';
-import { FAMILY_PLAN } from './meal-plan.js';
-export { BREAKFASTS };
+import { FAMILY_PLAN,LEGACY_FAMILY_PLAN } from './meal-plan.js';
+import {calibrateCarrotsFromMeals,quantityAudit,FAMILY_PROFILE} from './family-portions.js';
+export { BREAKFASTS, FAMILY_PROFILE, quantityAudit };
 export const HARD_CEILING = 900;
 export const EGG_WEEKLY_MAX = 24;
 export const SUPPLIERS = ['M&S', 'Ocado', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Healthy Supplies', 'Épicerie africaine', 'Autre'];
@@ -37,9 +38,11 @@ export function makeMonth(index=0){
       cooked:false,cookedAt:null};
   });
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
-  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],notes:'',createdAt:new Date().toISOString()};
+  const month={index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],notes:'',createdAt:new Date().toISOString()};
+  calibrateCarrotsFromMeals(month); // Recommandation en sacs bio de 1kg au prix réellement observé.
+  return month;
 }
-export function newState(){return {version:12, selectedPeriod:0, months:{'0':makeMonth(0)},priceBook:{}};}
+export function newState(){return {version:13, selectedPeriod:0, months:{'0':makeMonth(0)},priceBook:{}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -568,8 +571,32 @@ function migrateRealStaplePrices(month,{addSupplementalMilk=true}={}){
  }
  return month;
 }
+// v12 -> v13 : redimensionner uniquement les plats encore inchangés et
+// non cuisinés. Toute édition personnalisée, achat payé et ancien reçu reste intact.
+function migrateChildPortions(month){
+ month.reconcileWarnings??=[];
+ const count=(month.meals||[]).length;
+ let kept=0,scaled=0;
+ for(let i=0;i<count;i++){
+  const meal=month.meals[i],old=LEGACY_FAMILY_PLAN[i%31],next=FAMILY_PLAN[i%31];
+  if(!old||!next||meal.cooked||meal.name!==old.name){kept++;continue;}
+  const isFinalHalf=i===count-1&&old.batchRole==='prepare';
+  const oldIngredients=isFinalHalf?old.ingredients.map(x=>({...x,quantity:x.quantity/2})):old.ingredients;
+  const nextIngredients=isFinalHalf?next.ingredients.map(x=>({...x,quantity:x.quantity/2})):next.ingredients;
+  // Un changement manuel de poids ou d'ingrédient ne doit pas être écrasé.
+  if(JSON.stringify(meal.ingredients)!==JSON.stringify(oldIngredients)){kept++;continue;}
+  meal.ingredients=clone(nextIngredients);
+  scaled++;
+ }
+ const carrots=calibrateCarrotsFromMeals(month);
+ if(kept>0)month.reconcileWarnings.push({name:
+   'Portions : '+kept+' journée(s) cuisinée(s) ou personnalisée(s) préservées ; vérifier leurs besoins de courses'});
+ if(carrots.length)month.reconcileWarnings.push({name:
+   'Carottes bio : '+carrots.length+' semaine(s) à sacs de 1 kg, prix ticket 1,60 £/kg (achats antérieurs préservés)'});
+ return {scaled,kept,carrots:carrots.length};
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4,5,6,7,8,9,10,11,12].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6,7,8,9,10,11,12,13].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -620,6 +647,10 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))
       migrateRealStaplePrices(month,{addSupplementalMilk:Number(key)>=Number(raw.selectedPeriod??0)});
     raw.version=12;
+  }
+  if(raw.version===12){
+    for(const month of Object.values(raw.months))migrateChildPortions(month);
+    raw.version=13;
   }
   raw.priceBook??={};
   for(const month of Object.values(raw.months)){
