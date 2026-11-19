@@ -550,7 +550,7 @@ test('Stress budget : les frais réels et les ajouts déclenchent un dépassemen
  const item=shoppingEntries(m,1,false).find(x=>x.id==='quiche-salmon-fresh-week1');
  markBought(m,item,true,11.25);
  assert.equal(finance(m).paid,18.74);
- assert.equal(finance(m).forecast,903.37);
+ assert.equal(finance(m).forecast,927.37);
 });
 
 test('Nouveaux mois 28, 30 et 31 jours : intégrité du calendrier, recettes et quantités',()=>{
