@@ -4,7 +4,7 @@ import { FAMILY_PLAN } from './meal-plan.js';
 export { BREAKFASTS };
 export const HARD_CEILING = 900;
 export const EGG_WEEKLY_MAX = 24;
-export const SUPPLIERS = ['M&S', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Healthy Supplies', 'Épicerie africaine', 'Autre'];
+export const SUPPLIERS = ['M&S', 'Ocado', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Healthy Supplies', 'Épicerie africaine', 'Autre'];
 export const KIND_NAMES = {P:'Poulet Hubbard',T:'Cuisses halal',F:'Cabillaud',S:'Saumon frais',G:'Saumon fumé',K:'Maquereau',L:'Agneau',V:'Végétarien'};
 export const START_DATE = new Date(2026,10,20,12);
 const eurosafe = n => Math.round(n * 100) / 100;
@@ -82,7 +82,7 @@ export function ingredientChanges(month){
   return out;
 }
 export function suggestedPurchases(month){
-  const recipeAdditions=ingredientChanges(month).filter(x=>x.delta>0 && !month.autoPurchases?.[x.id]?.skip).map(x=>({
+  const recipeAdditions=ingredientChanges(month).filter(x=>x.delta>0 && normalize(x.name)!=='oeufs' && !month.autoPurchases?.[x.id]?.skip).map(x=>({
     ...x,kind:'auto',qty:`${x.quantity} ${x.unit}`,estimate:month.autoPurchases?.[x.id]?.plannedPrice??x.price,
     bought:!!month.autoPurchases?.[x.id]?.bought,
     actual:month.autoPurchases?.[x.id]?.actual??null,
@@ -130,8 +130,10 @@ export function weeklyEggSummary(month,week){
   const mealsUsed=month.meals.slice(week*7,week*7+7).flatMap(x=>x.ingredients||[])
     .filter(x=>normalize(x.name)==='oeufs').reduce((sum,x)=>sum+Number(x.quantity||0),0);
   const available=week<4?24:12;
-  return {max:EGG_WEEKLY_MAX,planned:available,mealsUsed,
-    remainder:Math.max(0,available-mealsUsed),overCap:mealsUsed>EGG_WEEKLY_MAX};
+  const breakfastEggs=month.meals.slice(week*7,week*7+7).some((_,i)=>(week*7+i)%7===2)?5:0;
+  const inRecipes=mealsUsed+breakfastEggs;
+  return {max:EGG_WEEKLY_MAX,planned:available,mealsUsed,breakfastEggs,
+    remainder:Math.max(0,available-inRecipes),overCap:inRecipes>available};
 }
 export function setBakingWeek(month,week,enabled){
   if(!Number.isInteger(week)||week<0||week>=Math.ceil(month.meals.length/7))throw new Error('Semaine invalide');
