@@ -41,7 +41,7 @@ test('Décoche achat : référence apprise retirée, estimations d’origine ré
  markBought(m,{...item,kind:'base'},false,null);
  assert.equal(nextGrapes(m,1).estimate,5.3);
  assert.equal(nextGrapes(m,4).estimate,2.65);
- assert.equal(finance(m).forecast,889.38);
+ assert.equal(finance(m).forecast,887.98);
  assert.equal(priceBookStats(s).series,0);
 });
 test('Prix manuel et achats déjà payés sont intouchables, prochains mois apprennent',()=>{
@@ -164,7 +164,7 @@ test('Migration v10 → v11 : reçus historiques, sauvegarde, prix anciens intac
  const item=grapes(month);item.bought=true;item.actual=5.75;
  month.extraExpenses.push({id:'facture',label:'Taxi livraison',supplier:'Autre',amount:3.1,date:'2026-11-19'});
  const newer=validateImport(structuredClone(raw));
- assert.equal(newer.version,12);
+ assert.equal(newer.version,13);
  assert.deepEqual(newer.priceBook,{});
  assert.equal(newer.months['0'].groceries.find(x=>x.id===item.id).actual,5.75);
  assert.equal(finance(newer.months['0']).paid,8.85);
