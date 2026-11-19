@@ -310,6 +310,17 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
+    "id": "receipt-ms-organic-milk-week0",
+    "name": "Lait bio entier M&S 4 pintes",
+    "qty": "1 × 4 pintes (2,272 L)",
+    "price": 2.65,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 0,
+    "category": "S",
+    "sourceUrl": "https://www.ocado.com/products/m-s-organic-whole-milk-4-pints/505321011"
+  },
+  {
     "id": "base-0-18",
     "name": "Yaourt grec M&S Collection",
     "qty": "3 × 1 kg",
@@ -562,6 +573,17 @@ export const BASE_SHOPPING = [
     "purchase": "weekly",
     "week": 1,
     "category": "S"
+  },
+  {
+    "id": "receipt-ms-organic-milk-week1",
+    "name": "Lait bio entier M&S 4 pintes",
+    "qty": "1 × 4 pintes (2,272 L)",
+    "price": 2.65,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 1,
+    "category": "S",
+    "sourceUrl": "https://www.ocado.com/products/m-s-organic-whole-milk-4-pints/505321011"
   },
   {
     "id": "base-1-18",
@@ -846,6 +868,17 @@ export const BASE_SHOPPING = [
     "category": "S"
   },
   {
+    "id": "receipt-ms-organic-milk-week2",
+    "name": "Lait bio entier M&S 4 pintes",
+    "qty": "1 × 4 pintes (2,272 L)",
+    "price": 2.65,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 2,
+    "category": "S",
+    "sourceUrl": "https://www.ocado.com/products/m-s-organic-whole-milk-4-pints/505321011"
+  },
+  {
     "id": "base-2-18",
     "name": "Œufs",
     "qty": "2 × 12 (24 œufs)",
@@ -1046,6 +1079,17 @@ export const BASE_SHOPPING = [
     "purchase": "weekly",
     "week": 3,
     "category": "S"
+  },
+  {
+    "id": "receipt-ms-organic-milk-week3",
+    "name": "Lait bio entier M&S 4 pintes",
+    "qty": "1 × 4 pintes (2,272 L)",
+    "price": 2.65,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 3,
+    "category": "S",
+    "sourceUrl": "https://www.ocado.com/products/m-s-organic-whole-milk-4-pints/505321011"
   },
   {
     "id": "base-3-18",
