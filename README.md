@@ -2,7 +2,7 @@
 
 **Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
 **Dépôt :** https://github.com/applicreation0-web/table-familiale  
-**Version des données : v8** — mise à jour du 18 novembre 2026.
+**Version des données : v10 (correctif non publié)** — mise à jour du 19 novembre 2026.
 
 ## Règles du programme familial
 
@@ -12,7 +12,7 @@ Famille de **cinq personnes** (deux adultes et trois enfants), aliments halal, q
 - Un **plat africain différent par bloc de sept jours** : mafé d'agneau, riz à la viande, poulet yassa, yassa poisson, thiou au poulet. Préparation pour **deux jours consécutifs**, une seule cuisson de **10 portions**, servies en deux repas de 5 portions (une fois/jour).
 - **31 jours** pour la première période, du 20 novembre au 20 décembre 2026. Les périodes suivantes respectent la durée réelle des mois, avec menus adaptés aux jours disponibles.
 - **16 journées viande**, **7 poisson**, **8 végétariennes**. Aucun plat actif au maquereau ; les anciennes recettes restent dans le catalogue historique pour éviter la perte de sauvegardes.
-- **4 bouteilles Yeo Valley 2 L par semaine complète (8 L)** ; yaourt grec M&S Collection 3 kg/semaine complète ; **24 œufs** par semaine sans pâtisserie optionnelle, **30** si option activée. Les œufs requis pour les quiches font partie du besoin de base, pas de l'option pâtisserie.
+- **4 bouteilles Yeo Valley 2 L par semaine complète (8 L)** ; yaourt grec M&S Collection 3 kg/semaine complète ; **24 œufs maximum** par semaine, pâtisserie comprise ; beurre M&S 250 g chaque semaine, y compris la semaine partielle. Les œufs requis pour les quiches font partie du besoin de base, pas de l'option pâtisserie.
 - M&S prioritaire pour les fruits, légumes, saumons, laitages et pâte brisée ; Saffron Alley pour les viandes halal ; Dining Solutions pour le carton de cabillaud du yassa.
 
 ## Poissons et deux nouvelles quiches
@@ -39,7 +39,7 @@ Le tarif de livraison Healthy Supplies sous le seuil de gratuité est **à confi
 
 ## Finances et contrôle de la qualité
 
-**Panier prévisionnel sans pâtisserie optionnelle : 894,88 £**, dont 5 £ de réserve pour la livraison des noix. Le plafond est **900 £**, soit une **marge fragile de 5,12 £**. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
+**Panier révisé sans pâtisserie optionnelle : 889,08 £**, dont 5 £ de provision pour la livraison des noix. Le plafond demeure **900 £** : **marge prévisionnelle de 10,92 £** à vérifier sur un vrai panier avant publication. Le pain complet est provisionné à **3,50 £ l'unité** sur cinq semaines, prix communiqué par l'utilisateur sans référence produit vérifiée. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
 
 Sources de prix indicatifs, à vérifier avant de passer commande :
 - [Pâte brisée M&S 320 g — 2 £](https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011)
@@ -53,7 +53,7 @@ L'application affiche clairement les **prix provisoires**, la marge fragile, les
 
 ## Utilisation, sauvegardes et migrations
 
-Le navigateur conserve les périodes, achats, plats modifiés et reçus **localement**. L'onglet Suivi permet d'exporter une sauvegarde JSON avant changement de téléphone ou nettoyage de cache. Les versions **v2 à v7 migrent vers v8** : repas cuisinés, recettes personnalisées, achats payés et produits personnels conservés. Les mackerels ou noix déjà payés restent dans les comptes ; l'utilisateur doit vérifier son stock avant de re-commander les alternatives. Une recette déjà faite n'est pas secrètement remplacée par une quiche.
+Le navigateur conserve les périodes, achats, plats modifiés et reçus **localement**. L'onglet Suivi permet d'exporter une sauvegarde JSON avant changement de téléphone ou nettoyage de cache. Les versions **v2 à v9 migrent vers v10** : repas cuisinés, recettes personnalisées, achats payés et produits personnels conservés. Les mackerels ou noix déjà payés restent dans les comptes ; l'utilisateur doit vérifier son stock avant de re-commander les alternatives. Une recette déjà faite n'est pas secrètement remplacée par une quiche.
 
 La PWA peut être installée depuis Chrome Android (« Ajouter à l'écran d'accueil ») et peut fonctionner hors connexion après la mise en cache. La publication GitHub **ne redéploie pas automatiquement** Vercel ; il faut déployer le commit vérifié en production.
 
@@ -80,3 +80,45 @@ Les tests auditent : calendrier, portions, types viande/poisson/végétarien, de
 La release Android privée est générée par `.github/workflows/android-release-private.yml`, uniquement avec le keystore stable fourni comme **secrets du dépôt**. Quatre noms sont attendus : `TABLE_FAMILIALE_KEYSTORE_BASE64`, `TABLE_FAMILIALE_STORE_PASSWORD`, `TABLE_FAMILIALE_KEY_ALIAS`, `TABLE_FAMILIALE_KEY_PASSWORD`. Il ne faut jamais les mettre dans le code ou un ticket. En cas de succès, récupérer l'APK **1.0.8** signée et son **SHA256SUMS** dans l'artefact GitHub Actions `table-familiale-android-officiel` ; rétention de 7 jours. Ne pas confondre `app-debug.apk` et l'APK privée signée : leurs certificats sont différents et une installation debug n'est pas remplaçable directement par l'APK signée sans désinstallation. Exporter la sauvegarde avant toute désinstallation.
 
 Les contrôles automatisés ont été réalisés sur Linux CI ; un essai de la feuille de partage et de l'import sur un vrai téléphone Android reste à faire.
+
+
+## Préférences de fruits et huiles — correction du 19 novembre 2026
+
+**Les pommes (fruit), les bananes et les clémentines sortent du nouveau panier**. Les pommes de terre restent bien sûr au menu. Raisins, fraises et poires sont les seuls fruits proposés pour le panier de base. Fraises et raisins restent M&S ; les poires Ocado « Ripen at Home » sont une substitution économique avec 6 poires moyennes par sachet. La disponibilité, la maturité et l'appréciation du produit restent à vérifier à la livraison.
+
+| Période | Raisins M&S | Fraises M&S | Poires Ocado |
+|---|---|---|---|
+| Semaine complète, × 4 | 2 barquettes × 500 g = 1 kg, **5,30 £/semaine** | 1 barquette × 400 g, **4 £/semaine** | 2 sachets × 6 poires = 12, **3,40 £/semaine** |
+| Dernière semaine de 3 jours | 1 barquette de 500 g, **2,65 £** | Aucune (éviter le gaspillage) | 2 sachets × 6 poires, **3,40 £** |
+| **Total du cycle** | **4,5 kg / 23,85 £** | **1,6 kg / 16 £** | **60 poires / 17 £** |
+
+Le remplacement représente un budget fruits de **56,85 £**, contre **59,40 £** pour les quatre fruits de l'ancien panier : **2,55 £ économisés** sans conserver des fruits que la famille n'aime pas. L'allocation des fruits ne constitue pas une prescription nutritionnelle personnalisée et la disponibilité de fraises fraîches en novembre/décembre peut varier. Conserver au froid, consommer les fraises tôt après la livraison, puis les raisins, et faire mûrir les poires progressivement. Pour les jeunes enfants, couper les raisins en quatre dans le sens de la longueur afin de réduire le risque d'étouffement.
+
+**Deux huiles distinctes, qualité maintenue :**
+- **Huile d'olive vierge extra M&S 1 L : 9 £**, catégorie supérieure obtenue directement d'olives par procédés mécaniques ; pour assaisonnements et cuisson douce. Le précédent prix de 7,75 £ concernait un autre produit Ocado.
+- **Huile de tournesol M&S 1 L : 2 £** pour la cuisson ; achat mensuel distinct.
+
+Les deux huiles sont comptées ensemble à **11 £**, contre 7,75 £ auparavant : **+3,25 £**, et 2 litres disponibles au lieu d'un seul.
+
+**Budget de référence du cycle :**
+
+| Ligne | Montant |
+|---|---:|
+| Panier audité avant changement des fruits/huiles | 888,38 £ |
+| Substitution des fruits (−2,55 £) | 885,83 £ |
+| Ajout du tournesol et huile d'olive M&S (+3,25 £) | **889,08 £** |
+| Plafond ferme | 900,00 £ |
+| **Marge sans pâtisserie facultative** | **10,92 £** |
+| **Panier avec pâtisserie activée toutes les semaines** | **894,88 £** |
+| Marge avec toutes les pâtisseries facultatives | 5,12 £ |
+
+Le pain reste provisionné à **3,50 £ l'unité** sur cinq semaines, beurre 250 g chaque semaine, œufs **24 maximum** par semaine complète et 12 en semaine partielle, y compris la pâtisserie. Le menu principal, les portions, le lait et le yaourt ne sont pas modifiés.
+
+Sources catalogue Ocado consultées le 19 novembre 2026 :
+- [Raisins rouges sans pépins M&S, 500 g à 2,65 £](https://www.ocado.com/products/m-s-seedless-red-grapes/518292011)
+- [Fraises M&S, 400 g à 4,00 £](https://www.ocado.com/products/m-s-strawberries/517983011)
+- [Poires Ocado Ripen at Home, 6 à 1,70 £](https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011)
+- [Huile de tournesol M&S, 1 L à 2,00 £](https://www.ocado.com/products/m-s-sunflower-oil/505990011)
+- [Huile d'olive vierge extra M&S, 1 L à 9,00 £](https://www.ocado.com/products/M-S-Extra-Virgin-Olive-Oil/528611011)
+
+**Publication :** version de préparation non publiée jusqu'aux tests CI et à la vérification du vrai panier avec disponibilité locale. Le coût de livraison des noix est encore une provision de 5 £ ; la marge n'est pas garantie. Sur import v9→v10, aucun achat payé, recette cuisinée ou stock annoté n'est réécrit. Si des fruits ou huiles de l'ancien panier sont déjà achetés, un avertissement demande un rapprochement de stock plutôt qu'un faux reçu modifié.

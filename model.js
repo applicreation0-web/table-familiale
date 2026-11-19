@@ -3,7 +3,8 @@ import { MEAL_INGREDIENTS, BREAKFASTS } from './recipes.js';
 import { FAMILY_PLAN } from './meal-plan.js';
 export { BREAKFASTS };
 export const HARD_CEILING = 900;
-export const SUPPLIERS = ['M&S', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Healthy Supplies', 'Épicerie africaine', 'Autre'];
+export const EGG_WEEKLY_MAX = 24;
+export const SUPPLIERS = ['M&S', 'Ocado', 'Supermarché (Yeo Valley)', 'Saffron Alley', 'Dining Solutions', 'JJ Foodservice', 'Healthy Supplies', 'Épicerie africaine', 'Autre'];
 export const KIND_NAMES = {P:'Poulet Hubbard',T:'Cuisses halal',F:'Cabillaud',S:'Saumon frais',G:'Saumon fumé',K:'Maquereau',L:'Agneau',V:'Végétarien'};
 export const START_DATE = new Date(2026,10,20,12);
 const eurosafe = n => Math.round(n * 100) / 100;
@@ -38,7 +39,7 @@ export function makeMonth(index=0){
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
   return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:8, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:10, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -81,20 +82,13 @@ export function ingredientChanges(month){
   return out;
 }
 export function suggestedPurchases(month){
-  const recipeAdditions=ingredientChanges(month).filter(x=>x.delta>0 && !month.autoPurchases?.[x.id]?.skip).map(x=>({
+  const recipeAdditions=ingredientChanges(month).filter(x=>x.delta>0 && normalize(x.name)!=='oeufs' && !month.autoPurchases?.[x.id]?.skip).map(x=>({
     ...x,kind:'auto',qty:`${x.quantity} ${x.unit}`,estimate:month.autoPurchases?.[x.id]?.plannedPrice??x.price,
     bought:!!month.autoPurchases?.[x.id]?.bought,
     actual:month.autoPurchases?.[x.id]?.actual??null,
   }));
-  const eggTopups=month.groceries.filter(x=>x.name==='Œufs'&&x.week<4&&x.bought&&
-    isBakingWeek(month,x.week)&&/2 × 12/.test(x.overrideQty??x.qty)&&
-    !/\+ 1 × 6/.test(x.overrideQty??x.qty)).map(x=>{
-      const id='baking-eggs-'+x.week,state=month.autoPurchases?.[id]||{};
-      return {id,week:x.week,kind:'auto',monthOnly:false,supplier:'M&S',name:'Œufs pour gâteaux et muffins — complément',
-        quantity:6,unit:'pièce',qty:'6 œufs',estimate:state.plannedPrice??2.60,
-        bought:!!state.bought,actual:state.actual??null,skip:!!state.skip};
-    }).filter(x=>!x.skip);
-  return [...recipeAdditions,...eggTopups];
+  // Les pâtisseries utilisent le même stock de 24 œufs : aucun complément automatique.
+  return recipeAdditions;
 }
 // Les produits de pâtisserie ne sont prévus que si la semaine concernée est activée.
 // Les articles déjà achetés ne sont jamais effacés lorsque l'option est désactivée.
@@ -102,7 +96,7 @@ export function isBakingWeek(month,week){return !!month.bakingWeeks?.[week];}
 function plannedGrocery(month,item){
   if(item.hidden)return null;
   let targetWeek=item.week;
-  if(item.optional&&!item.bought){
+  if(item.optional&&!item.bought&&!item.name.startsWith('Beurre M&S')){
     const staple=item.week===0&&/Sucre pour gâteaux|Levure chimique|Extrait de vanille/.test(item.name);
     const active=Object.keys(month.bakingWeeks||{}).filter(w=>month.bakingWeeks[w]).map(Number).sort((a,b)=>a-b);
     if(staple){
@@ -112,8 +106,8 @@ function plannedGrocery(month,item){
   }
   const planned={...item,week:targetWeek,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.price};
   if(item.name==='Œufs'&&item.week<4&&!item.bought&&!item.overrideQty){
-    planned.qty=isBakingWeek(month,item.week)?'2 × 12 + 1 × 6 (30 œufs)':'2 × 12 (24 œufs)';
-    if(item.overridePrice==null)planned.estimate=isBakingWeek(month,item.week)?11.40:8.80;
+    planned.qty='2 × 12 (24 œufs)';
+    if(item.overridePrice==null)planned.estimate=8.80;
     planned.dynamicEggs=true;
   }
   return planned;
@@ -129,6 +123,17 @@ export function shoppingEntries(month,week,monthly=false){
 export function allShoppingEntries(month){
   return [...month.groceries.map(x=>plannedGrocery(month,x)).filter(Boolean),
     ...(month.manualItems||[]).filter(x=>!x.hidden).map(x=>({...x,kind:'manual',estimate:x.price})),...suggestedPurchases(month)];
+}
+// Les œufs réservés aux plats principaux sont soustraits de la boîte hebdomadaire.
+// Les petits-déjeuners et la pâtisserie partagent la quantité restante.
+export function weeklyEggSummary(month,week){
+  const mealsUsed=month.meals.slice(week*7,week*7+7).flatMap(x=>x.ingredients||[])
+    .filter(x=>normalize(x.name)==='oeufs').reduce((sum,x)=>sum+Number(x.quantity||0),0);
+  const available=week<4?24:12;
+  const breakfastEggs=month.meals.slice(week*7,week*7+7).some((_,i)=>(week*7+i)%7===2)?5:0;
+  const inRecipes=mealsUsed+breakfastEggs;
+  return {max:EGG_WEEKLY_MAX,planned:available,mealsUsed,breakfastEggs,
+    remainder:Math.max(0,available-inRecipes),overCap:inRecipes>available};
 }
 export function setBakingWeek(month,week,enabled){
   if(!Number.isInteger(week)||week<0||week>=Math.ceil(month.meals.length/7))throw new Error('Semaine invalide');
@@ -476,8 +481,57 @@ function migrateQuichesWalnuts(month,index){
   month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
   return month;
 }
+// v8 → v9 : corriger les achats futurs sans modifier l'historique payé.
+function migrateWeeklyButterEggsBread(month,index){
+  migrateOptimisedBasket(month,index);
+  month.reconcileWarnings??=[];
+  for(const item of month.groceries){
+    if(item.name==='Œufs'&&item.week>=0&&item.week<4){
+      if(item.bought){
+        if(/30 œufs|\\+ 1 × 6/.test(item.overrideQty??item.qty))
+          month.reconcileWarnings.push({name:'Semaine '+(item.week+1)+' : ancien achat de 30 œufs conservé ; plafond futur 24'});
+      }else{
+        if(/30 œufs|\\+ 1 × 6/.test(item.overrideQty??item.qty)){
+          item.overrideQty=null;
+          item.overridePrice=null;
+          month.reconcileWarnings.push({name:'Semaine '+(item.week+1)+' : ancien panier de 30 œufs ramené à 24'});
+        }
+        item.qty='2 × 12 (24 œufs)';
+        item.price=8.80;
+      }
+    }
+    if(item.name.startsWith('Beurre M&S')&&!item.bought){
+      item.name='Beurre M&S (usage hebdomadaire)';
+      item.optional=false;
+    }
+    if(item.name==='Pain complet M&S'&&!item.bought&&item.overridePrice==null)
+      item.price=3.50;
+  }
+  for(const [id,entry] of Object.entries(month.autoPurchases||{})){
+    if(id.startsWith('baking-eggs-')&&entry.bought)
+      month.reconcileWarnings.push({name:'Ancien complément œufs payé : reçu conservé sans réachat automatique'});
+  }
+  month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
+  return month;
+}
+// v9 -> v10 : uniquement préférences fruits et deux huiles.
+// Garder intacts les articles payés ou marqués en stock (aucun faux reçu).
+function migrateFruitOilPreferences(month,index){
+  const previouslyBought=(month.groceries||[]).filter(x=>x.bought&&
+    (/^(Pommes M&S|Bananes M&S|Clémentines M&S|Poires M&S)/.test(x.name)||
+     x.id==='base-0-27'));
+  migrateOptimisedBasket(month,index);
+  if(previouslyBought.length){
+    month.reconcileWarnings??=[];
+    month.reconcileWarnings.push({
+      name:'Fruits/huiles déjà achetés : reçus conservés ; vérifier le stock avant les nouveaux achats raisins, fraises, poires et huiles'
+    });
+  }
+  month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
+  return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4,5,6,7,8].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6,7,8,9,10].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -512,6 +566,16 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))
       raw.months[key]=migrateQuichesWalnuts({...month,index:Number(key)},Number(key));
     raw.version=8;
+  }
+  if(raw.version===8){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateWeeklyButterEggsBread({...month,index:Number(key)},Number(key));
+    raw.version=9;
+  }
+  if(raw.version===9){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateFruitOilPreferences({...month,index:Number(key)},Number(key));
+    raw.version=10;
   }
   for(const month of Object.values(raw.months)){
     month.bakingWeeks??={};

@@ -5,7 +5,7 @@ import {FAMILY_PLAN} from './meal-plan.js';
 import {
  BREAKFASTS, SUPPLIERS, KIND_NAMES, HARD_CEILING, money, period, periodDays, dateISO, clone,
  makeMonth, newState, ingredientChanges, suggestedPurchases, shoppingEntries,
- allShoppingEntries, finance, saveDish, swapDishes, toggleCooked, markBought, markInStock, setBakingWeek, isBakingWeek, validateImport
+ allShoppingEntries, finance, saveDish, swapDishes, toggleCooked, markBought, markInStock, setBakingWeek, isBakingWeek, weeklyEggSummary, validateImport
 } from './model.js';
 
 const STORAGE='table-familiale-github-v2';
@@ -94,7 +94,8 @@ function getBreakfast(month,index){
 }
 function bakingSwitch(month){
  const enabled=isBakingWeek(month,selectedWeek);
- return `<div class="baking-switch"><div><strong>Gâteaux ou muffins cette semaine ?</strong><span>${enabled?'Oui : ingrédients facultatifs et œufs ajustés':'Non : pas de beurre ni ingrédients inutiles dans le panier'}</span></div><button class="button ${enabled?'primary':'outline'}" data-action="toggle-baking" aria-pressed="${enabled}">${enabled?'✓ Pâtisserie prévue':'+ Prévoir une pâtisserie'}</button></div>`;
+ const eggs=weeklyEggSummary(month,selectedWeek);
+ return `<div class="baking-switch"><div><strong>Gâteaux ou muffins cette semaine ?</strong><span>Beurre toutes les semaines · 24 œufs maximum avec ou sans pâtisserie. Plats : ${eggs.mealsUsed} œufs ; petit-déjeuner : ${eggs.breakfastEggs} ; disponibles pour pâtisserie : ${eggs.remainder} œufs.${eggs.overCap?' ATTENTION : les repas dépassent le plafond hebdomadaire.':''}</span></div><button class="button ${enabled?'primary':'outline'}" data-action="toggle-baking" aria-pressed="${enabled}">${enabled?'✓ Pâtisserie prévue':'+ Prévoir une pâtisserie'}</button></div>`;
 }
 function renderMenus(month,dates){
  const from=selectedWeek*7, meals=month.meals.slice(from,from+7);

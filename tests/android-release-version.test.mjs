@@ -12,6 +12,18 @@ test('Signature privée : numéro de version Android stable et croissant',()=>{
  assert.ok(b.versionCode>a.versionCode);
 });
 
+test('Publication 1.0.10 : versionCode supérieur à 1.0.8 et stable dans le cycle',()=>{
+ const template='versionCode 1\nversionName "1.0"';
+ const old=stampGradle(template,12,'1.0.8');
+ const next=stampGradle(template,1,'1.0.10');
+ const next2=stampGradle(template,2,'1.0.10');
+ const nextMinor=stampGradle(template,1,'1.1.0');
+ assert.equal(next.versionCode,110001);
+ assert.equal(next.gradle.includes('versionName "1.0.10"'),true);
+ assert.ok(next.versionCode>old.versionCode);
+ assert.ok(next2.versionCode>next.versionCode);
+ assert.ok(nextMinor.versionCode>next2.versionCode);
+});
 test('Numéro invalide ou bloc Gradle ambigu : arrêt avant signature',()=>{
  const template='versionCode 1\nversionName "1.0"';
  assert.throws(()=>stampGradle(template,0),/invalide/);

@@ -160,12 +160,14 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-0",
     "name": "Pommes de terre",
-    "qty": "4 kg",
-    "price": 4.8,
+    "qty": "2 × 2 kg (4 kg)",
+    "price": 2.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-0-1",
@@ -181,11 +183,13 @@ export const BASE_SHOPPING = [
     "id": "base-0-2",
     "name": "Carottes",
     "qty": "4 kg",
-    "price": 4,
+    "price": 3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-0-3",
@@ -249,43 +253,51 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-0-13",
-    "name": "Pommes M&S sélection",
-    "qty": "12 pièces",
-    "price": 6.6,
+    "name": "Raisins rouges sans pépins M&S",
+    "qty": "2 × 500 g (1 kg)",
+    "price": 5.3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-seedless-red-grapes/518292011"
   },
   {
     "id": "base-0-14",
-    "name": "Poires M&S sélection",
-    "qty": "6 pièces",
-    "price": 4.2,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 1/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-0-15",
-    "name": "Clémentines M&S",
-    "qty": "8 pièces",
-    "price": 3.3,
+    "name": "Fraises M&S",
+    "qty": "1 barquette × 400 g",
+    "price": 4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-strawberries/517983011"
   },
   {
     "id": "base-0-16",
-    "name": "Bananes M&S",
-    "qty": "6 pièces",
-    "price": 1.8,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 2/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-0-17",
@@ -310,8 +322,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-0-19",
     "name": "Œufs",
-    "qty": "2 × 12 + 1 × 6 (30 œufs)",
-    "price": 11.4,
+    "qty": "2 × 12 (24 œufs)",
+    "price": 8.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -359,13 +371,15 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-0-27",
-    "name": "Huile olive M&S extra vierge",
+    "name": "Huile d’olive vierge extra M&S",
     "qty": "1 L",
     "price": 9,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "S"
+    "category": "S",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/M-S-Extra-Virgin-Olive-Oil/528611011"
   },
   {
     "id": "base-0-28",
@@ -380,22 +394,26 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-0",
     "name": "Pommes de terre",
-    "qty": "2 kg",
-    "price": 2.4,
+    "qty": "1 × 2 kg (2 kg)",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-1-2",
     "name": "Carottes",
     "qty": "3 kg",
-    "price": 3,
+    "price": 2.25,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-1-3",
@@ -489,43 +507,51 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-1-13",
-    "name": "Pommes M&S sélection",
-    "qty": "12 pièces",
-    "price": 6.6,
+    "name": "Raisins rouges sans pépins M&S",
+    "qty": "2 × 500 g (1 kg)",
+    "price": 5.3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-seedless-red-grapes/518292011"
   },
   {
     "id": "base-1-14",
-    "name": "Poires M&S sélection",
-    "qty": "6 pièces",
-    "price": 4.2,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 1/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-1-15",
-    "name": "Clémentines M&S",
-    "qty": "8 pièces",
-    "price": 3.3,
+    "name": "Fraises M&S",
+    "qty": "1 barquette × 400 g",
+    "price": 4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-strawberries/517983011"
   },
   {
     "id": "base-1-16",
-    "name": "Bananes M&S",
-    "qty": "6 pièces",
-    "price": 1.8,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 2/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-1-17",
@@ -550,8 +576,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-1-19",
     "name": "Œufs",
-    "qty": "2 × 12 + 1 × 6 (30 œufs)",
-    "price": 11.4,
+    "qty": "2 × 12 (24 œufs)",
+    "price": 8.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -640,22 +666,26 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-0",
     "name": "Pommes de terre",
-    "qty": "4 kg",
-    "price": 4.8,
+    "qty": "2 × 2 kg (4 kg)",
+    "price": 2.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-2-2",
     "name": "Carottes",
     "qty": "2 kg",
-    "price": 2,
+    "price": 1.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-2-3",
@@ -749,43 +779,51 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-2-12",
-    "name": "Pommes M&S sélection",
-    "qty": "12 pièces",
-    "price": 6.6,
+    "name": "Raisins rouges sans pépins M&S",
+    "qty": "2 × 500 g (1 kg)",
+    "price": 5.3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-seedless-red-grapes/518292011"
   },
   {
     "id": "base-2-13",
-    "name": "Poires M&S sélection",
-    "qty": "6 pièces",
-    "price": 4.2,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 1/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-2-14",
-    "name": "Clémentines M&S",
-    "qty": "8 pièces",
-    "price": 3.3,
+    "name": "Fraises M&S",
+    "qty": "1 barquette × 400 g",
+    "price": 4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-strawberries/517983011"
   },
   {
     "id": "base-2-15",
-    "name": "Bananes M&S",
-    "qty": "6 pièces",
-    "price": 1.8,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 2/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-2-16",
@@ -810,8 +848,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-2-18",
     "name": "Œufs",
-    "qty": "2 × 12 + 1 × 6 (30 œufs)",
-    "price": 11.4,
+    "qty": "2 × 12 (24 œufs)",
+    "price": 8.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -860,22 +898,26 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-0",
     "name": "Pommes de terre",
-    "qty": "2 kg",
-    "price": 2.4,
+    "qty": "1 × 2 kg (2 kg)",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-3-2",
     "name": "Carottes",
     "qty": "2 kg",
-    "price": 2,
+    "price": 1.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-3-3",
@@ -949,43 +991,51 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-3-13",
-    "name": "Pommes M&S sélection",
-    "qty": "12 pièces",
-    "price": 6.6,
+    "name": "Raisins rouges sans pépins M&S",
+    "qty": "2 × 500 g (1 kg)",
+    "price": 5.3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-seedless-red-grapes/518292011"
   },
   {
     "id": "base-3-14",
-    "name": "Poires M&S sélection",
-    "qty": "6 pièces",
-    "price": 4.2,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 1/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-3-15",
-    "name": "Clémentines M&S",
-    "qty": "8 pièces",
-    "price": 3.3,
+    "name": "Fraises M&S",
+    "qty": "1 barquette × 400 g",
+    "price": 4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-strawberries/517983011"
   },
   {
     "id": "base-3-16",
-    "name": "Bananes M&S",
-    "qty": "6 pièces",
-    "price": 1.8,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 2/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-3-17",
@@ -1010,8 +1060,8 @@ export const BASE_SHOPPING = [
   {
     "id": "base-3-19",
     "name": "Œufs",
-    "qty": "2 × 12 + 1 × 6 (30 œufs)",
-    "price": 11.4,
+    "qty": "2 × 12 (24 œufs)",
+    "price": 8.8,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1070,22 +1120,26 @@ export const BASE_SHOPPING = [
   {
     "id": "base-4-0",
     "name": "Pommes de terre",
-    "qty": "2 kg",
-    "price": 2.4,
+    "qty": "1 × 2 kg (2 kg)",
+    "price": 1.4,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-white-potatoes/519668011"
   },
   {
     "id": "base-4-1",
     "name": "Carottes",
     "qty": "3 kg",
-    "price": 3,
+    "price": 2.25,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-4-3",
@@ -1119,33 +1173,39 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "base-4-9",
-    "name": "Pommes M&S sélection",
-    "qty": "6 pièces",
-    "price": 3.3,
+    "name": "Raisins rouges sans pépins M&S",
+    "qty": "1 × 500 g",
+    "price": 2.65,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-seedless-red-grapes/518292011"
   },
   {
     "id": "base-4-10",
-    "name": "Poires M&S sélection",
-    "qty": "6 pièces",
-    "price": 4.2,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 1/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-4-11",
-    "name": "Bananes M&S",
-    "qty": "6 pièces",
-    "price": 1.8,
-    "supplier": "M&S",
+    "name": "Poires Ocado à mûrir (sachet 2/2)",
+    "qty": "1 × 6 poires",
+    "price": 1.7,
+    "supplier": "Ocado",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/ocado-ripen-at-home-pears/575941011"
   },
   {
     "id": "base-4-12",
@@ -1327,47 +1387,68 @@ export const BASE_SHOPPING = [
   },
   {
     "id": "baking-5",
-    "name": "Beurre M&S pour pâtisserie (option)",
+    "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
     "category": "S",
-    "optional": true
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "baking-6",
-    "name": "Beurre M&S pour pâtisserie (option)",
+    "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
     "category": "S",
-    "optional": true
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "baking-7",
-    "name": "Beurre M&S pour pâtisserie (option)",
+    "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
     "category": "S",
-    "optional": true
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "baking-8",
-    "name": "Beurre M&S pour pâtisserie (option)",
+    "name": "Beurre M&S (usage hebdomadaire)",
     "qty": "250 g",
-    "price": 2.9,
+    "price": 1.85,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
     "category": "S",
-    "optional": true
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
+  },
+  {
+    "id": "baking-9",
+    "name": "Beurre M&S (usage hebdomadaire)",
+    "qty": "250 g",
+    "price": 1.85,
+    "supplier": "M&S",
+    "purchase": "weekly",
+    "week": 4,
+    "category": "S",
+    "optional": false,
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-unsalted-butter/505453011"
   },
   {
     "id": "rightsize-0-0",
@@ -1433,7 +1514,7 @@ export const BASE_SHOPPING = [
     "id": "rightsize-0-4",
     "name": "Pain complet M&S",
     "qty": "1 pain",
-    "price": 1.6,
+    "price": 3.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
@@ -1443,7 +1524,7 @@ export const BASE_SHOPPING = [
     "id": "rightsize-1-1",
     "name": "Pain complet M&S",
     "qty": "1 pain",
-    "price": 1.6,
+    "price": 3.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
@@ -1453,7 +1534,7 @@ export const BASE_SHOPPING = [
     "id": "rightsize-2-0",
     "name": "Pain complet M&S",
     "qty": "1 pain",
-    "price": 1.6,
+    "price": 3.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
@@ -1463,7 +1544,7 @@ export const BASE_SHOPPING = [
     "id": "rightsize-3-2",
     "name": "Pain complet M&S",
     "qty": "1 pain",
-    "price": 1.6,
+    "price": 3.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
@@ -1473,7 +1554,7 @@ export const BASE_SHOPPING = [
     "id": "rightsize-4-0",
     "name": "Pain complet M&S",
     "qty": "1 pain",
-    "price": 1.6,
+    "price": 3.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
@@ -1618,6 +1699,18 @@ export const BASE_SHOPPING = [
     "category": "S",
     "priceStatus": "provisional",
     "sourceUrl": "https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011"
+  },
+  {
+    "id": "sunflower-oil-ms-1l",
+    "name": "Huile de tournesol M&S",
+    "qty": "1 bouteille × 1 L",
+    "price": 2,
+    "supplier": "M&S",
+    "purchase": "monthly",
+    "week": -1,
+    "category": "S",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-sunflower-oil/505990011"
   }
 ];
 
