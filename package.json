@@ -1,7 +1,7 @@
 {
   "name": "table-familiale",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.8",
   "type": "module",
   "description": "Application familiale halal : planning, ingrédients, listes M&S et budget GBP",
   "scripts": {
@@ -13,5 +13,9 @@
     "@capacitor/cli": "^8.6.2",
     "@capacitor/core": "^8.6.2",
     "@capacitor/android": "^8.6.2"
+  },
+  "dependencies": {
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/share": "^8.0.0"
   }
 }
