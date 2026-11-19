@@ -12,10 +12,14 @@ export function prepareQuickReceipt(text,month,week){
    Math.abs(parsed.reconciliationGap)>0.02)
   throw Error('Ticket incomplet : vérifier les colonnes, les remises et le total avant import.');
  const candidates=recommendReceiptMatches(parsed,month,week);
- const rows=candidates.map(x=>({...x,
-  selectedId:x.confidence==='code-barres à confirmer'&&x.selectedId?x.selectedId:'extra',
-  quantityConfirmed:false
- }));
+ // Apprentissage automatique seulement si EAN + taille du paquet sont connus.
+ // Pour les autres lignes, ne pas inventer un prix unitaire extrapolable.
+ const knownPackSku=new Set(['29087914','29089635','5036589201601','00328739','3282380060219']);
+ const rows=candidates.map(x=>{
+  const matched=x.confidence==='code-barres à confirmer'&&!!x.selectedId;
+  return {...x,selectedId:matched?x.selectedId:'extra',
+    quantityConfirmed:matched&&knownPackSku.has(x.sku)};
+ });
  const lineTotal=cents(rows.reduce((n,x)=>n+Number(x.amount),0));
  if(Math.abs(cents(lineTotal+(parsed.discountTotal||0)-parsed.ticketTotal))>0.02)
   throw Error('Écart de caisse : le montant payé ne correspond pas aux articles du fichier.');
