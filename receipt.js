@@ -131,7 +131,10 @@ export function recommendReceiptMatches(parsed,month,week){
    candidates.sort((a,b)=>b.adjusted-a.adjusted);
    const first=candidates[0],second=candidates[1];
    // Pas de rapprochement automatique pour les descriptions trop vagues/ambiguës.
-   const canSuggest=!!first&&first.score>=0.65&&first.adjusted>=0.77&&
+   // Un ticket de la semaine ne crédite pas une référence d'une autre semaine.
+   const firstItem=first&&entries.find(x=>x.id===first.id);
+   const firstInPeriod=firstItem&&(firstItem.purchase==='monthly'||firstItem.week===week);
+   const canSuggest=!!first&&!!firstInPeriod&&first.score>=0.65&&first.adjusted>=0.77&&
      (!second||first.adjusted-second.adjusted>=0.10)&&!used.has(first.id);
    // Plusieurs lignes identiques d'un ticket désignent souvent des emballages
    // d'un même article prévu. Les regrouper, avec vérification à l'import.
