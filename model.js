@@ -91,7 +91,8 @@ export function ingredientChanges(month){
 function receiptConfirmsIngredient(month,week,name){
  const counts=month.receiptWeeks?.[week]?.complete?month.receiptWeeks[week].categories:{};
  const n=normalize(name);
- const group=/^pates\b|^penne\b|^fusilli\b/.test(n)?'pasta':
+ const group=/^couscous\b|^semoule\b/.test(n)?'couscous':
+   /^pates\b|^penne\b|^fusilli\b/.test(n)?'pasta':
    /^courgette/.test(n)?'courgette':
    /^tomate/.test(n)?'tomato':
    /^ail\b/.test(n)?'garlic':

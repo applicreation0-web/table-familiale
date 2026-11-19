@@ -220,19 +220,34 @@ export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={})
      markBought(month,row.item,true,row.price);
      const found=row.item.kind==='manual'?month.manualItems.find(x=>x.id===row.item.id):
        row.item.kind==='auto'?month.autoPurchases[row.item.id]:month.groceries.find(x=>x.id===row.item.id);
+     let verifiedPack=null;
      if(found){
        found.actualConfirmed=true;found.receiptId=receipt.fingerprint;
        if(row.item.kind==='base'){
          const packageQty=receiptQtyFromGroup(row.skus,found);
+         verifiedPack=packageQty;
          if(packageQty){
            found.receiptQtyText=packageQty.text;
            found.receiptQty=packageQty.value;
            found.receiptQtyUnit=packageQty.unit;
+           found.receiptPackCount=packageQty.packageCount;
+           found.receiptPackUnknown=false;
+         }else{
+           // Un code et un montant prouvent un achat, pas un poids non imprimé.
+           found.receiptQtyText=row.lineCount+(row.lineCount>1?' emballages':' emballage')+' · poids/format à vérifier';
+           found.receiptPackCount=row.lineCount;
+           found.receiptQty=null;found.receiptQtyUnit=null;
+           found.receiptPackUnknown=true;
          }
        }
      }
      // On n'apprend pas de prix unitaire si le poids ou le conditionnement du ticket n'a pas été vérifié.
-     if(row.item.kind!=='auto'&&row.quantityConfirmed)adjustments.push(...learnFromConfirmedPurchase(state,month,row.item,row.price));
+     if(row.item.kind!=='auto'&&row.quantityConfirmed){
+       // Prix unitaire appris sur les emballages réellement achetés, pas
+       // sur l'ancienne quantité prévisionnelle (ex. 1 kg vs 3 kg carottes).
+       const priceSource=verifiedPack?{...row.item,qty:verifiedPack.text}:row.item;
+       adjustments.push(...learnFromConfirmedPurchase(state,month,priceSource,row.price));
+     }
    }
  }
  // N'appliquer une remise que si toutes les lignes ont été approuvées et si
