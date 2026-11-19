@@ -173,7 +173,7 @@ function readIngredientFields(){
  if(name!=null)draft.name=name;if(kind!=null)draft.kind=kind;
 }
 function mealBatchIngredients(i,index){const ingredients=clone(MEAL_INGREDIENTS[i]);return getMonth().meals[index].batchRole==='prepare'?ingredients.map(x=>({...x,quantity:x.quantity*2})):ingredients;}
-function openDialog(html){dialog.innerHTML=html;dialog.showModal();dialog.scrollTop=0;}
+function openDialog(html){dialog.innerHTML=html;if(!dialog.open)dialog.showModal();dialog.scrollTop=0;}
 function openMeal(index,swap=false){
  const month=getMonth(),meal=month.meals[index],dates=activeDates();modalType=swap?'swap':'dish';draft={index,name:meal.name,kind:meal.kind,ingredients:clone(meal.ingredients),target:index};
  if(swap){
