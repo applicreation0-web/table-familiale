@@ -40,6 +40,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: table-familiale-android-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   android:
     runs-on: ubuntu-latest
@@ -76,20 +79,22 @@ jobs:
         run: |
           cd android
           chmod +x ./gradlew
-          if ! ./gradlew assembleDebug --no-daemon; then
-            echo "::warning::Gradle/Maven a échoué ; nouvelle résolution des dépendances."
-            sleep 12
-            ./gradlew assembleDebug --no-daemon --refresh-dependencies
-          fi
+          for attempt in 1 2 3 4; do
+            if ./gradlew assembleDebug --no-daemon; then break; fi
+            if [ "$attempt" = 4 ]; then exit 1; fi
+            echo "::warning::Maven rate-limite les dépendances. Nouvelle tentative après pause."
+            sleep $((attempt * 45))
+          done
       - name: Vérifier aussi le package release non signé avant toute signature
         run: |
           set -euo pipefail
           cd android
-          if ! ./gradlew assembleRelease --no-daemon; then
-            echo "::warning::Nouvelle tentative de compilation release après une erreur Maven."
-            sleep 12
-            ./gradlew assembleRelease --no-daemon --refresh-dependencies
-          fi
+          for attempt in 1 2 3; do
+            if ./gradlew assembleRelease --no-daemon; then break; fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            echo "::warning::Compilation release retry après indisponibilité Maven."
+            sleep $((attempt * 45))
+          done
           test -s app/build/outputs/apk/release/app-release-unsigned.apk
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | grep -F "name='app.tablefamiliale.menus'"
       - name: Auditer la configuration de l'APK de test
