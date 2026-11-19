@@ -58,7 +58,8 @@ export function parseReceiptText(raw){
    if(cost<=0||clean.length<2||/^[\d£\s.,-]+$/.test(clean)||
       /\b\d{2}[\/.-]\d{2}[\/.-](?:20\d{2})\b/.test(clean)||
       !/[A-Za-zÀ-ÿ]{2}/.test(clean)){previous='';return;}
-   lines.push({id:'line-'+i,label:clean,amount:cost});
+   const sku=String(label||'').match(/^\s*(\d{8,14})\s+/)?.[1];
+   lines.push({id:'line-'+i,label:clean,amount:cost,...(sku?{sku}:{})});
    previous='';
  }
  for(let i=0;i<input.length;i++){
