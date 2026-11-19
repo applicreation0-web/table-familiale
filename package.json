@@ -13,7 +13,8 @@
     "@capacitor/cli": "^8.6.2",
     "@capacitor/core": "^8.6.2",
     "@capacitor/android": "^8.6.2",
-    "sharp": "^0.34.0"
+    "sharp": "^0.34.0",
+    "esbuild": "^0.27.0"
   },
   "dependencies": {
     "@capacitor/filesystem": "^8.0.0",
