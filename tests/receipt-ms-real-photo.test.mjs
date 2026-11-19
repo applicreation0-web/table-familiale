@@ -161,12 +161,13 @@ test('panier complet sauf viande/Dining : quantités certifiées des achats repr
  const month=makeMonth(0),receipt=parseReceiptText(transcript);
  const observed=compareReceiptToPlan(receipt,month,0);
  const map=Object.fromEntries(observed.map(x=>[x.key,x]));
- assert.equal(observed.length,4);
+ assert.equal(observed.length,5);
  assert.deepEqual([map.milk.actualQty,map.milk.plannedQty,map.milk.actualPrice],[4,4,6.2]);
+ assert.deepEqual([map['milk-ms'].actualQty,map['milk-ms'].plannedQty,map['milk-ms'].actualPrice],[2.272,2.272,2.65]);
  assert.deepEqual([map.eggs.actualQty,map.eggs.plannedQty,map.eggs.actualPrice],[24,24,10.8]);
  assert.deepEqual([map.butter.actualQty,map.butter.plannedQty,map.butter.actualPrice],[250,250,3.75]);
  assert.deepEqual([map.carrots.actualQty,map.carrots.plannedQty,map.carrots.recipeNeed],[1,4,3.2]);
- assert.equal(finance(month).forecast,878.78);
+ assert.equal(finance(month).forecast,889.38);
 });
 test('ancien prix appris du lait 8L ramené au format réel 4L sans modifier les achats historiques',()=>{
  const s=newState(),m=s.months['0'],milks=m.groceries.filter(x=>x.name.startsWith('Lait Yeo Valley'));
