@@ -152,5 +152,6 @@ export function noteCompletedReceiptWeek(month,week,rows,{supplier='M&S',fingerp
  month.receiptWeeks[week].absentPlanLines=absent;
  if(absent)result.warnings.push(absent+' références non identifiées sur le ticket : retirées des dépenses futures de cette semaine, sans les compter comme achetées. Vérifier la réserve et les ingrédients indispensables.');
  if(otherStores)result.warnings.push('Poires futures : achat M&S préféré, format et prix à confirmer plutôt que conserver le prix Ocado.');
+ month.receiptWeeks[week].warnings=result.warnings;
  return result;
 }
