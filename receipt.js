@@ -56,9 +56,10 @@ export function parseReceiptText(raw){
      previous=line;
    }
  }
- // Ne jamais importer le montant TOTAL comme un article.
- return {fingerprint:receiptFingerprint(text),lines:lines.slice(0,120),ticketTotal,
-   recognizedTotal:round(lines.reduce((sum,x)=>sum+x.amount,0)),
+ // Ne jamais importer le montant TOTAL comme un article ; refuser les tickets trop longs.
+ const visible=lines.slice(0,120),truncatedLines=Math.max(0,lines.length-visible.length);
+ return {fingerprint:receiptFingerprint(text),lines:visible,ticketTotal,truncatedLines,
+   recognizedTotal:round(visible.reduce((sum,x)=>sum+x.amount,0)),
    date:date?date[3]+'-'+date[2]+'-'+date[1]:null,rawLineCount:input.length};
 }
 export function recommendReceiptMatches(parsed,month,week){
@@ -89,6 +90,7 @@ export function recommendReceiptMatches(parsed,month,week){
 }
 export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={}){
  if(!receipt?.fingerprint||!Array.isArray(rows))throw Error('Ticket invalide');
+ if(receipt.truncatedLines>0)throw Error('Ticket trop long : certaines lignes sont masquées. Aucun import autorisé.');
  month.receiptImports??=[];
  if(Object.values(state.months||{}).some(period=>(period.receiptImports||[]).some(x=>x.fingerprint===receipt.fingerprint)))
    throw Error('Ce ticket a déjà été rapproché : aucun achat ajouté en double.');
