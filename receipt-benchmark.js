@@ -2,10 +2,9 @@
 // Les lignes manquantes ne prouvent jamais qu'un produit n'est pas consommé.
 const products=[
  {ean:'5036589201601',key:'milk',label:'Lait Yeo Valley entier',qty:2,unit:'L',
+   isPlanned:i=>i.name.startsWith('Lait Yeo Valley')},
  {ean:'00328739',key:'milk-ms',label:'Lait M&S bio entier 4 pintes',qty:2.272,unit:'L',
    isPlanned:i=>i.name==='Lait bio entier M&S 4 pintes'},
-
-   isPlanned:i=>i.name.startsWith('Lait Yeo Valley')},
  {ean:'3282380060219',key:'butter',label:'Beurre Lescure AOP doux',qty:250,unit:'g',
    isPlanned:i=>i.name.startsWith('Beurre M&S')},
  {ean:'29089635',key:'eggs',label:'Œufs bio M&S',qty:12,unit:'œufs',
