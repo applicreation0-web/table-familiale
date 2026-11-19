@@ -546,7 +546,7 @@ test('Stress budget : les frais réels et les ajouts déclenchent un dépassemen
  m.extraExpenses.push({id:'shipping-extra',amount:7.49,supplier:'Healthy Supplies',label:'Surcoût livraison',date:'2026-11-18'});
  f=finance(m);
  assert.equal(f.forecast,926.37);
- assert.equal(f.forecastHeadroom,-2.37);
+ assert.equal(f.forecastHeadroom,-26.37);
  const item=shoppingEntries(m,1,false).find(x=>x.id==='quiche-salmon-fresh-week1');
  markBought(m,item,true,11.25);
  assert.equal(finance(m).paid,18.74);
