@@ -4,6 +4,7 @@ import {MEAL_INGREDIENTS} from './recipes.js';
 import {applyLearnedPrices,learnFromConfirmedPurchase,forgetConfirmedPurchase,priceBookStats} from './pricing.js';
 import {parseReceiptText,recommendReceiptMatches,applyReceiptReview} from './receipt.js';
 import {compareReceiptToPlan} from './receipt-benchmark.js';
+import {noteCompletedReceiptWeek,restoreAutoAdjustedMeal} from './receipt-stock.js';
 import {captureReceiptText,nativeReceiptAvailable} from './receipt-ocr.js';
 import {FAMILY_PLAN} from './meal-plan.js';
 import {
@@ -104,10 +105,12 @@ function bakingSwitch(month){
 function renderMenus(month,dates){
  const from=selectedWeek*7, meals=month.meals.slice(from,from+7);
  return `<div class="section-title"><div><span class="overline">MENU PROPOSÉ</span><h2>Les plats de la semaine</h2><p>Un plat africain par semaine : 10 portions cuisinées pour cinq personnes, une fois par jour pendant deux jours. Autres repas variés.</p></div><button class="button outline" data-action="goto-shopping">${icon('basket',17)} Liste M&S</button></div>
- ${weekHeader(month)}${bakingSwitch(month)}<div class="meal-grid">${meals.map((dish,i)=>{
+ ${weekHeader(month)}${bakingSwitch(month)}${month.receiptWeeks?.[selectedWeek]?.complete?
+  '<div class="banner success">'+icon('check')+' <span>Courses M&S de cette semaine confirmées sur ticket. Repas adaptés selon les produits reconnus. Les quantités et les achats séparés restent à vérifier.</span></div>':''}
+  <div class="meal-grid">${meals.map((dish,i)=>{
  const j=from+i, date=dates[j],kind=dish.kind==='V'?'green':'protein';return `<article class="meal-card ${dish.cooked?'is-cooked':''}"><div class="day"><strong>${date.getDate()}</strong><small>${date.toLocaleDateString('fr-FR',{weekday:'short',month:'short'})}</small></div>
  <div class="meal-main"><div class="tags"><span class="tag ${kind}">${esc(KIND_NAMES[dish.kind]||'Plat')}</span>${dish.african?'<span class="tag protein">Africain</span>':''}${dish.batchRole==='prepare'?'<span class="tag">2 jours · 1 cuisson</span>':''}${dish.batchRole==='reheat'?'<span class="tag">Réchauffage</span>':''}${dish.cooked?'<span class="tag cooked">✓ Cuisiné</span>':''}</div><h3>${esc(dish.name)}</h3><p><b>Petit-déjeuner :</b> ${esc(getBreakfast(month,j))}</p><small class="meal-note">${dish.batchRole==='reheat'?'5 portions du deuxième jour · Aucun achat en double':dish.batchRole==='prepare'?dish.ingredients.length+' ingrédients · 10 portions (5 personnes × 2 jours, 1 repas/jour)':dish.ingredients.length+' ingrédients · 5 portions (1 repas familial)'}${dish.name.startsWith('Yassa au poisson')?' · Riz frais au deuxième service':''}</small></div>
- <div class="meal-buttons"><button class="button mini ${dish.cooked?'light':'outline'}" data-action="cook" data-index="${j}" ${dish.batchRole==='reheat'&&!month.meals[j-1]?.cooked&&!dish.cooked?'disabled':''}>${dish.cooked?(dish.batchRole==='reheat'?'✓ Servi':'✓ Fait'):dish.batchRole==='reheat'?'Réchauffé':icon('chef',15)+' Cuisiné'}</button><button class="icon-button" title="${dish.batchRole==='reheat'?'Modifier depuis le premier jour':'Modifier le plat et ses ingrédients'}" ${dish.batchRole==='reheat'?'disabled':''} data-action="edit-meal" data-index="${j}">${icon('pen',18)}</button><button class="icon-button" title="Échanger deux dates" data-action="swap-meal" data-index="${j}">${icon('swap',18)}</button></div>
+ <div class="meal-buttons"><button class="button mini ${dish.cooked?'light':'outline'}" data-action="cook" data-index="${j}" ${dish.batchRole==='reheat'&&!month.meals[j-1]?.cooked&&!dish.cooked?'disabled':''}>${dish.cooked?(dish.batchRole==='reheat'?'✓ Servi':'✓ Fait'):dish.batchRole==='reheat'?'Réchauffé':icon('chef',15)+' Cuisiné'}</button>${dish.autoAdjusted&&!dish.cooked?'<button class="button outline small" data-action="restore-auto-meal" data-index="'+j+'" title="Annuler le remplacement automatique">Rétablir</button>':''}<button class="icon-button" title="${dish.batchRole==='reheat'?'Modifier depuis le premier jour':'Modifier le plat et ses ingrédients'}" ${dish.batchRole==='reheat'?'disabled':''} data-action="edit-meal" data-index="${j}">${icon('pen',18)}</button><button class="icon-button" title="Échanger deux dates" data-action="swap-meal" data-index="${j}">${icon('swap',18)}</button></div>
  </article>`}).join('')}</div>
  <div class="tip"><span>${icon('basket',20)} Un ingrédient ajouté à un plat apparaît dans les courses à prévoir.</span><button class="button primary" data-action="goto-shopping">Voir les courses ${icon('right',15)}</button></div>`;
 }
@@ -263,6 +266,7 @@ function showReceiptReview(parsed){
  openDialog(`<div class="dialog-head"><div><span class="overline">VÉRIFICATION OBLIGATOIRE</span><h2 id="editor-title">Ticket : ${rows.length} lignes reconnues</h2><p>Choisir les articles à enregistrer. Les lignes sans correspondance restent ignorées, sauf si tu sélectionnes « Nouvelle dépense hors liste ».</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
  <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Montant payé sur le ticket</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Articles lus</small><strong>${money(parsed.recognizedTotal)}</strong></div><div class="finance-cell"><small>Remises et remboursements</small><strong>${money(parsed.discountTotal||0)}</strong></div><div class="finance-cell"><small>Écart de lecture</small><strong>${parsed.reconciliationGap==null?'À vérifier':money(parsed.reconciliationGap)}</strong></div></div>
  ${benchmarkHtml}
+ <label class="field" style="display:flex;align-items:center;gap:10px"><input type="checkbox" id="receipt-full-week" /> <span><b>Ce ticket couvre toutes les courses M&S de cette semaine.</b> Après confirmation complète des 43 lignes, adapter automatiquement les plats impossibles, par exemple un saumon non acheté. Les achats halal ou Dining faits séparément restent à vérifier.</span></label>
  <p>Vérifiez les quantités achetées et les conditionnements. Plusieurs lignes identiques (par exemple deux boîtes d’œufs) peuvent correspondre au même achat prévu : les montants seront additionnés. Une différence de total n'est jamais corrigée artificiellement.</p><p><b>Attention :</b> « Hors liste » augmente le budget sans retirer un article prévu. Rapprocher les produits du panier lorsqu'ils y figurent pour ne pas les compter deux fois.</p><div class="action-line"><button class="button outline" data-action="receipt-select-extras">Classer les lignes non associées comme hors liste</button></div>
  <label class="field"><span>Magasin du ticket (pour dépenses hors liste)</span><select id="receipt-supplier">${shopOptions}</select></label>
  ${listHtml}
@@ -313,10 +317,20 @@ function onAction(action,btn){
        return {...row,selectedId:sel.value,amount:input.value===''?0:Number(input.value),quantityConfirmed:!!qtyCheck?.checked};
      });
      const supplier=dialog.querySelector('#receipt-supplier')?.value||'M&S';
+     const complete=!!dialog.querySelector('#receipt-full-week')?.checked;
+     if(complete&&chosen.some(x=>!x.selectedId))
+       throw Error('Pour déclarer la semaine achetée, rapprocher chaque ligne ou la classer hors liste.');
      const result=applyReceiptReview(state,month,receiptDraft.parsed,chosen,{supplier});
+     const planning=complete?noteCompletedReceiptWeek(month,selectedWeek,chosen,{supplier,fingerprint:receiptDraft.parsed.fingerprint}):null;
      receiptDraft=null;dialog.close();save();
-     flash(result.matched+' article(s), '+result.extras+' dépense(s) hors liste · '+money(result.total)+' réconciliés');
+     flash(result.matched+' article(s), '+result.extras+' dépense(s) · '+money(result.total)+
+       (planning?.changed?.length?' · '+planning.changed.length+' plat(s) adaptés':' · achats enregistrés'));
    }catch(err){flash(err.message,'error')}
+   break;
+ }
+ case 'restore-auto-meal':{
+   try{restoreAutoAdjustedMeal(month,index);save();flash('Plat original rétabli');}
+   catch(err){flash(err.message,'error')}
    break;
  }
  case 'tab':activeTab=btn.dataset.tab;search='';render();break;
