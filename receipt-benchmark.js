@@ -23,7 +23,9 @@ function plannedQuantity(item,unit){
  }
  if(unit==='g')return text.match(/^(\d+)\s*g\b/)?Number(RegExp.$1):null;
  if(unit==='kg'){
-   const m=text.match(/(\d+(?:\.\d+)?)\s*kg/);
+   // 3 × 1 kg (3 kg) : prendre le TOTAL, pas le poids d'un sachet.
+   const total=text.match(/\((\d+(?:\.\d+)?)\s*kg\)/i);
+   const m=total||text.match(/(\d+(?:\.\d+)?)\s*kg/i);
    return m?Number(m[1]):null;
  }
  return null;
