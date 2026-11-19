@@ -34,7 +34,7 @@ test('STRESS dépenses additionnelles et prévisions : pas de plafond artificiel
  const m=makeMonth(0);
  for(let i=0;i<100;i++)m.extraExpenses.push({id:'extra'+i,label:'livraison '+i,amount:0.99,supplier:'Autre'});
  assert.equal(finance(m).paid,99);
- assert.equal(finance(m).forecast,988.08);
+ assert.equal(finance(m).forecast,997.08);
  assert.equal(finance(m).forecastHeadroom,-97.08);
  assert.equal(m.budget,900);
 });
