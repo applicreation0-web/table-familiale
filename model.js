@@ -40,7 +40,7 @@ export function makeMonth(index=0){
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,
     hidden:x.name.startsWith('Poires Ocado')&&x.name.includes('sachet 2/2'),
     overrideQty:null,overridePrice:null}));
-  const month={index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],notes:'',createdAt:new Date().toISOString()};
+  const month={index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],receiptWeeks:{},notes:'',createdAt:new Date().toISOString()};
   calibrateCarrotsFromMeals(month); // Recommandation en sacs bio de 1kg au prix réellement observé.
   return month;
 }
@@ -667,6 +667,7 @@ export function validateImport(raw){
   raw.priceBook??={};
   for(const month of Object.values(raw.months)){
     month.receiptImports??=[];
+    month.receiptWeeks??={};
     month.bakingWeeks??={};
     month.reconcileWarnings??=[];
   }
