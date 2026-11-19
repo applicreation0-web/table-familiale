@@ -214,7 +214,7 @@ function openReceiptDialog(){
 }
 function showReceiptReview(parsed){
  const month=getMonth();
- if(month.receiptImports?.some(x=>x.fingerprint===parsed.fingerprint))
+ if(Object.values(state.months).some(p=>(p.receiptImports||[]).some(x=>x.fingerprint===parsed.fingerprint)))
    throw Error('Ce ticket est déjà enregistré dans cette période.');
  if(!parsed.lines.length)throw Error('Aucune ligne avec description et prix reconnue. Vérifiez le texte ou recommencez la photo.');
  const rows=recommendReceiptMatches(parsed,month,selectedWeek);
