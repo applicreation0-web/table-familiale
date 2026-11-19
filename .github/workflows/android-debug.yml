@@ -70,6 +70,8 @@ jobs:
           node scripts/generate-android-icons.mjs
           test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
           test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png
+      - name: Estampiller la version Android 1.0.11 et le code croissant
+        run: node scripts/set-android-version.mjs
       - name: Compiler l'APK debug
         run: |
           cd android
