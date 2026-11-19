@@ -2,6 +2,7 @@
 // par le runtime Capacitor et le bundle est généré lors du build, hors CDN.
 import {Camera,CameraResultType,CameraSource} from '@capacitor/camera';
 import {TextRecognition,Script} from '@capacitor-mlkit/text-recognition';
+import {reconstructReceiptRows} from './receipt-layout.js';
 export async function recognizeReceiptPhoto(){
  const photo=await Camera.getPhoto({
   source:CameraSource.Prompt,resultType:CameraResultType.Uri,
@@ -11,5 +12,5 @@ export async function recognizeReceiptPhoto(){
  });
  if(!photo?.path)throw new Error('Aucune image locale disponible');
  const result=await TextRecognition.processImage({path:photo.path,script:Script.Latin});
- return String(result?.text||'').trim();
+ return reconstructReceiptRows(result);
 }
