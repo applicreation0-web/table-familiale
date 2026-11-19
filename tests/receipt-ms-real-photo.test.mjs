@@ -98,7 +98,7 @@ test('raisin blanc ne doit pas s’associer automatiquement aux raisins rouges d
  assert.equal(white.selectedId,'');
 });
 test('OCR ML Kit: rapprochement par ligne géométrique malgré texte livré en colonnes',()=>{
- const box=(text,x,y)=>({text,boundingBox:{x,y,width:150,height:12}});
+ const box=(text,x,y)=>({text,boundingBox:{left:x,top:y,right:x+150,bottom:y+12}});
  const raw={
    text:'MILK\nEGGS\nMILK\nEGGS\n£3.10\n£5.40\n£3.10\n£5.40',
    blocks:[
