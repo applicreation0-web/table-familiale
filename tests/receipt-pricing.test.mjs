@@ -146,15 +146,14 @@ test('Migration v10 → v11 : reçus historiques, sauvegarde, prix anciens intac
 test('OCR Android sans modules : refus explicite, pas de faux scan',async()=>{
  assert.equal(nativeReceiptAvailable({isNativePlatform:()=>false}),false);
  await assert.rejects(captureReceiptText({isNativePlatform:()=>false}),/APK Android/);
- await assert.rejects(captureReceiptText({isNativePlatform:()=>true,Plugins:{}}),/Modules natifs/);
+ await assert.rejects(captureReceiptText({isNativePlatform:()=>true},async()=>{throw Error('missing bundle')}),/Modules Camera/);
 });
-test('OCR Android bridge : photo locale, texte reçu sans upload',async()=>{
- let calls=0;
- const cap={isNativePlatform:()=>true,Plugins:{
-  Camera:{getPhoto:async()=>{calls++;return {path:'file:///private/ticket.jpg'}}},
-  TextRecognition:{processImage:async options=>{calls++;assert.equal(options.path,'file:///private/ticket.jpg');assert.equal(options.script,'LATIN');return {text:'STRAWBERRIES 4.00'}}}
- }};
+test('OCR Android : bundle local, transcription reçue sans réseau ni upload',async()=>{
+ const cap={isNativePlatform:()=>true};
+ let called=0;
+ const loader=async()=>({recognizeReceiptPhoto:async()=>{called++;return 'STRAWBERRIES 4.00'}});
  assert.equal(nativeReceiptAvailable(cap),true);
- assert.equal(await captureReceiptText(cap),'STRAWBERRIES 4.00');
- assert.equal(calls,2);
+ assert.equal(await captureReceiptText(cap,loader),'STRAWBERRIES 4.00');
+ assert.equal(called,1);
 });
+
