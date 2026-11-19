@@ -3,10 +3,15 @@ import {pathToFileURL} from 'node:url';
 
 export function stampGradle(original,runNumber,version='1.0.8'){
  const run=Number(runNumber);
- if(!Number.isSafeInteger(run)||run<1||run>100000)
+ if(!Number.isSafeInteger(run)||run<1||run>999)
    throw new Error('Numéro de compilation Android invalide.');
  if(!/^\d+\.\d+\.\d+$/.test(version))throw new Error('Version Android invalide.');
- const versionCode=108000+run; // monotonique pour les futures releases 1.0.x
+ const [major,minor,patch]=version.split('.').map(Number);
+ if(major!==1||!Number.isSafeInteger(minor)||minor>9||
+    !Number.isSafeInteger(patch)||patch>99)
+   throw new Error('Version Android hors plage contrôlée.');
+ // 1.0.8 => 108001, 1.0.10 => 110001, 1.1.0 => 200001.
+ const versionCode=100000+minor*100000+patch*1000+run;
  let count=0;
  let code=original.replace(/\bversionCode\s+\d+\b/g,()=>{
    count++;return 'versionCode '+versionCode;
