@@ -116,3 +116,22 @@ test('un ticket partiel ne reçoit pas une remise inventée',()=>{
  applyReceiptReview(s,m,r,[row]);
  assert.equal(finance(m).paid,4.25);
 });
+
+test('articles répétés : suggestion de rapprochement identique mais confirmation obligatoire',()=>{
+ const r=parseReceiptText(transcript),m=newState().months['0'];
+ const suggestions=recommendReceiptMatches(r,m,0);
+ const eggs=suggestions.filter(x=>x.label==='MIXED EGGS X1');
+ assert.equal(eggs.length,2);
+ assert.ok(eggs[0].selectedId);
+ assert.equal(eggs[0].selectedId,eggs[1].selectedId);
+});
+test('OCR géométrique mauvais : le texte initial lisible est préservé',()=>{
+ const raw='MILK £3.10\nEGGS £5.40';
+ const misplaced={text:raw,blocks:[{lines:[
+  {text:'MILK',boundingBox:{x:0,y:20,height:10}},
+  {text:'EGGS',boundingBox:{x:0,y:40,height:10}},
+  {text:'£3.10',boundingBox:{x:300,y:200,height:10}},
+  {text:'£5.40',boundingBox:{x:300,y:220,height:10}},
+ ]}]};
+ assert.equal(reconstructReceiptRows(misplaced),raw);
+});
