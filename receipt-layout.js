@@ -4,7 +4,9 @@ export function reconstructReceiptRows(result){
  const raw=String(result?.text||'').trim();
  const detected=(result?.blocks||[]).flatMap(b=>b.lines||[]).map(line=>{
    const box=line.boundingBox||{};
-   const x=Number(box.x),y=Number(box.y),height=Number(box.height);
+   // Rect natif Capacitor ML Kit 8.2 : left/top/right/bottom (pas x/y).
+   const x=Number(box.left??box.x),y=Number(box.top??box.y),
+     height=Number(box.bottom!=null&&box.top!=null?box.bottom-box.top:box.height);
    return {text:String(line.text||'').trim(),x,y,height,cy:y+height/2};
  }).filter(x=>x.text&&[x.x,x.y,x.height].every(Number.isFinite)&&x.height>0);
  if(detected.length<4)return raw;
