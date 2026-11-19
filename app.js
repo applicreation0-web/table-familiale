@@ -270,7 +270,8 @@ function onAction(action,btn){
        const sel=dialog.querySelector('[data-receipt-select="'+i+'"]');
        if(!sel||!input)throw Error('Formulaire de ticket incomplet');
        if(sel.value&&input.value.trim()==='')throw Error('Prix payé manquant à la ligne '+(i+1));
-       return {...row,selectedId:sel.value,amount:input.value===''?0:Number(input.value)};
+       const qtyCheck=dialog.querySelector('[data-receipt-qty="'+i+'"]');
+       return {...row,selectedId:sel.value,amount:input.value===''?0:Number(input.value),quantityConfirmed:!!qtyCheck?.checked};
      });
      const supplier=dialog.querySelector('#receipt-supplier')?.value||'M&S';
      const result=applyReceiptReview(state,month,receiptDraft.parsed,chosen,{supplier});
