@@ -76,7 +76,7 @@ test('rapprochements de codes M&S : vraies références de catalogue, marques di
  assert.equal(items.length,5);
  assert.equal(items[0].selectedId,m.groceries.find(x=>x.name==='Pâtes complètes'&&x.week===0).id);
  assert.equal(items[1].selectedId,items[0].selectedId);
- assert.equal(items[2].selectedId,m.groceries.find(x=>x.name.startsWith('Fromage M&S')&&x.week===0).id);
+ assert.equal(items[2].selectedId,''); // Cheddar sans garantie de présure végétale : vérification obligatoire.
  assert.equal(items[3].selectedId,m.groceries.find(x=>x.name==='Brocolis frais M&S'&&x.week===0).id);
  assert.equal(items[4].selectedId,''); // Raisins blancs ≠ raisins rouges prévus.
  assert.equal(receiptIngredientCategory(items[4]),'grapes');
@@ -87,4 +87,14 @@ test('migration précédente conserve inventaire sans données nominatives',()=>
  const loaded=validateImport(JSON.parse(JSON.stringify(state)));
  assert.equal(loaded.months['0'].receiptWeeks[0].complete,true);
  assert.ok(!JSON.stringify(loaded).includes('credit card'));
+});
+
+test('ticket complet : préférer les pâtes aux courgettes et tomates sans fromage incertain',()=>{
+ const m=newState().months['0'];
+ const p=noteCompletedReceiptWeek(m,0,[...synthetic,selection('00821964','CHOPPD TOMATO',.50)],{
+  supplier:'M&S',fingerprint:'synthetic-tomato-safe'});
+ assert.equal(p.changed.length,1);
+ assert.equal(m.meals[2].name,'Pennes complètes aux courgettes et tomates');
+ assert.equal(m.meals[2].ingredients.some(x=>/Fromage|cheddar/i.test(x.name)),false);
+ assert.equal(m.meals[2].ingredients.find(x=>x.name==='Tomates concassées')?.quantity,300);
 });
