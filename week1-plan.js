@@ -31,7 +31,7 @@ const fusilliMeal=()=>({
 function updateOriginalMeal(month,index,recipe,reason,{allowPreviousAuto=false}={}){
  const meal=month?.meals?.[index];
  if(!meal||meal.cooked||meal.batchRole==='reheat')return false;
- const canUse=untouched(meal,index)||allowPreviousAuto&&meal.autoAdjusted?.reason==='user-confirmed-no-salmon-week1';
+ const canUse=untouched(meal,index)||allowPreviousAuto&&['user-confirmed-no-salmon-week1','salmon-not-on-complete-receipt'].includes(meal.autoAdjusted?.reason);
  if(!canUse)return false;
  const previous=meal.autoAdjusted?.previous||clone({
   name:meal.name,kind:meal.kind,ingredients:meal.ingredients});
