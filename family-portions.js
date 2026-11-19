@@ -63,7 +63,10 @@ export function quantityAudit(month,week){
  return weeklyProduceNeeds(month?.meals||[],week).map(need=>{
   const item=groceries.find(x=>x.name===need.name);
   const plannedKg=item?purchasedKg(item):null;
-  return {...need,plannedKg,deltaKg:plannedKg==null?null:round2(plannedKg-need.proposedKg),
+  const actualKg=item?.bought&&item.receiptQtyUnit==='kg'?Number(item.receiptQty):null;
+  return {...need,plannedKg,actualKg,
+    deltaKg:plannedKg==null?null:round2(plannedKg-need.proposedKg),
+    actualShortageKg:actualKg==null?null:round2(Math.max(0,need.recipeKg-actualKg)),
     paid:!!item?.bought,manuallyChanged:item?.overrideQty!=null};
  });
 }
