@@ -184,7 +184,7 @@ test('Optimisation : 54 pommes M&S, 1,25 kg beurre M&S, 1 L huile vierge extra',
  assert.equal(carrots.reduce((s,x)=>s+x.price,0),10.5);
  const potatoes=m.groceries.filter(x=>x.name==='Pommes de terre');
  assert.deepEqual(potatoes.map(x=>x.qty),['2 × 2 kg (4 kg)','1 × 2 kg (2 kg)','2 × 2 kg (4 kg)','1 × 2 kg (2 kg)','1 × 2 kg (2 kg)']);
- assert.equal(potatoes.reduce((s,x)=>s+x.price,0),9.8);
+ assert.equal(Math.round(potatoes.reduce((s,x)=>s+x.price,0)*100)/100,9.8);
  assert.ok(potatoes.every(x=>x.sourceUrl?.includes('white-potatoes')));
  assert.ok(carrots.every(x=>x.sourceUrl?.includes('british-carrots')));
  assert.equal(finance(m).forecast,888.38);
