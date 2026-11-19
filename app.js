@@ -213,6 +213,8 @@ function openReceiptDialog(){
  </div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="parse-receipt">Analyser le ticket</button></div>`);
 }
 function showReceiptReview(parsed){
+ if(parsed.truncatedLines>0)
+   throw Error('Ticket trop long : '+parsed.truncatedLines+' ligne(s) non affichée(s). Aucun import autorisé.');
  const month=getMonth();
  if(Object.values(state.months).some(p=>(p.receiptImports||[]).some(x=>x.fingerprint===parsed.fingerprint)))
    throw Error('Ce ticket est déjà enregistré dans cette période.');
