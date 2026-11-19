@@ -39,7 +39,7 @@ Le tarif de livraison Healthy Supplies sous le seuil de gratuité est **à confi
 
 ## Finances et contrôle de la qualité
 
-**Panier optimisé sans pâtisserie optionnelle : 895,38 £**, dont 5 £ de provision pour la livraison des noix. Le plafond demeure **900 £** : **marge prévisionnelle de 4,62 £** à vérifier sur un vrai panier avant publication. Le pain complet est provisionné à **3,50 £ l'unité** sur cinq semaines, prix communiqué par l'utilisateur sans référence produit vérifiée. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
+**Panier optimisé sans pâtisserie optionnelle : 888,38 £**, dont 5 £ de provision pour la livraison des noix. Le plafond demeure **900 £** : **marge prévisionnelle de 11,62 £** à vérifier sur un vrai panier avant publication. Le pain complet est provisionné à **3,50 £ l'unité** sur cinq semaines, prix communiqué par l'utilisateur sans référence produit vérifiée. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
 
 Sources de prix indicatifs, à vérifier avant de passer commande :
 - [Pâte brisée M&S 320 g — 2 £](https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011)
@@ -82,24 +82,28 @@ La release Android privée est générée par `.github/workflows/android-release
 Les contrôles automatisés ont été réalisés sur Linux CI ; un essai de la feuille de partage et de l'import sur un vrai téléphone Android reste à faire.
 
 
-## Optimisation de panier du 19 novembre 2026 — cible 895,38 £
+## Optimisation de panier du 19 novembre 2026 — cible 888,38 £
 
-Toutes les quantités ci-dessous sont maintenues sur la période de 31 jours ; seuls des conditionnements/prix sourcés ont été corrigés. La qualité M&S des pommes, carottes et beurre est conservée. L'huile d'olive Ocado reste **vierge extra et 1 litre**, mais change de marque.
+Les quantités et portions restent celles du programme familial initial. Les substitutions de conditionnements conservent la marque M&S pour les pommes, beurre, carottes et pommes de terre. L'huile Ocado reste de catégorie **vierge extra**, volume **1 litre**, avec un changement explicite de marque.
 
-| Poste | Ancien budget | Nouveau budget | Économie |
+| Poste | Coût avant optimisation | Coût retenu | Économie |
 |---|---:|---:|---:|
-| 54 pommes M&S (4 × 12 + 6) | 29,70 £ | 16,20 £ | 13,50 £ |
-| Beurre M&S doux 250g × 5 semaines | 14,50 £ | 9,25 £ | 5,25 £ |
-| Huile d’olive vierge extra 1 L | 9,00 £ | 7,75 £ | 1,25 £ |
-| Carottes britanniques M&S 14 kg | 14,00 £ | 10,50 £ | 3,50 £ |
-| **Économies totales** | | | **23,50 £** |
+| 54 pommes M&S, 9 lots de 6 Braeburn | 29,70 £ | 16,20 £ | 13,50 £ |
+| Beurre M&S doux : 5 × 250 g | 14,50 £ | 9,25 £ | 5,25 £ |
+| Huile d’olive vierge extra : 1 L | 9,00 £ | 7,75 £ | 1,25 £ |
+| Carottes britanniques M&S : 14 kg | 14,00 £ | 10,50 £ | 3,50 £ |
+| Pommes de terre blanches M&S : 14 kg, 7 sacs de 2 kg | 16,80 £ | 9,80 £ | 7,00 £ |
+| **Économies totales** | | | **30,50 £** |
 
-Base avec les nouvelles exigences avant optimisation : **918,88 £** ; panier optimisé sans pâtisserie facultative : **895,38 £**, soit **4,62 £ de marge**, et **aucune réduction des portions prévues**. Pain **3,50 £ par unité** sur cinq semaines (17,50 £). Œufs : **24 maximum par semaine complète**, 12 sur la semaine partielle, quiches, petits-déjeuners et éventuelle pâtisserie compris. Les 5 × 250g de beurre sont toujours prévus.
+Le panier initial après les exigences beurre/œufs/pain était à **918,88 £** ; après les cinq corrections sourcées, il descend à **888,38 £** sans pâtisserie, soit **11,62 £ de marge** sous le plafond de 900 £. Le pain reste à **3,50 £ × 5 = 17,50 £**, tarif fourni par l'utilisateur. Le beurre est prévu chaque semaine (y compris la dernière semaine partielle), les œufs sont plafonnés à **24/semaine complète** (12 la semaine partielle), y compris pour pâtisseries, quiches et petits-déjeuners.
 
-Prix catalogue Ocado consultés le 19 novembre 2026 :
-- [Pommes M&S Tree Ripened British Braeburn, 6 pour 1,80 £](https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011)
-- [Beurre doux M&S British Unsalted, 250g pour 1,85 £](https://www.ocado.com/products/m-s-british-unsalted-butter/505453011)
-- [Huile d'olive vierge extra Ocado, 1 L pour 7,75 £](https://www.ocado.com/products/ocado-extra-virgin-olive-oil/436849011)
-- [Carottes M&S britanniques, 1kg pour 0,75 £](https://www.ocado.com/products/m-s-british-carrots/518554011)
+La pâtisserie reste facultative : si elle est sélectionnée pour les cinq semaines, **le budget avec tous les ingrédients facultatifs prévus dans l'application est de 894,18 £**, soit 5,82 £ de marge. Aucune hausse automatique des œufs ; l'écran précise les œufs consacrés aux plats, réservés aux petits-déjeuners et restants pour pâtisserie.
 
-**Conditions de publication :** la marge de 4,62 £ est faible, et les prix dépendent du magasin/code postal/date ; les 5 £ de frais de port pour les noix restent une provision. Toute pâtisserie optionnelle, substitution ou hausse de prix peut dépasser 900 £ et doit être signalée par l'application. Aucune garantie de plafond ne doit être affichée sans panier réel. À l'import v8→v9, les reçus payés et recettes déjà cuisinées demeurent inchangés ; les anciens achats de 30 œufs restent historiques et ne déclenchent pas de réapprovisionnement automatique.
+Sources des tarifs catalogue consultés le 19 novembre 2026 :
+- [Pommes M&S Braeburn 6 pour 1,80 £](https://www.ocado.com/products/m-s-tree-ripened-british-braeburn-apples/518265011)
+- [Beurre M&S British Unsalted 250 g pour 1,85 £](https://www.ocado.com/products/m-s-british-unsalted-butter/505453011)
+- [Huile d’olive vierge extra Ocado 1 L à 7,75 £](https://www.ocado.com/products/ocado-extra-virgin-olive-oil/436849011)
+- [Carottes M&S British 1 kg à 0,75 £](https://www.ocado.com/products/m-s-british-carrots/518554011)
+- [Pommes de terre M&S White 2 kg à 1,40 £](https://www.ocado.com/products/m-s-white-potatoes/519668011)
+
+**Réserve de publication :** les prix sont indicatifs, dépendent des stocks et du code postal ; la livraison des noix reste provisionnée à 5 £ sans confirmation. Même avec les tests au vert, seul un panier réel permet de garantir le plafond au moment du paiement. Les sauvegardes v8→v9 conservent les reçus, plats cuisinés, stocks et modifications personnelles.
