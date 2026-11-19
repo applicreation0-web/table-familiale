@@ -4,6 +4,8 @@ import {MEAL_INGREDIENTS} from './recipes.js';
 import {applyLearnedPrices,learnFromConfirmedPurchase,forgetConfirmedPurchase,priceBookStats} from './pricing.js';
 import {parseReceiptText,recommendReceiptMatches,applyReceiptReview} from './receipt.js';
 import {compareReceiptToPlan} from './receipt-benchmark.js';
+import {prepareQuickReceipt} from './receipt-quick.js';
+import {applyUserConfirmedNoSalmonWeek1} from './week1-plan.js';
 import {noteCompletedReceiptWeek,restoreAutoAdjustedMeal} from './receipt-stock.js';
 import {captureReceiptText,nativeReceiptAvailable} from './receipt-ocr.js';
 import {FAMILY_PLAN} from './meal-plan.js';
@@ -19,6 +21,10 @@ const dialog=document.getElementById('editor');
 const toastEl=document.getElementById('toast');
 let state;
 try{state=validateImport(JSON.parse(localStorage.getItem(STORAGE)));localStorage.setItem(STORAGE,JSON.stringify(state))}catch{state=newState()}
+// Premier cycle : retirer immédiatement le saumon explicitement non acheté,
+// sans transformer cette déclaration en paiement ni écraser un menu personnalisé.
+if(state.months?.['0']&&applyUserConfirmedNoSalmonWeek1(state.months['0']).changed.length)
+  localStorage.setItem(STORAGE,JSON.stringify(state));
 let activeTab='menus', selectedWeek=0, shopMode='week', search='', draft=null, modalType=null, toastTimeout=null, receiptDraft=null;
 const icon=(name,size=18)=>{
  const icons={
@@ -51,6 +57,7 @@ const long=d=>d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'
 function getMonth(){
  const key=String(state.selectedPeriod);
  if(!state.months[key]){state.months[key]=makeMonth(state.selectedPeriod);applyLearnedPrices(state,{onlyPeriod:state.selectedPeriod});}
+ if(key==='0')applyUserConfirmedNoSalmonWeek1(state.months[key]);
  return state.months[key];
 }
 function persist(){localStorage.setItem(STORAGE,JSON.stringify(state));}
@@ -105,7 +112,9 @@ function bakingSwitch(month){
 function renderMenus(month,dates){
  const from=selectedWeek*7, meals=month.meals.slice(from,from+7);
  return `<div class="section-title"><div><span class="overline">MENU PROPOSÉ</span><h2>Les plats de la semaine</h2><p>Un plat africain par semaine : 10 portions cuisinées pour cinq personnes, une fois par jour pendant deux jours. Autres repas variés.</p></div><button class="button outline" data-action="goto-shopping">${icon('basket',17)} Liste M&S</button></div>
- ${weekHeader(month)}${bakingSwitch(month)}${month.receiptWeeks?.[selectedWeek]?.complete&&month.receiptWeeks[selectedWeek].warnings?.length?
+ ${weekHeader(month)}${bakingSwitch(month)}${selectedWeek===0&&state.selectedPeriod===0&&month.firstWeekNoSalmon&&!month.receiptWeeks?.[0]?.complete?
+ '<div class="banner caution">'+icon('alert')+
+ ' <span><b>Saumon supprimé de la semaine 1.</b> Le ticket M&S déjà fourni doit encore être importé localement pour enregistrer les montants payés et optimiser les autres repas. <button class="button outline small" data-action="scan-receipt">Importer le ticket</button></span></div>':''}${month.receiptWeeks?.[selectedWeek]?.complete&&month.receiptWeeks[selectedWeek].warnings?.length?
   '<div class="banner caution">'+icon('alert')+' <span>'+month.receiptWeeks[selectedWeek].warnings.map(esc).join(' · ')+'</span></div>':''}${month.receiptWeeks?.[selectedWeek]?.complete?
   '<div class="banner success">'+icon('check')+' <span>Courses M&S de cette semaine confirmées sur ticket. Repas adaptés selon les produits reconnus. Les quantités et les achats séparés restent à vérifier.</span></div>':''}
   <div class="meal-grid">${meals.map((dish,i)=>{
@@ -222,11 +231,37 @@ function openReceiptDialog(){
  receiptDraft=null;modalType='receipt';
  openDialog(`<div class="dialog-head"><div><span class="overline">TICKET DE CAISSE</span><h2 id="editor-title">Lire et rapprocher un ticket</h2><p>Aucun achat n’est ajouté sans confirmation. Le texte du ticket reste temporaire et local.</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
  <div class="edit-body">
- <div class="action-line"><button class="button primary" data-action="photo-receipt" ${nativeReceiptAvailable(window.Capacitor)?'':'disabled title="Photo disponible dans la nouvelle APK Android"'}>${icon('upload',16)} Photo ou galerie Android</button><label class="button outline" style="cursor:pointer">${icon('upload',16)} Charger un ticket .txt <input id="receipt-file" type="file" accept=".txt,text/plain" style="display:none" /></label></div>
+ <div class="action-line"><button class="button primary" data-action="photo-receipt" ${nativeReceiptAvailable(window.Capacitor)?'':'disabled title="Photo disponible dans la nouvelle APK Android"'}>${icon('upload',16)} Photo ou galerie Android</button><label class="button outline" style="cursor:pointer">${icon('upload',16)} Charger le ticket M&S (.txt) <input id="receipt-file" type="file" accept=".txt,text/plain" style="display:none" /></label></div>
  <p>Sur le site web, ou si la photo n’est pas lisible, coller le texte du ticket ci-dessous. Le total imprimé ne sera jamais compté comme un article.</p>
  <label class="field"><span>Texte reconnu (facultatif si photo Android)</span><textarea id="receipt-text" rows="8" placeholder="M&S Strawberries 4.00&#10;Red grapes 2.65&#10;TOTAL 6.65"></textarea></label>
  <div class="banner caution">Vérifiez les prix, les remises, les quantités, le magasin et le total. Les tickets flous ou les lignes ambiguës ne sont pas validés automatiquement.</div>
  </div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="parse-receipt">Analyser le ticket</button></div>`);
+}
+function showQuickReceiptReview(raw){
+ const month=getMonth(),planned=prepareQuickReceipt(raw,month,selectedWeek);
+ if(Object.values(state.months).some(x=>(x.receiptImports||[]).some(t=>t.fingerprint===planned.parsed.fingerprint)))
+   throw Error('Ce ticket est déjà enregistré : aucun achat ne doit être compté deux fois.');
+ receiptDraft={...planned,quick:true,period:state.selectedPeriod};
+ const noSalmon=selectedWeek===0&&state.selectedPeriod===0&&!planned.hasSalmon;
+ openDialog('<div class="dialog-head"><div><span class="overline">IMPORT LOCAL · SEMAINE '+(selectedWeek+1)+
+  '</span><h2>Vérification du ticket M&S</h2><p>Une seule confirmation : aucun reçu ni photo transmis à un serveur.</p></div>'+
+  '<button class="icon-button" data-action="close-modal" aria-label="Fermer">'+icon('close')+'</button></div>'+
+  '<div class="edit-body"><div class="finance-grid">'+
+  '<div class="finance-cell"><small>Produits</small><strong>'+planned.rows.length+' lignes</strong></div>'+
+  '<div class="finance-cell"><small>Articles lus</small><strong>'+money(planned.parsed.recognizedTotal)+'</strong></div>'+
+  '<div class="finance-cell"><small>Remboursements/remises</small><strong>'+money(planned.parsed.discountTotal)+'</strong></div>'+
+  '<div class="finance-cell"><small>Montant réellement payé</small><strong>'+money(planned.amount)+'</strong></div></div>'+
+  '<div class="banner '+(noSalmon?'success':'caution')+'">'+icon(noSalmon?'check':'alert')+
+   '<span>'+(noSalmon?'Aucun saumon sur ce ticket : le plat initial au saumon de la semaine 1 reste retiré.':'La présence ou absence de saumon est vérifiée sur ce ticket complet.')+
+   '</span></div>'+
+  '<p><b>'+planned.matched+' lignes rapprochées par code connu</b> ; '+planned.extras+
+   ' lignes hors liste à vérifier. Les autres courses M&S de la semaine seront clôturées sans inventer d’achats.</p>'+
+  '<p>Les repas déjà cuisinés ou personnalisés ne seront pas changés. Les achats de viande halal et Dining Solutions réalisés séparément restent intacts.</p>'+
+  '<p>Vérification des emballages : carottes et œufs pourront afficher leur quantité achetée ; pour les formats inconnus, une alerte restera visible.</p>'+
+  '<div class="banner caution">Pour les lignes hors liste, le prix sera comptabilisé exactement une fois, sans inventer un achat prévu. Vérifier le total ci-dessus avant de valider.</div>'+
+  '</div><div class="dialog-actions">'+
+  '<button class="button outline" data-action="review-quick-details">Vérifier chaque ligne</button>'+
+  '<button class="button primary" data-action="commit-quick-receipt">Confirmer le ticket complet et adapter les menus</button></div>');
 }
 function showReceiptReview(parsed){
  if(parsed.truncatedLines>0)
@@ -305,6 +340,30 @@ function onAction(action,btn){
      if(select.value===''){select.value='extra';count++;}
    }
    flash(count+' ligne(s) classée(s) hors liste, à contrôler avant confirmation');
+   break;
+ }
+ case 'review-quick-details':{
+   try{
+     if(!receiptDraft?.quick)throw Error('Ticket à analyser en premier.');
+     showReceiptReview(receiptDraft.parsed);
+   }catch(e){flash(e.message,'error')}
+   break;
+ }
+ case 'commit-quick-receipt':{
+   try{
+     if(!receiptDraft?.quick||state.selectedPeriod!==receiptDraft.period||
+        selectedWeek!==receiptDraft.week)throw Error('La période du ticket a changé ; refaire la vérification.');
+     // Transaction intégrale : la moindre erreur laisse l'état précédent intact.
+     const staged=clone(state),planned=receiptDraft,
+       monthCopy=staged.months[String(state.selectedPeriod)];
+     if(!monthCopy)throw Error('Période non trouvée');
+     const result=applyReceiptReview(staged,monthCopy,planned.parsed,planned.rows,{supplier:'M&S'});
+     const planning=noteCompletedReceiptWeek(monthCopy,selectedWeek,planned.rows,{
+       supplier:'M&S',fingerprint:planned.parsed.fingerprint});
+     state=staged;receiptDraft=null;dialog.close();activeTab='menus';save();
+     flash(planned.rows.length+' lignes validées · '+money(result.total)+' payés · '+
+       planning.changed.length+' ajustement(s) de menus');
+   }catch(e){flash('Import non enregistré : '+e.message,'error')}
    break;
  }
  case 'commit-receipt':{
@@ -419,7 +478,7 @@ dialog.addEventListener('change',e=>{
  }
  if(e.target.id==='receipt-file'){
   const file=e.target.files?.[0];
-  if(file)void file.text().then(text=>showReceiptReview(parseReceiptText(text)))
+  if(file)void file.text().then(text=>showQuickReceiptReview(text))
    .catch(err=>flash('Ticket non importé : '+err.message,'error'));
   return;
  }
