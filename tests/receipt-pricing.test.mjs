@@ -76,6 +76,14 @@ test('Ticket britannique : articles, total, carte et remises séparés',()=>{
  assert.equal(r.recognizedTotal,6.65);
  assert.equal(r.fingerprint,receiptFingerprint(text));
 });
+test('OCR ticket multi-lignes : produit puis prix sur ligne suivante, date non assimilée à un produit',()=>{
+ const text='M&S\n19/11/2026 10:30\n£3.20\nSTRAWBERRIES\n£4.00\nRED SEEDLESS GRAPES\n2.65\nTOTAL 6.65';
+ const r=parseReceiptText(text);
+ assert.equal(r.lines.length,2);
+ assert.deepEqual(r.lines.map(x=>x.amount),[4,2.65]);
+ assert.equal(r.date,'2026-11-19');
+ assert.equal(r.ticketTotal,6.65);
+});
 test('Ticket ambigu : seul le produit reconnaissable est proposé et reste à confirmer',()=>{
  const m=makeMonth(0);
  const r=parseReceiptText('STRAWBERRIES 4.00\nTHING UNKNOWN 1.25\nTOTAL 5.25');
