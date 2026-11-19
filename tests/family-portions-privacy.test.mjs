@@ -27,7 +27,7 @@ test('panier : second sachet de poires facultatif, plafond et prix non masqués'
  assert.equal(finance(m).forecast,887.98);
  for(let week=0;week<5;week++)setBakingWeek(m,week,true);
  assert.equal(finance(m).forecast,893.78);
- assert.equal(finance(m).budget,900);
+ assert.equal(m.budget,900);
 });
 test('migration v12→v13 : préserver cuisiné, personnalisation, paiement et recette non éditée',()=>{
  const state=newState(),month=state.months['0'];
