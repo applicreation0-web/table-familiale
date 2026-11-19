@@ -531,13 +531,30 @@ function migrateFruitOilPreferences(month,index){
   month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
   return month;
 }
-// v11 -> v12 : ticket M&S + source officielle confirment £5.40
-// la boîte de 12 œufs bio ; recalibrer uniquement les courses à venir.
-function migrateRealEggPrices(month){
+// v11 -> v12 : calibration confirmée sur ticket M&S complet, hors
+// viande et Dining Solutions. Ne jamais modifier les achats payés, stocks
+// personnalisés ni les prix explicitement saisis par l'utilisateur.
+function migrateRealStaplePrices(month){
  for(const item of month.groceries||[]){
-   if(item.name!=='Œufs'||item.bought||item.overridePrice!=null)continue;
-   item.price=item.week<4?10.80:5.40;
-   // Les prix appris à partir de tickets explicitement vérifiés prévalent.
+   if(item.bought||item.overridePrice!=null)continue;
+   if(item.name==='Œufs'){
+     item.price=item.week<4?10.80:5.40;
+   }else if(item.name==='Lait Yeo Valley biologique 2 L (entier ou demi-écrémé)'&&
+           item.overrideQty==null){
+     // Deux bouteilles de 2L pour 7 jours ; une bouteille la semaine partielle.
+     const full=item.week<4;
+     const newQty=full?'2 × 2 L (4 L)':'1 × 2 L (2 L)';
+     if(item.qty!==newQty){
+       // Un prix appris sur l'ancien format 8L/4L doit être ramené au
+       // nouveau conditionnement ; conserver l'observation historique.
+       if(item.learnedPrice!=null)item.learnedPrice=Math.round(item.learnedPrice*50)/100;
+       item.qty=newQty;
+     }
+     item.price=full?6.20:3.10;
+   }else if(item.name==='Beurre M&S (usage hebdomadaire)'){
+     // Le code-barres 3282380060219 correspond au Lescure AOP 250g.
+     item.price=3.75;
+   }
  }
  return month;
 }
@@ -590,7 +607,7 @@ export function validateImport(raw){
   }
   if(raw.version===10)raw.version=11;
   if(raw.version===11){
-    for(const month of Object.values(raw.months))migrateRealEggPrices(month);
+    for(const month of Object.values(raw.months))migrateRealStaplePrices(month);
     raw.version=12;
   }
   raw.priceBook??={};
