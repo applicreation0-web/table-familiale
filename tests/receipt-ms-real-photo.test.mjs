@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parseReceiptText,applyReceiptReview,recommendReceiptMatches} from '../receipt.js';
 import {reconstructReceiptRows} from '../receipt-layout.js';
-import {newState,finance} from '../model.js';
+import {newState,finance,validateImport} from '../model.js';
 
 // Transcription de référence du ticket M&S photographié le 19/11/2026.
 // Le test porte sur le parseur, pas sur une prétendue validation de caméra réelle.
@@ -134,4 +134,24 @@ test('OCR géométrique mauvais : le texte initial lisible est préservé',()=>{
   {text:'£5.40',boundingBox:{x:300,y:220,height:10}},
  ]}]};
  assert.equal(reconstructReceiptRows(misplaced),raw);
+});
+
+test('migration v11→v12 : revaloriser uniquement les œufs non achetés, sans perdre achats et prix saisis',()=>{
+ const original=newState(),m=original.months['0'];
+ original.version=11;
+ const eggs=m.groceries.filter(x=>x.name==='Œufs');
+ for(const e of eggs)e.price=e.week<4?8.80:4.40;
+ eggs[0].bought=true;eggs[0].actual=11.05;
+ eggs[1].overridePrice=12.99;
+ const saved=JSON.parse(JSON.stringify(original));
+ const migrated=validateImport(saved);
+ assert.equal(migrated.version,12);
+ const now=migrated.months['0'].groceries.filter(x=>x.name==='Œufs');
+ assert.equal(now[0].actual,11.05);
+ assert.equal(now[0].price,8.8);
+ assert.equal(now[1].overridePrice,12.99);
+ assert.equal(now[1].price,8.8);
+ assert.equal(now[2].price,10.8);
+ assert.equal(now[4].price,5.4);
+ assert.equal(validateImport(migrated).months['0'].groceries.find(x=>x.id===now[2].id).price,10.8);
 });
