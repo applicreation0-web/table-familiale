@@ -241,8 +241,8 @@ function showReceiptReview(parsed){
    </div>`;
  }).join('');
  openDialog(`<div class="dialog-head"><div><span class="overline">VÉRIFICATION OBLIGATOIRE</span><h2 id="editor-title">Ticket : ${rows.length} lignes reconnues</h2><p>Choisir les articles à enregistrer. Les lignes sans correspondance restent ignorées, sauf si tu sélectionnes « Nouvelle dépense hors liste ».</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
- <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Total lu</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Somme des lignes OCR</small><strong>${money(parsed.recognizedTotal)}</strong></div></div>
- <p>Une différence peut correspondre à une promotion, une ligne manquante, une livraison ou une erreur de lecture. Elle n’est jamais ajoutée automatiquement. Pour chaque achat, vérifiez aussi la quantité : un sachet de 500 g ne doit pas être assimilé à une prévision de 1 kg.</p>
+ <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Montant payé sur le ticket</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Articles lus</small><strong>${money(parsed.recognizedTotal)}</strong></div><div class="finance-cell"><small>Remises et remboursements</small><strong>${money(parsed.discountTotal||0)}</strong></div><div class="finance-cell"><small>Écart de lecture</small><strong>${parsed.reconciliationGap==null?'À vérifier':money(parsed.reconciliationGap)}</strong></div></div>
+ <p>Vérifiez les quantités achetées et les conditionnements. Plusieurs lignes identiques (par exemple deux boîtes d’œufs) peuvent correspondre au même achat prévu : les montants seront additionnés. Une différence de total n'est jamais corrigée artificiellement.</p><p><b>Attention :</b> « Hors liste » augmente le budget sans retirer un article prévu. Rapprocher les produits du panier lorsqu'ils y figurent pour ne pas les compter deux fois.</p><div class="action-line"><button class="button outline" data-action="receipt-select-extras">Classer les lignes non associées comme hors liste</button></div>
  <label class="field"><span>Magasin du ticket (pour dépenses hors liste)</span><select id="receipt-supplier">${shopOptions}</select></label>
  ${listHtml}
  </div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="commit-receipt">Confirmer les lignes sélectionnées</button></div>`);
@@ -252,6 +252,13 @@ async function readReceiptPhoto(){
    flash('Lecture locale du ticket en cours…');
    const text=await captureReceiptText(window.Capacitor);
    const parsed=parseReceiptText(text);
+   if(!parsed.lines.length){
+     openReceiptDialog();
+     const field=dialog.querySelector('#receipt-text');
+     if(field)field.value=text;
+     flash('Texte extrait mais aucun article isolé : corriger le texte reconnu, puis analyser.','error');
+     return;
+   }
    showReceiptReview(parsed);
  }catch(e){flash(e.message||'Lecture photo impossible','error');}
 }
@@ -263,6 +270,14 @@ function onAction(action,btn){
  case 'parse-receipt':{
    try{showReceiptReview(parseReceiptText(dialog.querySelector('#receipt-text')?.value||''))}
    catch(err){flash(err.message,'error')}
+   break;
+ }
+ case 'receipt-select-extras':{
+   let count=0;
+   for(const select of dialog.querySelectorAll('[data-receipt-select]')){
+     if(select.value===''){select.value='extra';count++;}
+   }
+   flash(count+' ligne(s) classée(s) hors liste, à contrôler avant confirmation');
    break;
  }
  case 'commit-receipt':{
