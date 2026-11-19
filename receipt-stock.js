@@ -132,5 +132,25 @@ export function noteCompletedReceiptWeek(month,week,rows,{supplier='M&S',fingerp
  if(old?.fingerprint===fingerprint)return {changed:[],warnings:[]};
  month.receiptWeeks[week]={complete:true,supplier:'M&S',
    categories:summarizeConfirmedReceipt(rows),fingerprint};
- return rearrangeMissingSalmon(month,week);
+ month.preferredStore='M&S';
+ const result=rearrangeMissingSalmon(month,week);
+ // Le ticket confirmé clôt la liste M&S de la semaine. On ne transforme PAS
+ // un produit absent en achat réglé ; les lignes restent récupérables.
+ let absent=0,otherStores=0;
+ for(const item of month.groceries||[]){
+  if(item.purchase==='weekly'&&item.supplier==='Supermarché (Yeo Valley)'&&item.week>=week)
+   item.supplier='M&S'; // Même Yeo Valley, mais acheté à la caisse M&S.
+  if(item.purchase==='weekly'&&item.supplier==='Ocado'&&item.week>week&&!item.bought){
+   item.supplier='M&S';item.name=item.name.replace('Poires Ocado à mûrir','Poires M&S (format à confirmer)');
+   if(item.overridePrice==null){item.price=null;item.priceStatus='provisional';delete item.learnedPrice;}
+   otherStores++;
+  }
+  if(item.purchase==='weekly'&&item.week===week&&!item.bought&&!item.inStock&&!item.hidden){
+   item.hidden=true;item.awaitingReceiptReview=true;absent++;
+  }
+ }
+ month.receiptWeeks[week].absentPlanLines=absent;
+ if(absent)result.warnings.push(absent+' références non identifiées sur le ticket : retirées des dépenses futures de cette semaine, sans les compter comme achetées. Vérifier la réserve et les ingrédients indispensables.');
+ if(otherStores)result.warnings.push('Poires futures : achat M&S préféré, format et prix à confirmer plutôt que conserver le prix Ocado.');
+ return result;
 }
