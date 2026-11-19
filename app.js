@@ -142,7 +142,9 @@ function renderCourses(month){
  const portionHtml=portionComparisons.length?'<details class="dismissed"><summary>Quantités recalculées pour 2 adultes + 3 enfants · '+portionComparisons.length+' légumes suivis</summary>'+
   '<div class="quantity-audit">'+portionComparisons.map(q=>
    '<div><b>'+esc(q.name)+'</b> · Besoin recette '+q.recipeKg+' kg · Sacs conseillés '+q.proposedKg+' kg'+
-   (q.plannedKg!=null?' · Panier '+q.plannedKg+' kg':' · Format à vérifier')+
+   (q.plannedKg!=null?' · Prévu '+q.plannedKg+' kg':' · Format à vérifier')+
+   (q.actualKg!=null?' · <b>Acheté '+q.actualKg+' kg</b>':'')+
+   (q.actualShortageKg>0?' · Écart réel '+q.actualShortageKg+' kg (stock à vérifier)':'')+
    (q.paid?' · Achat payé conservé':q.manuallyChanged?' · Quantité manuelle conservée':'')+
    '</div>').join('')+
   '<small>Hypothèse de portions, pas rationnement. Carottes bio à 1,60 £/kg confirmé ; autres prix indicatifs. Ajuster selon appétit et stocks.</small></div></details>':'';
