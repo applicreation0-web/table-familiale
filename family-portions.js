@@ -4,7 +4,7 @@ export const FAMILY_PROFILE=Object.freeze({
  adults:2,children:3,childAgeRange:'3 à 10 ans',adultPortionEquivalents:4,
  provisional:true
 });
-const clean=value=>String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const clean=value=>String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe');
 const round2=x=>Math.round(x*100)/100;
 function ingredientFactor(name){
  const n=clean(name);
