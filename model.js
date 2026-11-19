@@ -37,9 +37,9 @@ export function makeMonth(index=0){
       cooked:false,cookedAt:null};
   });
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
-  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
+  return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],receiptImports:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:10, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:11, selectedPeriod:0, months:{'0':makeMonth(0)},priceBook:{}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -104,7 +104,7 @@ function plannedGrocery(month,item){
       targetWeek=active[0]; // Les ingrédients de base apparaissent dans la semaine de cuisine.
     }else if(!isBakingWeek(month,item.week))return null;
   }
-  const planned={...item,week:targetWeek,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.price};
+  const planned={...item,week:targetWeek,kind:'base',qty:item.overrideQty??item.qty,estimate:item.overridePrice??item.learnedPrice??item.price};
   if(item.name==='Œufs'&&item.week<4&&!item.bought&&!item.overrideQty){
     planned.qty='2 × 12 (24 œufs)';
     if(item.overridePrice==null)planned.estimate=8.80;
@@ -531,7 +531,7 @@ function migrateFruitOilPreferences(month,index){
   return month;
 }
 export function validateImport(raw){
-  if(!raw||![2,3,4,5,6,7,8,9,10].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6,7,8,9,10,11].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -577,7 +577,10 @@ export function validateImport(raw){
       raw.months[key]=migrateFruitOilPreferences({...month,index:Number(key)},Number(key));
     raw.version=10;
   }
+  if(raw.version===10)raw.version=11;
+  raw.priceBook??={};
   for(const month of Object.values(raw.months)){
+    month.receiptImports??=[];
     month.bakingWeeks??={};
     month.reconcileWarnings??=[];
   }
