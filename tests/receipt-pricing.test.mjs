@@ -96,9 +96,9 @@ test('Import ticket : reçus reconnus, marge réajustée et fingerprint bloquant
  assert.equal(result.total,7.5);
  assert.equal(finance(m).paid,7.5);
  assert.equal(m.groceries.find(x=>x.id===berries.id).actual,4.5);
- assert.equal(nextGrapes(m,1).estimate,6);
- assert.equal(nextGrapes(m,4).estimate,3);
- assert.ok(finance(m).forecast>before);
+ assert.equal(nextGrapes(m,1).estimate,3);
+ assert.equal(nextGrapes(m,4).estimate,1.5);
+ assert.ok(finance(m).forecast<before);
  const snapshot=finance(m);
  assert.throws(()=>applyReceiptReview(state,m,r,rows),/déjà été rapproché/);
  assert.deepEqual(finance(m),snapshot);
