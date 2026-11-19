@@ -31,6 +31,14 @@ export function parseReceiptText(raw){
  for(let i=0;i<input.length;i++){
    const line=input[i].replace(/[£€]/g,' £ ').replace(/\s+/g,' ').trim();
    const match=line.match(/^(.*?)\s+(?:£\s*)?(\d{1,5}[.,]\d{2})\s*([A-Za-z]?)$/);
+   // Certains OCR séparent la colonne produits et la colonne des prix.
+   const standalone=line.match(/^(?:£\s*)?(\d{1,5}[.,]\d{2})\s*$/);
+   if(!match&&standalone&&previous&&!EXCLUDED.test(previous)&&
+      !/\d{2}[\/.-]\d{2}[\/.-](?:20\d{2})?/.test(previous)){
+     const cost=amount(standalone[1]);
+     if(cost!=null&&cost>0){lines.push({id:'line-'+i,label:previous,amount:cost});previous='';}
+     continue;
+   }
    if(match){
      const cost=amount(match[2]),label=match[1].trim();
      if(cost==null)continue;
