@@ -23,7 +23,9 @@ export function scaleFamilyIngredients(ingredients){
  return (ingredients||[]).map(item=>{
   const quantity=Number(item.quantity);
   if(!Number.isFinite(quantity)||quantity<=0)return {...item};
-  const adjusted=quantity*ingredientFactor(item.name);
+  const factor=ingredientFactor(item.name);
+  if(factor===1)return {...item}; // Ne pas arrondir les assaisonnements préservés.
+  const adjusted=quantity*factor;
   let target=item.unit==='pièce'?Math.max(1,Math.ceil(adjusted)):
     item.unit==='g'?Math.max(25,Math.round(adjusted/25)*25):
     item.unit==='ml'?Math.max(25,Math.round(adjusted/25)*25):round2(adjusted);
