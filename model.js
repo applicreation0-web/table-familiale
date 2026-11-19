@@ -39,7 +39,7 @@ export function makeMonth(index=0){
   const groceries=BASE_SHOPPING.filter(x=>x.week<Math.ceil(dates.length/7)).map(x=>({...clone(x),bought:false,actual:null,hidden:false,overrideQty:null,overridePrice:null}));
   return {index,budget:BASE_BUDGET,meals,groceries,manualItems:[],autoPurchases:{},bakingWeeks:{},extraExpenses:[],notes:'',createdAt:new Date().toISOString()};
 }
-export function newState(){return {version:9, selectedPeriod:0, months:{'0':makeMonth(0)}};}
+export function newState(){return {version:10, selectedPeriod:0, months:{'0':makeMonth(0)}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -514,8 +514,24 @@ function migrateWeeklyButterEggsBread(month,index){
   month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
   return month;
 }
+// v9 -> v10 : uniquement préférences fruits et deux huiles.
+// Garder intacts les articles payés ou marqués en stock (aucun faux reçu).
+function migrateFruitOilPreferences(month,index){
+  const previouslyBought=(month.groceries||[]).filter(x=>x.bought&&
+    (/^(Pommes M&S|Bananes M&S|Clémentines M&S|Poires M&S)/.test(x.name)||
+     x.id==='base-0-27'));
+  migrateOptimisedBasket(month,index);
+  if(previouslyBought.length){
+    month.reconcileWarnings??=[];
+    month.reconcileWarnings.push({
+      name:'Fruits/huiles déjà achetés : reçus conservés ; vérifier le stock avant les nouveaux achats raisins, fraises, poires et huiles'
+    });
+  }
+  month.budget=Math.min(Number(month.budget)||HARD_CEILING,HARD_CEILING);
+  return month;
+}
 export function validateImport(raw){
-  if(!raw||![2,3,4,5,6,7,8,9].includes(raw.version)||!raw.months||typeof raw.months!=='object')
+  if(!raw||![2,3,4,5,6,7,8,9,10].includes(raw.version)||!raw.months||typeof raw.months!=='object')
     throw Error('Sauvegarde non reconnue');
   for(const [key,month] of Object.entries(raw.months)){
     if(!Array.isArray(month.meals)||!Array.isArray(month.groceries)||
@@ -555,6 +571,11 @@ export function validateImport(raw){
     for(const [key,month] of Object.entries(raw.months))
       raw.months[key]=migrateWeeklyButterEggsBread({...month,index:Number(key)},Number(key));
     raw.version=9;
+  }
+  if(raw.version===9){
+    for(const [key,month] of Object.entries(raw.months))
+      raw.months[key]=migrateFruitOilPreferences({...month,index:Number(key)},Number(key));
+    raw.version=10;
   }
   for(const month of Object.values(raw.months)){
     month.bakingWeeks??={};
