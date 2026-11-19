@@ -91,6 +91,7 @@ export function parseReceiptText(raw){
 }
 const SKU_NAMES={
  '5036589201601':/^Lait Yeo Valley/,
+ '00328739':/^Lait bio entier M&S 4 pintes/,
  '3282380060219':/^Beurre M&S/,
  '29089635':/^Œufs$/,
  '29087914':/^Carottes$/
