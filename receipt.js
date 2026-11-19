@@ -2,8 +2,8 @@ import {allShoppingEntries, markBought} from './model.js';
 import {norm,learnFromConfirmedPurchase} from './pricing.js';
 const round=n=>Math.round((n+Number.EPSILON)*100)/100;
 const EXCLUDED=/\b(total|sub\s*total|sous\s*total|balance|cash|payment|tender|change|refund|credit|debit|visa|mastercard|card|loyalty|saving|discount|vat|tva|tax|points|you saved|delivery fee|paid|amount due)\b/i;
-const WORDS=new Set(['the','and','avec','pour','pack','pcs','piece','pieces','british','collection','nature','fresh','frais','fraiche','m','s','ms','ocado','produit','selected','standard','de','du','des','la','le','les','a','en','origine','gram','grams','each']);
-const ALIASES={grapes:'raisin',grape:'raisin',raisin:'raisin',strawberries:'fraise',strawberry:'fraise',fraises:'fraise',pears:'poire',pear:'poire',poires:'poire',apples:'pomme',apple:'pomme',potatoes:'pomme terre',potato:'pomme terre',bread:'pain',loaf:'pain',milk:'lait',eggs:'oeuf',egg:'oeuf',oeufs:'oeuf',yoghurt:'yaourt',yogurt:'yaourt',greek:'grec',butter:'beurre',carrots:'carotte',carrot:'carotte',sunflower:'tournesol',olive:'olive',oil:'huile',salmon:'saumon',smoked:'fume',walnut:'noix',walnuts:'noix',rice:'riz',chicken:'poulet',onions:'oignon',onion:'oignon',lemons:'citron',lemon:'citron',cucumber:'concombre',cucumbers:'concombre'};
+const WORDS=new Set(['the','and','et','sans','pepin','pepins','seedless','avec','pour','pack','pcs','piece','pieces','british','collection','nature','fresh','frais','fraiche','m','s','ms','ocado','produit','selected','standard','de','du','des','la','le','les','a','en','origine','gram','grams','each']);
+const ALIASES={red:'rouge',green:'vert',grapes:'raisin',grape:'raisin',raisin:'raisin',strawberries:'fraise',strawberry:'fraise',fraises:'fraise',pears:'poire',pear:'poire',poires:'poire',apples:'pomme',apple:'pomme',potatoes:'pomme terre',potato:'pomme terre',bread:'pain',loaf:'pain',milk:'lait',eggs:'oeuf',egg:'oeuf',oeufs:'oeuf',yoghurt:'yaourt',yogurt:'yaourt',greek:'grec',butter:'beurre',carrots:'carotte',carrot:'carotte',sunflower:'tournesol',olive:'olive',oil:'huile',salmon:'saumon',smoked:'fume',walnut:'noix',walnuts:'noix',rice:'riz',chicken:'poulet',onions:'oignon',onion:'oignon',lemons:'citron',lemon:'citron',cucumber:'concombre',cucumbers:'concombre'};
 function tokens(value){
  return new Set(norm(value).replace(/\b\d+\s*(?:g|kg|ml|l)\b/g,' ').split(' ')
    .filter(x=>x.length>=2&&!WORDS.has(x)&&!/^[0-9]+$/.test(x))
@@ -69,8 +69,8 @@ export function recommendReceiptMatches(parsed,month,week){
    candidates.sort((a,b)=>b.adjusted-a.adjusted);
    const first=candidates[0],second=candidates[1];
    // Pas de rapprochement automatique pour les descriptions trop vagues/ambiguës.
-   const canSuggest=!!first&&first.score>=0.68&&first.adjusted>=0.78&&
-     (!second||first.adjusted-second.adjusted>=0.14)&&!used.has(first.id);
+   const canSuggest=!!first&&first.score>=0.65&&first.adjusted>=0.77&&
+     (!second||first.adjusted-second.adjusted>=0.10)&&!used.has(first.id);
    const selectedId=canSuggest?first.id:'';
    if(selectedId)used.add(selectedId);
    result.push({...line,selectedId,confidence:canSuggest?'probable':'à vérifier',candidates:candidates.slice(0,5)});
