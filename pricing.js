@@ -19,7 +19,7 @@ function quantity(qty=''){
  return {amount:number,unit};
 }
 export function priceIdentity(item){
- const supplier=norm(item.supplier),name=norm(item.name);
+ const supplier=norm(item.supplier),name=norm(item.name).replace(/ sachet [12] 2$/,'');
  if(!supplier||!name)return null;
  const q=quantity(item.qty);
  if(!q)return null;
