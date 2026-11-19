@@ -42,7 +42,7 @@ export function parseReceiptText(raw){
  function accept(label,value,i){
    const cost=signedReceiptAmount(value),clean=cleanReceiptLabel(label);
    if(cost==null)return;
-   if(/^(?:grand\s+)?total\b|^amount due\b|^balance to pay\b/i.test(clean)){
+   if(/^(?:grand\s+)?total\b|^amount due\b|\bbalance to pay\b/i.test(clean)){
      ticketTotal=cost;previous='';return;
    }
    if(/^balance before sav(?:ing|ings)\b|^subtotal\b|^sub total\b/i.test(clean)){
