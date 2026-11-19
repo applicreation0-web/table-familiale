@@ -255,6 +255,30 @@ async function readReceiptPhoto(){
 function onAction(action,btn){
  const month=getMonth(),id=btn.dataset.id,index=Number(btn.dataset.index);
  switch(action){
+ case 'scan-receipt':openReceiptDialog();break;
+ case 'photo-receipt':void readReceiptPhoto();break;
+ case 'parse-receipt':{
+   try{showReceiptReview(parseReceiptText(dialog.querySelector('#receipt-text')?.value||''))}
+   catch(err){flash(err.message,'error')}
+   break;
+ }
+ case 'commit-receipt':{
+   try{
+     if(!receiptDraft)throw Error('Aucun ticket en cours');
+     const chosen=receiptDraft.rows.map((row,i)=>{
+       const input=dialog.querySelector('[data-receipt-amount="'+i+'"]');
+       const sel=dialog.querySelector('[data-receipt-select="'+i+'"]');
+       if(!sel||!input)throw Error('Formulaire de ticket incomplet');
+       if(sel.value&&input.value.trim()==='')throw Error('Prix payé manquant à la ligne '+(i+1));
+       return {...row,selectedId:sel.value,amount:input.value===''?0:Number(input.value)};
+     });
+     const supplier=dialog.querySelector('#receipt-supplier')?.value||'M&S';
+     const result=applyReceiptReview(state,month,receiptDraft.parsed,chosen,{supplier});
+     receiptDraft=null;dialog.close();save();
+     flash(result.matched+' article(s), '+result.extras+' dépense(s) hors liste · '+money(result.total)+' réconciliés');
+   }catch(err){flash(err.message,'error')}
+   break;
+ }
  case 'tab':activeTab=btn.dataset.tab;search='';render();break;
  case 'goto-shopping':activeTab='courses';shopMode='week';render();break;
  case 'next-period':state.selectedPeriod++;selectedWeek=0;activeTab='menus';save();break;
@@ -281,7 +305,7 @@ function onAction(action,btn){
  case 'add-expense':openExpense();break;
  case 'delete-expense':month.extraExpenses=month.extraExpenses.filter(x=>x.id!==id);save();break;
  case 'update-budget':{const val=Number(document.querySelector('#budget-field')?.value);if(val>0&&val<=HARD_CEILING){month.budget=val;save();}else flash('La limite absolue est de 900 £','error');break;}
- case 'close-modal':dialog.close();draft=null;break;
+ case 'close-modal':dialog.close();draft=null;receiptDraft=null;break;
  case 'save-swap':{
   try{const target=Number(dialog.querySelector('#target-day').value);swapDishes(month,draft.index,target);dialog.close();save();flash('Repas échangés, besoins de courses actualisés');}catch(err){flash(err.message,'error')}break;
  }
@@ -350,13 +374,30 @@ root.addEventListener('change',e=>{
  if(el.dataset.action==='check-product'){
   if(!item)return;
   try{
-   let cost=item.actual??item.estimate;
-   if(el.checked&&cost==null){const answer=prompt(`Prix payé pour « ${item.name} » en £ ?`);if(answer===null){el.checked=false;return;}cost=Number(answer);}
-   markBought(month,item,el.checked,el.checked?Number(cost):null);save();
+   let cost=item.actual??item.estimate,manuallyEntered=false;
+   if(el.checked&&cost==null){const answer=prompt(`Prix payé pour « ${item.name} » en £ ?`);if(answer===null){el.checked=false;return;}cost=Number(answer);manuallyEntered=true;}
+   if(!el.checked&&item.actualConfirmed)forgetConfirmedPurchase(state,month,item);
+   markBought(month,item,el.checked,el.checked?Number(cost):null);
+   if(el.checked&&manuallyEntered){
+     const found=item.kind==='auto'?month.autoPurchases[item.id]:
+       (item.kind==='manual'?month.manualItems:month.groceries).find(x=>x.id===item.id);
+     if(found)found.actualConfirmed=true;
+     if(item.kind!=='auto')learnFromConfirmedPurchase(state,month,item,Number(cost));
+   }
+   save();
   }catch(err){el.checked=!el.checked;flash(err.message,'error')}
  }
  if(el.dataset.action==='actual-change'){
-  if(item){try{markBought(month,item,true,Number(el.value));save();}catch(err){flash(err.message,'error')}}
+  if(item){try{
+    if(el.value.trim()==='')throw Error('Saisis le montant réellement payé.');
+    const price=Number(el.value);
+    markBought(month,item,true,price);
+    const found=item.kind==='auto'?month.autoPurchases[item.id]:
+      (item.kind==='manual'?month.manualItems:month.groceries).find(x=>x.id===item.id);
+    if(found)found.actualConfirmed=true;
+    if(item.kind!=='auto')learnFromConfirmedPurchase(state,month,item,price);
+    save();
+  }catch(err){flash(err.message,'error')}}
  }
  if(el.dataset.action==='auto-estimate'){
   const cost=Number(el.value);if(Number.isFinite(cost)&&cost>=0)setAutoEstimate(el.dataset.id,cost);
