@@ -106,7 +106,7 @@ export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={})
    seen.add(row.selectedId);
    const item=byId.get(row.selectedId);
    if(!item||item.bought||item.hidden||item.inStock)throw Error('Produit déjà acheté ou non disponible dans la liste');
-   pending.push({kind:'existing',item,price:round(cost)});
+   pending.push({kind:'existing',item,price:round(cost),quantityConfirmed:row.quantityConfirmed===true});
  }
  if(!pending.length)throw Error('Choisir au moins une ligne à importer.');
  // Toutes les validations précèdent les mutations : échec = aucune dépense fantôme.
