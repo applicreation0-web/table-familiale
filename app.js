@@ -1,6 +1,9 @@
 import {BASE_MENU, BASE_SHOPPING} from './data.js';
 import {shareNativeBackup,downloadWebBackup} from './backup.js';
 import {MEAL_INGREDIENTS} from './recipes.js';
+import {applyLearnedPrices,learnFromConfirmedPurchase,forgetConfirmedPurchase,priceBookStats} from './pricing.js';
+import {parseReceiptText,recommendReceiptMatches,applyReceiptReview} from './receipt.js';
+import {captureReceiptText,nativeReceiptAvailable} from './receipt-ocr.js';
 import {FAMILY_PLAN} from './meal-plan.js';
 import {
  BREAKFASTS, SUPPLIERS, KIND_NAMES, HARD_CEILING, money, period, periodDays, dateISO, clone,
@@ -14,7 +17,7 @@ const dialog=document.getElementById('editor');
 const toastEl=document.getElementById('toast');
 let state;
 try{state=validateImport(JSON.parse(localStorage.getItem(STORAGE)));localStorage.setItem(STORAGE,JSON.stringify(state))}catch{state=newState()}
-let activeTab='menus', selectedWeek=0, shopMode='week', search='', draft=null, modalType=null, toastTimeout=null;
+let activeTab='menus', selectedWeek=0, shopMode='week', search='', draft=null, modalType=null, toastTimeout=null, receiptDraft=null;
 const icon=(name,size=18)=>{
  const icons={
    calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
@@ -45,7 +48,7 @@ const fmt=d=>d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
 const long=d=>d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 function getMonth(){
  const key=String(state.selectedPeriod);
- if(!state.months[key])state.months[key]=makeMonth(state.selectedPeriod);
+ if(!state.months[key]){state.months[key]=makeMonth(state.selectedPeriod);applyLearnedPrices(state,{onlyPeriod:state.selectedPeriod});}
  return state.months[key];
 }
 function persist(){localStorage.setItem(STORAGE,JSON.stringify(state));}
@@ -110,11 +113,12 @@ function renderMenus(month,dates){
 function renderShopItem(item){
  const name=esc(item.name),kind=item.kind;
  const estimate=item.estimate;
+ const learned=item.learnedPrice!=null&&!item.bought&&item.overridePrice==null;
  const planned=estimate==null?`<span class="unknown">Prix manquant</span>`:money(Number(estimate));
  const bought=!!item.bought;
  const priceInput=bought?`<label class="actual-entry"><span>Payé (£)</span><input type="number" step="0.01" min="0" value="${Number(item.actual??estimate??0)}" data-action="actual-change" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Prix payé ${name}"/></label>`:kind==='auto'&&estimate==null?`<label class="actual-entry"><span>Prévision (£)</span><input type="number" step="0.01" min="0" placeholder="À saisir" data-action="auto-estimate" data-id="${esc(item.id)}" aria-label="Prix prévu ${name}" /></label>`:`<b class="listed-price">${planned}</b>`;
  const actions=kind==='auto'&&!bought?`<button class="icon-button tiny" data-action="skip-auto" data-id="${esc(item.id)}" title="Déjà en stock" aria-label="Déjà en stock : ${name}">${icon('home',15)}</button>`:kind==='auto'?'':!bought?`<button class="icon-button tiny" data-action="mark-stock" data-id="${esc(item.id)}" data-kind="${kind}" title="Déjà à la maison" aria-label="Déjà en stock : ${name}">${icon('home',14)}</button><button class="icon-button tiny" data-action="edit-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Modifier ${name}">${icon('pen',14)}</button><button class="icon-button tiny" data-action="hide-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Retirer ${name}">${icon('close',14)}</button>`:'';
- return `<div class="product ${bought?'checked':''}"><input type="checkbox" class="shop-check" ${bought?'checked':''} data-action="check-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Acheter ${name}"/><div class="product-description"><strong>${name}${item.priceStatus==='provisional'?' <span class="auto-tag">Prix à confirmer</span>':''}${kind==='auto'?' <span class="auto-tag">Nouveau</span>':''}</strong><small>${esc(item.qty)}${kind==='auto'?' · ajouté suite au menu':''}</small>${item.priceStatus==='provisional'?`<small>Tarif, emballage et livraison à confirmer ${item.sourceUrl?`· <a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Voir le produit</a>`:''}</small>`:''}</div><div class="product-right">${priceInput}${actions}</div></div>`;
+ return `<div class="product ${bought?'checked':''}"><input type="checkbox" class="shop-check" ${bought?'checked':''} data-action="check-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Acheter ${name}"/><div class="product-description"><strong>${name}${item.priceStatus==='provisional'?' <span class="auto-tag">Prix à confirmer</span>':''}${learned?' <span class="auto-tag">Prix réel répercuté</span>':''}${kind==='auto'?' <span class="auto-tag">Nouveau</span>':''}</strong><small>${esc(item.qty)}${kind==='auto'?' · ajouté suite au menu':''}</small>${item.priceStatus==='provisional'?`<small>Tarif, emballage et livraison à confirmer ${item.sourceUrl?`· <a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Voir le produit</a>`:''}</small>`:''}</div><div class="product-right">${priceInput}${actions}</div></div>`;
 }
 function renderCourses(month){
  const isMonthly=shopMode==='monthly',rows=shoppingEntries(month,selectedWeek,isMonthly);
@@ -124,7 +128,7 @@ function renderCourses(month){
  const skipped=changes.filter(x=>x.delta>0&&month.autoPurchases[x.id]?.skip);
  const total=rows.reduce((a,x)=>a+Number(x.estimate??0),0), unknown=rows.filter(x=>!x.bought&&x.estimate==null).length;
  const group=groupBySupplier(rows.filter(x=>!search||x.name.toLowerCase().includes(search.toLowerCase())));
- return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viandes halal, cabillaud Dining et deux grands contenants de noix bio en achats groupés ; saumons M&S et ingrédients des quiches répartis par semaine.</p></div><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div>
+ return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viandes halal, cabillaud Dining et deux grands contenants de noix bio en achats groupés ; saumons M&S et ingrédients des quiches répartis par semaine.</p></div><div class="action-line"><button class="button outline" data-action="scan-receipt">${icon('upload',17)} Lire un ticket</button><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div></div>
  <div class="choice-row"><button class="button ${!isMonthly?'primary':'outline'}" data-action="shopping-week">Courses M&S · semaine</button><button class="button ${isMonthly?'primary':'outline'}" data-action="shopping-month">Achats groupés · mois</button></div>
  ${isMonthly?`<div class="banner success">${icon('cart',20)} <div><b>Une seule commande au début du mois</b><span>Hubbard, agneau, cuisses halal, un carton de cabillaud Dining, fonio et 2 grands pots de noix bio à remplir. Pour les noix, la vente est en sachets de 500 g : les pots réutilisables ne sont pas fournis. Frais de port provisionnés à 5 £, à confirmer.</span></div></div>`:weekHeader(month,true)+bakingSwitch(month)}
  ${cuts.length?`<div class="banner caution">${icon('alert')} <div><b>Ingrédients moins nécessaires après modification</b><span>${cuts.map(x=>`${esc(x.name)} (−${x.quantity} ${esc(x.unit)})`).join(' · ')}. Vérifie si tu peux réduire l'achat initial, sans perdre les produits déjà achetés.</span></div></div>`:''}
@@ -140,11 +144,11 @@ function renderFinance(month,f){
  }
  for(const extra of month.extraExpenses){const g=groups.get(extra.supplier)||{estimate:0,paid:0};g.paid+=Number(extra.amount);groups.set(extra.supplier,g)}
  return `<div class="section-title"><div><span class="overline">LES CHIFFRES DU MOIS</span><h2>Dépenses réelles</h2><p>Achats prévus et montants effectivement payés, par magasin.</p></div><button class="button primary" data-action="add-expense">${icon('plus',16)} Dépense</button></div>
- <div class="finance-grid"><div class="finance-cell"><small>Budget plafond</small><strong>${money(month.budget)}</strong></div><div class="finance-cell"><small>Dépensé</small><strong>${money(f.paid)}</strong></div><div class="finance-cell"><small>Encore à acheter</small><strong>${money(f.unpaid)}</strong></div><div class="finance-cell ${f.forecastHeadroom<0?'critical':''}"><small>Marge prévisionnelle</small><strong>${money(f.forecastHeadroom)}</strong></div></div>
+ <div class="banner success">${icon('wallet',18)} <span>Prix unitaires confirmés suivis : <b>${priceBookStats(state).series}</b> références. Les prochains achats comparables sont actualisés automatiquement sans toucher aux achats payés.</span></div><div class="finance-grid"><div class="finance-cell"><small>Budget plafond</small><strong>${money(month.budget)}</strong></div><div class="finance-cell"><small>Dépensé</small><strong>${money(f.paid)}</strong></div><div class="finance-cell"><small>Encore à acheter</small><strong>${money(f.unpaid)}</strong></div><div class="finance-cell ${f.forecastHeadroom<0?'critical':''}"><small>Marge prévisionnelle</small><strong>${money(f.forecastHeadroom)}</strong></div></div>
  <div class="budget-adjust"><label for="budget-field">Plafond mensuel (£)</label><input type="number" id="budget-field" min="1" max="900" step="1" value="${month.budget}" /><button class="button outline" data-action="update-budget">Modifier</button><small>Limite stricte : 900 £, non relevable. Ne pas confondre panier estimé et prix définitif.</small></div>
  ${f.unknownCount?`<div class="banner caution">${icon('alert')} ${f.unknownCount} article(s) sans prix. La prévision affichée est un minimum, pas un budget garanti.</div>`:''}
  <h3 class="subheading">Par fournisseur</h3><div class="supplier-grid">${[...groups].map(([shop,g])=>`<div class="supplier-card"><strong>${esc(shop)}</strong><span>${money(g.paid)} payés / ${money(g.estimate)} prévus</span><div class="small-track"><div style="width:${g.estimate?Math.min(100,g.paid/g.estimate*100):0}%"></div></div></div>`).join('')}</div>
- <h3 class="subheading">Dépenses supplémentaires</h3>${month.extraExpenses.length?`<div class="extra-list">${month.extraExpenses.map(x=>`<div><span><b>${esc(x.label)}</b><small>${esc(x.supplier)} · ${esc(x.date)}</small></span><strong>${money(x.amount)}</strong><button class="icon-button tiny" data-action="delete-expense" data-id="${esc(x.id)}" aria-label="Supprimer la dépense">${icon('trash',15)}</button></div>`).join('')}</div>`:'<div class="empty">Pas de dépenses supplémentaires enregistrées.</div>'}`;
+ <h3 class="subheading">Tickets rapprochés (${(month.receiptImports||[]).length})</h3><p>Chaque ticket est vérifié avant import. Un ticket identique ne peut pas être ajouté deux fois. Les photos et textes bruts ne sont pas conservés.</p><h3 class="subheading">Dépenses supplémentaires</h3>${month.extraExpenses.length?`<div class="extra-list">${month.extraExpenses.map(x=>`<div><span><b>${esc(x.label)}</b><small>${esc(x.supplier)} · ${esc(x.date)}</small></span><strong>${money(x.amount)}</strong><button class="icon-button tiny" data-action="delete-expense" data-id="${esc(x.id)}" aria-label="Supprimer la dépense">${icon('trash',15)}</button></div>`).join('')}</div>`:'<div class="empty">Pas de dépenses supplémentaires enregistrées.</div>'}`;
 }
 function renderHistory(month,f){
  const entries=Object.keys(state.months).sort((a,b)=>Number(a)-Number(b));
