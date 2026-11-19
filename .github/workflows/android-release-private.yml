@@ -1,14 +1,26 @@
 name: Android privé — release signée
 on:
   workflow_dispatch:
+  # Déclenchement ponctuel autorisé par la mise à jour de CE workflow sur main.
+  # Les modifications ordinaires du menu ne signent pas automatiquement une APK.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-release-private.yml'
 permissions:
   contents: read
+
+concurrency:
+  group: table-familiale-private-release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -16,6 +28,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
       - name: Vérifier les secrets de signature
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.TABLE_FAMILIALE_KEYSTORE_BASE64 }}
@@ -30,6 +43,10 @@ jobs:
               exit 1
             fi
           done
+          if [ "$RELEASE_KEY_ALIAS" = "androiddebugkey" ]; then
+            echo "::error::Une clé Android de débogage ne peut pas signer la release privée."
+            exit 1
+          fi
       - name: Préparer Android SDK
         run: |
           set -euo pipefail
@@ -42,24 +59,22 @@ jobs:
       - run: npm run build
       - run: npx cap add android
       - run: npx cap sync android
-      - name: Configurer le numéro de version
-        env:
-          RUN_NUMBER: ${{ github.run_number }}
+      - name: Générer les icônes natives et contrôler le package
         run: |
-          python3 - <<'PY'
-          import os,re
-          p='android/app/build.gradle'
-          text=open(p).read()
-          n=int(os.environ['RUN_NUMBER'])
-          text,count=re.subn(r'versionCode\s+\d+',f'versionCode {n}',text,count=1)
-          assert count == 1, 'versionCode introuvable'
-          open(p,'w').write(text)
-          PY
+          node scripts/generate-android-icons.mjs
+          test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png
+      - name: Configurer versionName et versionCode pour mise à jour Android
+        run: node scripts/set-android-version.mjs
       - name: Compiler le package de production non signé
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          if ! ./gradlew assembleRelease --no-daemon; then
+            echo "::warning::Gradle/Maven a échoué ; nouvelle résolution des dépendances."
+            sleep 12
+            ./gradlew assembleRelease --no-daemon --refresh-dependencies
+          fi
       - name: Signer et vérifier l'APK privé
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.TABLE_FAMILIALE_KEYSTORE_BASE64 }}
@@ -69,7 +84,9 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/table-familiale-release.jks"
+          trap 'rm -f "$RUNNER_TEMP/table-familiale-release.jks" release/app-release-aligned.apk' EXIT
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/table-familiale-release.jks"
+          test -s "$RUNNER_TEMP/table-familiale-release.jks"
           RAW="android/app/build/outputs/apk/release/app-release-unsigned.apk"
           test -s "$RAW"
           mkdir -p release
@@ -79,15 +96,25 @@ jobs:
             --ks-key-alias "$RELEASE_KEY_ALIAS" \
             --ks-pass env:RELEASE_STORE_PASSWORD \
             --key-pass env:RELEASE_KEY_PASSWORD \
-            --out release/table-familiale-officiel.apk \
+            --out release/table-familiale-1.0.8-prive-signe.apk \
             release/app-release-aligned.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/table-familiale-officiel.apk
-          sha256sum release/table-familiale-officiel.apk > release/SHA256SUMS
-          rm -f "$RUNNER_TEMP/table-familiale-release.jks" release/app-release-aligned.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/table-familiale-1.0.8-prive-signe.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging release/table-familiale-1.0.8-prive-signe.apk | tee release/APP_INFO.txt
+          grep -F "name='app.tablefamiliale.menus'" release/APP_INFO.txt
+          grep -F "versionName='1.0.8'" release/APP_INFO.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump permissions release/table-familiale-1.0.8-prive-signe.apk | tee release/PERMISSIONS.txt
+          if grep -E 'android.permission\.(CAMERA|RECORD_AUDIO|ACCESS_FINE_LOCATION|READ_SMS|READ_CONTACTS|QUERY_ALL_PACKAGES)' release/PERMISSIONS.txt; then
+            echo "::error::Autorisations Android supplémentaires inattendues."
+            exit 1
+          fi
+          sha256sum release/table-familiale-1.0.8-prive-signe.apk > release/SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: table-familiale-android-officiel
           path: |
-            release/table-familiale-officiel.apk
+            release/table-familiale-1.0.8-prive-signe.apk
             release/SHA256SUMS
+            release/APP_INFO.txt
+            release/PERMISSIONS.txt
           if-no-files-found: error
+          retention-days: 7

@@ -70,3 +70,13 @@ node --check meal-plan.js
 Les tests auditent : calendrier, portions, types viande/poisson/végétarien, deux quiches, stock des ingrédients (œufs, épinards, saumon, pâte), noix bio, budget 900 £, pâtisserie facultative, achats mensuels et hebdomadaires, menus modifiables, dépenses réellement payées, migrations historiques et non-régression de l'état cuisiné.
 
 **Android :** le workflow `.github/workflows/android-debug.yml` produit un APK de **test**. Le workflow `.github/workflows/android-release-private.yml` prépare une version stable signée, mais exige une **clé de signature permanente configurée en secrets GitHub** et son exécution concluante. Aucune APK de débogage ne doit être appelée « release officielle ». Le canal web/PWA officiel est distinct.
+
+## Android privé — préparation de la release 1.0.8
+
+**Rapport technique :** [audit Android 1.0.8](AUDIT_ANDROID_RELEASE_1.0.8.md). APK de test compilée et auditée dans [GitHub Actions](https://github.com/applicreation0-web/table-familiale/actions/runs/44426922776) ; **43 tests réussis**. Identifiant Android `app.tablefamiliale.menus`, icône Table Familiale native, ressources hors connexion dans le paquet.
+
+**Sauvegarde sur téléphone Android :** menu **Suivi → Exporter la sauvegarde** : l'application écrit le JSON dans son cache et ouvre le partage natif Android. Sélectionner **Fichiers/Drive/autre destination** et enregistrer véritablement le JSON. Le cache temporaire n'est pas une sauvegarde. Pour importer, utiliser le sélecteur de fichier JSON dans **Suivi → Importer**. L'application ne synchronise pas automatiquement les données entre le site web et l'APK Android : les stockages sont distincts.
+
+La release Android privée est générée par `.github/workflows/android-release-private.yml`, uniquement avec le keystore stable fourni comme **secrets du dépôt**. Quatre noms sont attendus : `TABLE_FAMILIALE_KEYSTORE_BASE64`, `TABLE_FAMILIALE_STORE_PASSWORD`, `TABLE_FAMILIALE_KEY_ALIAS`, `TABLE_FAMILIALE_KEY_PASSWORD`. Il ne faut jamais les mettre dans le code ou un ticket. En cas de succès, récupérer l'APK **1.0.8** signée et son **SHA256SUMS** dans l'artefact GitHub Actions `table-familiale-android-officiel` ; rétention de 7 jours. Ne pas confondre `app-debug.apk` et l'APK privée signée : leurs certificats sont différents et une installation debug n'est pas remplaçable directement par l'APK signée sans désinstallation. Exporter la sauvegarde avant toute désinstallation.
+
+Les contrôles automatisés ont été réalisés sur Linux CI ; un essai de la feuille de partage et de l'import sur un vrai téléphone Android reste à faire.

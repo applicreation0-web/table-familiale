@@ -1,4 +1,5 @@
 import {BASE_MENU, BASE_SHOPPING} from './data.js';
+import {shareNativeBackup,downloadWebBackup} from './backup.js';
 import {MEAL_INGREDIENTS} from './recipes.js';
 import {FAMILY_PLAN} from './meal-plan.js';
 import {
@@ -78,7 +79,7 @@ function render(){
   ${month.reconcileWarnings?.length?`<div class="banner caution">${icon('alert')} <span>${month.reconcileWarnings.length} point(s) de réconciliation (achats, recettes ou stock). Vérifiez dans la sauvegarde avant de racheter des produits.</span></div>`:''}
  <nav class="tabs" aria-label="Sections">${[['menus','calendar','Menus'],['courses','basket','Courses'],['depenses','wallet','Dépenses'],['suivi','archive','Suivi']].map(([id,ico,label])=>`<button class="tab ${activeTab===id?'active':''}" data-action="tab" data-tab="${id}" aria-current="${activeTab===id?'page':'false'}">${icon(ico,18)}<span>${label}</span></button>`).join('')}</nav>
  <div id="screen">${activeTab==='menus'?renderMenus(month,days):activeTab==='courses'?renderCourses(month):activeTab==='depenses'?renderFinance(month,f):renderHistory(month,f)}</div>
- <footer>Table Familiale · Prix M&S indicatifs · Pour les enfants : noix finement moulues · Données conservées localement dans ce navigateur</footer>
+ <footer>Table Familiale · Prix M&S indicatifs · Pour les enfants : noix finement moulues · Données conservées sur cet appareil · Export JSON conseillé avant désinstallation</footer>
  </main>`;
 }
 function weekHeader(month,months=false){
@@ -247,7 +248,17 @@ function onAction(action,btn){
   month.extraExpenses.push({id:'expense-'+Date.now(),label,amount,supplier,date});dialog.close();save();flash('Dépense enregistrée');break;
  }
  case 'export':{
-   const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='table-familiale-sauvegarde-'+dateISO(new Date())+'.json';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);flash('Sauvegarde téléchargée');break;
+   const filename='table-familiale-sauvegarde-'+dateISO(new Date())+'.json';
+   const json=JSON.stringify(state,null,2);
+   if(window.Capacitor?.isNativePlatform?.()){
+     void shareNativeBackup(json,filename,window.Capacitor)
+       .then(()=>flash('Choisis où conserver la sauvegarde JSON'))
+       .catch(err=>flash('Sauvegarde Android non exportée : '+err.message,'error'));
+   }else{
+     try{downloadWebBackup(json,filename);flash('Sauvegarde téléchargée')}
+     catch(err){flash('Sauvegarde non exportée : '+err.message,'error')}
+   }
+   break;
  }
  case 'import':{const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.addEventListener('change',async()=>{try{const file=input.files?.[0];if(!file)return;const raw=validateImport(JSON.parse(await file.text()));state=raw;selectedWeek=0;activeTab='suivi';save();flash('Sauvegarde restaurée');}catch(e){flash('Fichier non compatible : '+e.message,'error')}});input.click();break;}
  }
