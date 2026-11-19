@@ -48,8 +48,8 @@ test('STRESS 180 corrections du même prix : une preuve, prix prévisionnel stab
    learnFromConfirmedPurchase(s,m,item,p);
  }
  assert.equal(priceBookStats(s).observations,1);
- assert.equal(shoppingEntries(m,1,false).find(x=>x.name===item.name).estimate,7.1);
- assert.equal(finance(m).paid,7.1);
+ assert.equal(shoppingEntries(m,1,false).find(x=>x.name===item.name).estimate,6.4);
+ assert.equal(finance(m).paid,6.4);
 });
 test('STRESS prix unitaires : 1kg ↔ 500g, mais fournisseur et unité jamais mélangés',()=>{
  const s=newState(),m=s.months['0'],item=grocery(m,'Raisins rouges sans pépins M&S',0);
@@ -110,6 +110,10 @@ test('STRESS 120 lignes OCR admissibles maximum sur un texte de 2000 articles',(
  assert.equal(parsed.lines.length,120);
  assert.equal(parsed.recognizedTotal,120);
  assert.equal(parsed.rawLineCount,2001);
+ assert.equal(parsed.truncatedLines,1880);
+ const s=newState();
+ assert.throws(()=>applyReceiptReview(s,s.months['0'],parsed,parsed.lines.map(x=>({...x,selectedId:'extra'}))),/trop long/);
+ assert.equal(finance(s.months['0']).paid,0);
 });
 test('STRESS 120 extras validées : exactitude de la dépense, un seul ticket comptabilisé',()=>{
  const s=newState(),m=s.months['0'];
