@@ -46,6 +46,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
       - name: Préparer le SDK Android installé sur le runner
         run: |
           echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
@@ -67,7 +68,11 @@ jobs:
         run: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon
+          if ! ./gradlew assembleDebug --no-daemon; then
+            echo "::warning::Gradle/Maven a échoué ; nouvelle résolution des dépendances."
+            sleep 12
+            ./gradlew assembleDebug --no-daemon --refresh-dependencies
+          fi
       - name: Auditer la configuration de l'APK de test
         run: |
           set -euo pipefail
