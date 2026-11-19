@@ -131,7 +131,7 @@ test('Import v2 préserve plats cuisinés et achats effectivement payés',()=>{
  m.meals[3].cooked=true;
  const milk=m.groceries.find(x=>x.id==='base-0-17');milk.name='Lait';milk.qty='4 L';milk.price=3.30;milk.bought=true;milk.actual=3.30;
  const loaded=validateImport(JSON.parse(JSON.stringify(legacy)));
- assert.equal(loaded.version,10);
+ assert.equal(loaded.version,11);
  assert.equal(loaded.months['0'].meals[3].cooked,true);
  assert.equal(loaded.months['0'].meals[4].batchRole,null);
  assert.equal(loaded.months['0'].groceries.find(x=>x.id===milk.id).qty,'4 L');
@@ -252,7 +252,7 @@ test('Migration v8 : nouveau panier sans modifier anciens reçus ou repas cuisin
  m.meals[0].cooked=true;m.meals[0].cookedAt='2026-11-19';
  m.groceries=m.groceries.filter(x=>x.id!=='baking-9');
  const newer=validateImport(structuredClone(old));
- assert.equal(newer.version,10);
+ assert.equal(newer.version,11);
  const x=newer.months['0'];
  assert.equal(x.groceries.find(z=>z.id===bread.id).actual,3.75);
  assert.equal(x.groceries.find(z=>z.id===eggs.id).qty,'2 × 12 + 1 × 6 (30 œufs)');
@@ -272,7 +272,7 @@ test('Migration v9→v10 : reçus fruits/huiles préservés et nouveaux articles
  const oldOlive=m.groceries.find(x=>x.id==='base-0-27');
  Object.assign(oldOlive,{name:'Huile d’olive vierge extra Ocado',price:7.75,bought:true,actual:7.75});
  const result=validateImport(structuredClone(raw)),newer=result.months['0'];
- assert.equal(result.version,10);
+ assert.equal(result.version,11);
  assert.equal(newer.groceries.find(x=>x.id===oldApple.id).actual,3.60);
  assert.equal(newer.groceries.find(x=>x.id===oldApple.id).name,'Pommes M&S Braeburn britanniques');
  assert.equal(newer.groceries.find(x=>x.id===oldBanana.id).actual,1.80);
@@ -311,7 +311,7 @@ test('Réconciliation v3 : aucune perte de dépense ou de correction personnelle
  item.qty='3 kg';item.price=3.60;item.bought=true;item.actual=3.85;
  m.manualItems.push({id:'manual-original',name:'Épice achetée',qty:'1',price:2,supplier:'M&S',purchase:'weekly',week:0,bought:true,actual:2,hidden:false});
  const updated=validateImport(JSON.parse(JSON.stringify(raw)));
- assert.equal(updated.version,10);
+ assert.equal(updated.version,11);
  const next=updated.months['0'];
  assert.equal(next.groceries.find(x=>x.id==='base-0-0').qty,'3 kg');
  assert.equal(next.groceries.find(x=>x.id==='base-0-0').actual,3.85);
@@ -372,7 +372,7 @@ test('Migration v4 : yassa poisson apparaît sans effacer les achats payés',()=
  m.groceries.push({id:'rightsize-3-1',name:'Aubergines',qty:'1 kg',price:3,supplier:'M&S',
    purchase:'weekly',week:3,bought:false,actual:null,hidden:false});
  const loaded=validateImport(JSON.parse(JSON.stringify(raw))),n=loaded.months['0'];
- assert.equal(loaded.version,10);
+ assert.equal(loaded.version,11);
  assert.match(n.meals[24].name,/Yassa au poisson/);
  assert.equal(n.meals[25].name,n.meals[24].name);
  assert.equal(n.meals[24].servings,10);
@@ -390,7 +390,7 @@ test('Migration v4 : une recette poisson personnalisée ou déjà cuisinée rest
  m.groceries.push({id:'custom-fish-item',name:'Persil',qty:'1 botte',price:1.5,supplier:'M&S',
    purchase:'weekly',week:3,bought:false,actual:null,hidden:false});
  const loaded=validateImport(JSON.parse(JSON.stringify(raw))),n=loaded.months['0'];
- assert.equal(loaded.version,10);
+ assert.equal(loaded.version,11);
  assert.equal(n.meals[24].name,'Yassa poisson version familiale');
  assert.ok(n.meals[24].ingredients.some(x=>x.name==='Persil'));
  assert.ok(n.groceries.some(x=>x.id==='custom-fish-item'));
@@ -454,7 +454,7 @@ test('Migration v6 des quatre plats au cabillaud vers le saumon sans perdre les 
  const bought=m.groceries.find(x=>x.id==='base-0-17');
  bought.bought=true;bought.actual=12.70;
  const out=validateImport(structuredClone(legacy));
- assert.equal(out.version,10);
+ assert.equal(out.version,11);
  const restored=out.months['0'];
  assert.equal(restored.groceries.find(x=>x.id==='base-0-17').actual,12.70);
  assert.equal(restored.meals[2].name.includes('Saumon frais M&S'),true);
@@ -583,7 +583,7 @@ test('Migration v7 : maquereau non préparé devient quiche sans valider de repa
    m.groceries.push({id,name:'Noix à moudre',qty:'200 g',price:3.20,supplier:'M&S',
      purchase:'weekly',week,bought:false,actual:null,hidden:false});
  const loaded=validateImport(structuredClone(raw));
- assert.equal(loaded.version,10);
+ assert.equal(loaded.version,11);
  const out=loaded.months['0'];
  assert.match(out.meals[12].name,/quiche au saumon/i);
  assert.match(out.meals[20].name,/quiche aux épinards/i);

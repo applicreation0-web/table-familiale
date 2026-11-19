@@ -2,7 +2,7 @@
 
 **Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
 **Dépôt :** https://github.com/applicreation0-web/table-familiale  
-**Version des données : v10 (correctif non publié)** — mise à jour du 19 novembre 2026.
+**Version des données : v11 (fonctions prix réels et tickets en qualification)** — mise à jour du 19 novembre 2026.
 
 ## Règles du programme familial
 
@@ -122,3 +122,21 @@ Sources catalogue Ocado consultées le 19 novembre 2026 :
 - [Huile d'olive vierge extra M&S, 1 L à 9,00 £](https://www.ocado.com/products/M-S-Extra-Virgin-Olive-Oil/528611011)
 
 **Publication :** version de préparation non publiée jusqu'aux tests CI et à la vérification du vrai panier avec disponibilité locale. Le coût de livraison des noix est encore une provision de 5 £ ; la marge n'est pas garantie. Sur import v9→v10, aucun achat payé, recette cuisinée ou stock annoté n'est réécrit. Si des fruits ou huiles de l'ancien panier sont déjà achetés, un avertissement demande un rapprochement de stock plutôt qu'un faux reçu modifié.
+
+
+## Table Familiale 1.0.11 — apprentissage des prix et tickets (à qualifier sur Android)
+
+**Prix réellement payés :** dans **Courses**, cocher un produit puis corriger le champ **Payé (£)** avec son prix exact. Cocher sans corriger confirme seulement l'estimation : elle n'entraîne **aucun apprentissage artificiel**. Une valeur effectivement saisie est conservée comme prix payé et comme observation de prix par fournisseur, nom et type de quantité (grammes, millilitres, pièces). Les nouveaux prix projetés sont des médianes des trois dernières observations confirmées pour atténuer les variations ponctuelles. La quantité est prise en compte : 1 kg payé à 6 £ conduit à 3 £ projetés pour le même produit en 500 g. Les prochaines semaines de la période courante et les périodes ultérieures existantes ou créées sont réactualisées. Les achats déjà payés, les stocks cochés, les produits retirés et les prix manuellement forcés ne changent **jamais**. Une correction de ticket actualise la même observation sans l'ajouter deux fois ; décocher un achat retire sa preuve de prix.
+
+**Rester sous 900 £ :** le total prospectif est recalculé après chaque prix confirmé. Le prix appris n'est qu'une **prévision**, non une promesse du vendeur ni une modification du ticket passé. Si la marge devient négative, le bandeau de dépassement existant apparaît. L'application **ne supprime jamais automatiquement** des repas, des produits ni des quantités pour afficher un budget artificiellement respecté.
+
+**Lecture de ticket :**
+1. Dans **Courses → Lire un ticket**, sur la nouvelle APK Android, choisir **Photo ou galerie Android**. Les plugins natifs Capacitor Camera 8.0.2 et ML Kit Text Recognition 8.2.2 réalisent l'OCR **localement** (modèle latin embarqué, sans service d'OCR ni téléversement de l'image). Sur le site web, coller le texte du ticket dans la zone prévue : la reconnaissance photographique n'y est pas disponible.
+2. L'écran de contrôle présente chaque ligne reconnue, sa valeur en £ et un produit correspondant proposé s'il existe. Pour les lignes sans correspondance, **Ignorer** est la valeur par défaut ; choisir volontairement **Nouvelle dépense hors liste** pour enregistrer un achat extérieur au programme.
+3. Vérifier individuellement **prix, quantité, magasin, doublons, remises, articles inconnus et total imprimé**, puis confirmer le rapprochement. Le total du ticket et les lignes de paiement/TVA ne sont jamais additionnés comme marchandises.
+4. Un ticket déjà rapproché est refusé, même si l'on change de période. La sauvegarde JSON contient une empreinte anti-doublon et un historique sommaire de rapprochement, **pas le texte OCR ni la photo**. L'original reste sur le téléphone ou dans sa galerie selon le choix de la caméra.
+5. Les descriptions courtes, paquets de plusieurs unités, promotions et reçus mal photographiés peuvent être mal reconnus. Ne **jamais** valider sans rapprochement avec le ticket papier.
+
+**Migration et sauvegarde :** importer les anciennes sauvegardes v2–v10 migre vers v11 sans supprimer les achats, recettes, historiques ni montants payés. Le carnet de prix local et les empreintes des tickets sont exportés dans la sauvegarde JSON. Les données de l'APK ne se synchronisent pas automatiquement avec le site web. Avant de remplacer une APK signée avec une autre clé, exporter la sauvegarde.
+
+**Contrôle de publication :** le test automatisé couvre l'analyse du texte et le rapprochement, tandis que la CI Android contrôle la compilation native. **Le scan photo doit encore être testé sur un vrai appareil**. La signature privée permanente nécessite les secrets GitHub Actions : la réussite du build debug ne crée pas d'APK officielle.

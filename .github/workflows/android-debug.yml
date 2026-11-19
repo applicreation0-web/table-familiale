@@ -5,6 +5,9 @@ on:
     paths:
       - 'app.js'
       - 'model.js'
+      - 'pricing.js'
+      - 'receipt.js'
+      - 'receipt-ocr.js'
       - 'recipes.js'
       - 'meal-plan.js'
       - 'data.js'
@@ -22,6 +25,9 @@ on:
     paths:
       - 'app.js'
       - 'backup.js'
+      - 'pricing.js'
+      - 'receipt.js'
+      - 'receipt-ocr.js'
       - 'model.js'
       - 'data.js'
       - 'package.json'
@@ -34,6 +40,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: table-familiale-android-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   android:
     runs-on: ubuntu-latest
@@ -64,24 +73,28 @@ jobs:
           node scripts/generate-android-icons.mjs
           test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
           test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png
+      - name: Estampiller la version Android 1.0.11 et le code croissant
+        run: node scripts/set-android-version.mjs
       - name: Compiler l'APK debug
         run: |
           cd android
           chmod +x ./gradlew
-          if ! ./gradlew assembleDebug --no-daemon; then
-            echo "::warning::Gradle/Maven a échoué ; nouvelle résolution des dépendances."
-            sleep 12
-            ./gradlew assembleDebug --no-daemon --refresh-dependencies
-          fi
+          for attempt in 1 2 3 4; do
+            if ./gradlew assembleDebug --no-daemon; then break; fi
+            if [ "$attempt" = 4 ]; then exit 1; fi
+            echo "::warning::Maven rate-limite les dépendances. Nouvelle tentative après pause."
+            sleep $((attempt * 45))
+          done
       - name: Vérifier aussi le package release non signé avant toute signature
         run: |
           set -euo pipefail
           cd android
-          if ! ./gradlew assembleRelease --no-daemon; then
-            echo "::warning::Nouvelle tentative de compilation release après une erreur Maven."
-            sleep 12
-            ./gradlew assembleRelease --no-daemon --refresh-dependencies
-          fi
+          for attempt in 1 2 3; do
+            if ./gradlew assembleRelease --no-daemon; then break; fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            echo "::warning::Compilation release retry après indisponibilité Maven."
+            sleep $((attempt * 45))
+          done
           test -s app/build/outputs/apk/release/app-release-unsigned.apk
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | grep -F "name='app.tablefamiliale.menus'"
       - name: Auditer la configuration de l'APK de test
@@ -91,7 +104,7 @@ jobs:
           test -s "$APK"
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep -F "name='app.tablefamiliale.menus'"
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump permissions "$APK" | tee android-permissions.txt
-          if grep -E 'android.permission.(CAMERA|RECORD_AUDIO|ACCESS_FINE_LOCATION|READ_SMS|READ_CONTACTS|QUERY_ALL_PACKAGES)' android-permissions.txt; then
+          if grep -E 'android.permission.(RECORD_AUDIO|ACCESS_FINE_LOCATION|READ_SMS|READ_CONTACTS|QUERY_ALL_PACKAGES)' android-permissions.txt; then
             echo "::error::Autorisation Android non prévue."
             exit 1
           fi
