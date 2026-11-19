@@ -90,6 +90,9 @@ test('semaine 1 après ticket confirmé : 7 jours, sans saumon, carottes 950g, �
  assert.equal(month.meals[1].ingredients.some(x=>x.name==='Fromage'),false);
  assert.ok(weeklyEggSummary(month,0).mealsUsed+weeklyEggSummary(month,0).breakfastEggs<=24);
  assert.equal(month.groceries.find(x=>x.name==='Carottes'&&x.week===0).receiptQty,1);
+ const broccoli=shoppingEntries(month,0,false).find(x=>x.name==='Brocolis frais M&S');
+ assert.equal(broccoli.receiptPackUnknown,true);
+ assert.equal(broccoli.qty,'1 emballage · poids/format à vérifier');
  const carrots=quantityAudit(month,0).find(x=>x.name==='Carottes');
  assert.equal(carrots.actualKg,1);
  assert.equal(carrots.actualShortageKg,0);
