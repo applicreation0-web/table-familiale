@@ -93,8 +93,9 @@ test('ticket complet : préférer les pâtes aux courgettes et tomates sans from
  const m=newState().months['0'];
  const p=noteCompletedReceiptWeek(m,0,[...synthetic,selection('00821964','CHOPPD TOMATO',.50)],{
   supplier:'M&S',fingerprint:'synthetic-tomato-safe'});
- assert.equal(p.changed.length,1);
+ assert.equal(p.changed.length,2); // Saumon et recette aux lentilles non achetées.
  assert.equal(m.meals[2].name,'Pennes complètes aux courgettes et tomates');
+ assert.equal(m.meals[6].name,'Fusilli complets aux brocolis, tomates et œufs');
  assert.equal(m.meals[2].ingredients.some(x=>/Fromage|cheddar/i.test(x.name)),false);
  assert.equal(m.meals[2].ingredients.find(x=>x.name==='Tomates concassées')?.quantity,300);
  const additions=suggestedPurchases(m).filter(x=>x.week===0);
