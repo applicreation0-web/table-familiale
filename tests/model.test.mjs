@@ -212,6 +212,21 @@ test('Pain £3.50, beurre hebdomadaire et 24 œufs maxi avec ou sans pâtisserie
  assert.equal(finance(m).forecast,888.38);
  assert.equal(finance(m).forecastHeadroom,11.62);
 });
+test('Budget avec pâtisserie sur cinq semaines : aucun réassort d’œufs et plafond respecté',()=>{
+ const m=makeMonth(0);
+ for(let w=0;w<5;w++)setBakingWeek(m,w,true);
+ const f=finance(m);
+ assert.equal(f.forecast,894.18);
+ assert.equal(f.forecastHeadroom,5.82);
+ assert.ok(!suggestedPurchases(m).some(x=>/œufs/i.test(x.name)));
+ for(let w=0;w<5;w++){
+   const eggs=shoppingEntries(m,w,false).find(x=>x.name==='Œufs');
+   assert.ok(eggs);
+   assert.ok(!/30 œufs/.test(eggs.qty));
+   const summary=weeklyEggSummary(m,w);
+   assert.ok(summary.mealsUsed+summary.breakfastEggs<=summary.planned);
+ }
+});
 test('Migration v8 : nouveau panier sans modifier anciens reçus ou repas cuisinés',()=>{
  const old=newState();old.version=8;
  const m=old.months['0'];
