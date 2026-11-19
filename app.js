@@ -3,6 +3,7 @@ import {shareNativeBackup,downloadWebBackup} from './backup.js';
 import {MEAL_INGREDIENTS} from './recipes.js';
 import {applyLearnedPrices,learnFromConfirmedPurchase,forgetConfirmedPurchase,priceBookStats} from './pricing.js';
 import {parseReceiptText,recommendReceiptMatches,applyReceiptReview} from './receipt.js';
+import {compareReceiptToPlan} from './receipt-benchmark.js';
 import {captureReceiptText,nativeReceiptAvailable} from './receipt-ocr.js';
 import {FAMILY_PLAN} from './meal-plan.js';
 import {
@@ -224,6 +225,15 @@ function showReceiptReview(parsed){
  const entries=allShoppingEntries(month).filter(x=>!x.bought&&!x.hidden&&!x.inStock);
  const preferred=entries.filter(x=>x.purchase==='monthly'||x.week===selectedWeek);
  const shopOptions=selectOptions(SUPPLIERS,'M&S');
+ const comparisons=compareReceiptToPlan(parsed,month,selectedWeek);
+ const benchmarkHtml=comparisons.length?'<div class="receipt-benchmark"><h3>Quantités réelles / prévisions</h3>'+
+   comparisons.map(x=>'<div class="receipt-line" style="padding:8px 0"><strong>'+esc(x.label)+'</strong><span>Ticket : '+x.actualQty+' '+esc(x.unit)+' · '+money(x.actualPrice)+
+     (x.plannedQty!=null?' · Prévu : '+x.plannedQty+' '+esc(x.unit):' · Prévision sans correspondance')+
+     (x.recipeNeed!=null?' · Recettes : '+x.recipeNeed+' kg':'')+
+     (x.delta!=null&&x.delta!==0?' <strong>— Écart à vérifier</strong>':'')+
+     '</span></div>').join('')+
+   '<p>Une quantité achetée inférieure à la recette ne doit pas être automatiquement considérée comme suffisante. Vérifier le stock ou modifier les menus.</p></div>':'';
+
  const listHtml=rows.map((r,i)=>{
    const prioritized=r.candidates.map(x=>x.id);
    const selected=[...new Set([...prioritized,...preferred.map(x=>x.id)])];
@@ -242,6 +252,7 @@ function showReceiptReview(parsed){
  }).join('');
  openDialog(`<div class="dialog-head"><div><span class="overline">VÉRIFICATION OBLIGATOIRE</span><h2 id="editor-title">Ticket : ${rows.length} lignes reconnues</h2><p>Choisir les articles à enregistrer. Les lignes sans correspondance restent ignorées, sauf si tu sélectionnes « Nouvelle dépense hors liste ».</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
  <div class="edit-body"><div class="finance-grid"><div class="finance-cell"><small>Montant payé sur le ticket</small><strong>${parsed.ticketTotal==null?'Non trouvé':money(parsed.ticketTotal)}</strong></div><div class="finance-cell"><small>Articles lus</small><strong>${money(parsed.recognizedTotal)}</strong></div><div class="finance-cell"><small>Remises et remboursements</small><strong>${money(parsed.discountTotal||0)}</strong></div><div class="finance-cell"><small>Écart de lecture</small><strong>${parsed.reconciliationGap==null?'À vérifier':money(parsed.reconciliationGap)}</strong></div></div>
+ ${benchmarkHtml}
  <p>Vérifiez les quantités achetées et les conditionnements. Plusieurs lignes identiques (par exemple deux boîtes d’œufs) peuvent correspondre au même achat prévu : les montants seront additionnés. Une différence de total n'est jamais corrigée artificiellement.</p><p><b>Attention :</b> « Hors liste » augmente le budget sans retirer un article prévu. Rapprocher les produits du panier lorsqu'ils y figurent pour ne pas les compter deux fois.</p><div class="action-line"><button class="button outline" data-action="receipt-select-extras">Classer les lignes non associées comme hors liste</button></div>
  <label class="field"><span>Magasin du ticket (pour dépenses hors liste)</span><select id="receipt-supplier">${shopOptions}</select></label>
  ${listHtml}
