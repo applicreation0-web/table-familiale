@@ -94,7 +94,8 @@ export function suggestedPurchases(month){
 // Les articles déjà achetés ne sont jamais effacés lorsque l'option est désactivée.
 export function isBakingWeek(month,week){return !!month.bakingWeeks?.[week];}
 function plannedGrocery(month,item){
-  if(item.hidden)return null;
+  // Un achat historique payé reste dans les comptes même si le produit est masqué.
+  if(item.hidden&&!item.bought)return null;
   let targetWeek=item.week;
   if(item.optional&&!item.bought&&!item.name.startsWith('Beurre M&S')){
     const staple=item.week===0&&/Sucre pour gâteaux|Levure chimique|Extrait de vanille/.test(item.name);

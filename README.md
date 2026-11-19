@@ -2,7 +2,7 @@
 
 **Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
 **Dépôt :** https://github.com/applicreation0-web/table-familiale  
-**Version des données : v11 (fonctions prix réels et tickets en qualification)** — mise à jour du 19 novembre 2026.
+**Version du paquet Android : 1.0.12, signée en privé** · **Version des données : v11** — audit des prix et tickets du 19 novembre 2026. — mise à jour du 19 novembre 2026.
 
 ## Règles du programme familial
 
@@ -140,3 +140,9 @@ Sources catalogue Ocado consultées le 19 novembre 2026 :
 **Migration et sauvegarde :** importer les anciennes sauvegardes v2–v10 migre vers v11 sans supprimer les achats, recettes, historiques ni montants payés. Le carnet de prix local et les empreintes des tickets sont exportés dans la sauvegarde JSON. Les données de l'APK ne se synchronisent pas automatiquement avec le site web. Avant de remplacer une APK signée avec une autre clé, exporter la sauvegarde.
 
 **Contrôle de publication :** le test automatisé couvre l'analyse du texte et le rapprochement, tandis que la CI Android contrôle la compilation native. **Le scan photo doit encore être testé sur un vrai appareil**. La signature privée permanente nécessite les secrets GitHub Actions : la réussite du build debug ne crée pas d'APK officielle.
+
+## Release privée 1.0.12 — audit et signature
+
+La version 1.0.12 a passé **88/88 tests**. Elle intègre un correctif sur les prix OCR : le prix réel est comptabilisé mais l'apprentissage du prix unitaire nécessite la vérification explicite du conditionnement par l'utilisateur. Les achats payés restent visibles dans la comptabilité même si la ligne est masquée. Les tickets dépassant 120 lignes reconnues sont refusés (jamais importés partiellement).
+
+**[Consulter le rapport d'audit signé, tests et limites](AUDIT_STRESS_RELEASE_1.0.12.md).** APK privée signée avec la clé permanente RSA 4096, vérifiée `apksigner` v2/v3 ; SHA-256 : `e6a551deb0c4a4255f2ff9aa3605bf5dd0780e65986777b81a962c95eadfd149`. L'APK n'est pas versée dans le dépôt public ; elle est distribuée en fichier privé. Le workflow de signature via GitHub Actions ne fonctionne qu'après ajout des quatre Repository Secrets, mais une signature locale avec la même clé permanente a été qualifiée. Les photos de vrais tickets et la mise à jour d'une installation antérieure restent à tester sur téléphone. Sauvegarder les achats en JSON avant toute réinstallation.

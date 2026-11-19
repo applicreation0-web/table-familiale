@@ -97,7 +97,7 @@ test('Import ticket : reçus reconnus, marge réajustée et fingerprint bloquant
  const r=parseReceiptText('STRAWBERRIES 4.50\nRED GRAPES 3.00\nTOTAL 7.50');
  const berries=m.groceries.find(x=>x.name==='Fraises M&S'&&x.week===0);
  const grapes0=grapes(m);
- const rows=[{...r.lines[0],selectedId:berries.id},{...r.lines[1],selectedId:grapes0.id}];
+ const rows=[{...r.lines[0],selectedId:berries.id,quantityConfirmed:true},{...r.lines[1],selectedId:grapes0.id,quantityConfirmed:true}];
  const before=finance(m).forecast;
  const result=applyReceiptReview(state,m,r,rows);
  assert.equal(result.matched,2);
@@ -111,6 +111,15 @@ test('Import ticket : reçus reconnus, marge réajustée et fingerprint bloquant
  assert.throws(()=>applyReceiptReview(state,m,r,rows),/déjà été rapproché/);
  assert.deepEqual(finance(m),snapshot);
  assert.equal(m.receiptImports.length,1);
+});
+test('Un ticket sans confirmation du conditionnement ne contamine pas les prix de l’avenir',()=>{
+ const s=newState(),m=s.months['0'],r=parseReceiptText('RED GRAPES 3.00');
+ const id=grapes(m).id;
+ applyReceiptReview(s,m,r,[{...r.lines[0],selectedId:id}]);
+ assert.equal(grapes(m).actual,3);
+ assert.equal(finance(m).paid,3);
+ assert.equal(nextGrapes(m,1).estimate,5.30);
+ assert.equal(priceBookStats(s).series,0);
 });
 test('Lignes sans produit : seulement les dépenses hors liste explicitement choisies sont comptées',()=>{
  const s=newState(),m=s.months['0'];

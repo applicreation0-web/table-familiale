@@ -108,6 +108,22 @@ jobs:
             echo "::error::Autorisation Android non prévue."
             exit 1
           fi
+      - name: Préparer le paquet de production non signé et les outils officiels
+        run: |
+          set -euo pipefail
+          mkdir -p unsigned-package/tools/lib
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk unsigned-package/
+          cp "$ANDROID_HOME/build-tools/36.0.0/apksigner" unsigned-package/tools/
+          cp "$ANDROID_HOME/build-tools/36.0.0/lib/apksigner.jar" unsigned-package/tools/lib/
+          cp "$ANDROID_HOME/build-tools/36.0.0/zipalign" unsigned-package/tools/
+          chmod +x unsigned-package/tools/apksigner unsigned-package/tools/zipalign
+          sha256sum unsigned-package/app-release-unsigned.apk > unsigned-package/SHA256_UNSIGNE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: table-familiale-android-production-unsigned
+          path: unsigned-package/
+          if-no-files-found: error
+          retention-days: 2
       - uses: actions/upload-artifact@v4
         with:
           name: table-familiale-android-debug

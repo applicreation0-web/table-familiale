@@ -56,9 +56,10 @@ export function parseReceiptText(raw){
      previous=line;
    }
  }
- // Ne jamais importer le montant TOTAL comme un article.
- return {fingerprint:receiptFingerprint(text),lines:lines.slice(0,120),ticketTotal,
-   recognizedTotal:round(lines.reduce((sum,x)=>sum+x.amount,0)),
+ // Ne jamais importer le montant TOTAL comme un article ; refuser les tickets trop longs.
+ const visible=lines.slice(0,120),truncatedLines=Math.max(0,lines.length-visible.length);
+ return {fingerprint:receiptFingerprint(text),lines:visible,ticketTotal,truncatedLines,
+   recognizedTotal:round(visible.reduce((sum,x)=>sum+x.amount,0)),
    date:date?date[3]+'-'+date[2]+'-'+date[1]:null,rawLineCount:input.length};
 }
 export function recommendReceiptMatches(parsed,month,week){
@@ -89,6 +90,7 @@ export function recommendReceiptMatches(parsed,month,week){
 }
 export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={}){
  if(!receipt?.fingerprint||!Array.isArray(rows))throw Error('Ticket invalide');
+ if(receipt.truncatedLines>0)throw Error('Ticket trop long : certaines lignes sont masquées. Aucun import autorisé.');
  month.receiptImports??=[];
  if(Object.values(state.months||{}).some(period=>(period.receiptImports||[]).some(x=>x.fingerprint===receipt.fingerprint)))
    throw Error('Ce ticket a déjà été rapproché : aucun achat ajouté en double.');
@@ -106,7 +108,7 @@ export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={})
    seen.add(row.selectedId);
    const item=byId.get(row.selectedId);
    if(!item||item.bought||item.hidden||item.inStock)throw Error('Produit déjà acheté ou non disponible dans la liste');
-   pending.push({kind:'existing',item,price:round(cost)});
+   pending.push({kind:'existing',item,price:round(cost),quantityConfirmed:row.quantityConfirmed===true});
  }
  if(!pending.length)throw Error('Choisir au moins une ligne à importer.');
  // Toutes les validations précèdent les mutations : échec = aucune dépense fantôme.
@@ -120,7 +122,8 @@ export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={})
      const found=row.item.kind==='manual'?month.manualItems.find(x=>x.id===row.item.id):
        row.item.kind==='auto'?month.autoPurchases[row.item.id]:month.groceries.find(x=>x.id===row.item.id);
      if(found){found.actualConfirmed=true;found.receiptId=receipt.fingerprint;}
-     if(row.item.kind!=='auto')adjustments.push(...learnFromConfirmedPurchase(state,month,row.item,row.price));
+     // On n'apprend pas de prix unitaire si le poids ou le conditionnement du ticket n'a pas été vérifié.
+     if(row.item.kind!=='auto'&&row.quantityConfirmed)adjustments.push(...learnFromConfirmedPurchase(state,month,row.item,row.price));
    }
  }
  month.receiptImports.push({fingerprint:receipt.fingerprint,at:now,
