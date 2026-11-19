@@ -90,7 +90,7 @@ export function parseReceiptText(raw){
 }
 export function recommendReceiptMatches(parsed,month,week){
  const entries=allShoppingEntries(month).filter(e=>!e.bought&&!e.hidden&&!e.inStock);
- const used=new Set();
+ const used=new Set(),byPrintedLabel=new Map();
  const result=[];
  for(const line of parsed.lines){
    const t=tokens(line.label),candidates=[];
@@ -108,8 +108,12 @@ export function recommendReceiptMatches(parsed,month,week){
    // Pas de rapprochement automatique pour les descriptions trop vagues/ambiguës.
    const canSuggest=!!first&&first.score>=0.65&&first.adjusted>=0.77&&
      (!second||first.adjusted-second.adjusted>=0.10)&&!used.has(first.id);
-   const selectedId=canSuggest?first.id:'';
-   if(selectedId)used.add(selectedId);
+   // Plusieurs lignes identiques d'un ticket désignent souvent des emballages
+   // d'un même article prévu. Les regrouper, avec vérification à l'import.
+   const earlier=byPrintedLabel.get(norm(line.label));
+   const repeated=earlier&&candidates.some(x=>x.id===earlier&&x.score>=0.65);
+   const selectedId=repeated?earlier:canSuggest?first.id:'';
+   if(selectedId){used.add(selectedId);byPrintedLabel.set(norm(line.label),selectedId);}
    result.push({...line,selectedId,confidence:canSuggest?'probable':'à vérifier',candidates:candidates.slice(0,5)});
  }
  return result;
