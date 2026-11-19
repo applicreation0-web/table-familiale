@@ -181,11 +181,13 @@ export const BASE_SHOPPING = [
     "id": "base-0-2",
     "name": "Carottes",
     "qty": "4 kg",
-    "price": 4,
+    "price": 3,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 0,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-0-3",
@@ -395,11 +397,13 @@ export const BASE_SHOPPING = [
     "id": "base-1-2",
     "name": "Carottes",
     "qty": "3 kg",
-    "price": 3,
+    "price": 2.25,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 1,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-1-3",
@@ -657,11 +661,13 @@ export const BASE_SHOPPING = [
     "id": "base-2-2",
     "name": "Carottes",
     "qty": "2 kg",
-    "price": 2,
+    "price": 1.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 2,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-2-3",
@@ -879,11 +885,13 @@ export const BASE_SHOPPING = [
     "id": "base-3-2",
     "name": "Carottes",
     "qty": "2 kg",
-    "price": 2,
+    "price": 1.5,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 3,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-3-3",
@@ -1091,11 +1099,13 @@ export const BASE_SHOPPING = [
     "id": "base-4-1",
     "name": "Carottes",
     "qty": "3 kg",
-    "price": 3,
+    "price": 2.25,
     "supplier": "M&S",
     "purchase": "weekly",
     "week": 4,
-    "category": "F"
+    "category": "F",
+    "priceStatus": "provisional",
+    "sourceUrl": "https://www.ocado.com/products/m-s-british-carrots/518554011"
   },
   {
     "id": "base-4-3",
