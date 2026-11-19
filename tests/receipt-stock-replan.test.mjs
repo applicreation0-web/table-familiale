@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newState,finance,validateImport} from '../model.js';
-import {parseReceiptText,recommendReceiptMatches} from '../receipt.js';
+import {newState,finance,validateImport,shoppingEntries} from '../model.js';
+import {parseReceiptText,recommendReceiptMatches,applyReceiptReview} from '../receipt.js';
 import {FAMILY_PLAN} from '../meal-plan.js';
 import {receiptIngredientCategory,noteCompletedReceiptWeek,
  rearrangeMissingSalmon,restoreAutoAdjustedMeal} from '../receipt-stock.js';
@@ -97,4 +97,33 @@ test('ticket complet : préférer les pâtes aux courgettes et tomates sans from
  assert.equal(m.meals[2].name,'Pennes complètes aux courgettes et tomates');
  assert.equal(m.meals[2].ingredients.some(x=>/Fromage|cheddar/i.test(x.name)),false);
  assert.equal(m.meals[2].ingredients.find(x=>x.name==='Tomates concassées')?.quantity,300);
+});
+
+test('carottes M&S réf. 29087914 : afficher 1 kg réellement acheté, pas les 3 kg prévus',()=>{
+ const state=newState(),month=state.months['0'];
+ const carrots=month.groceries.find(x=>x.week===0&&x.name==='Carottes');
+ assert.ok(carrots.qty.includes('3 kg')); // Besoin du menu, pas achat réel.
+ const parsed=parseReceiptText('29087914 ORG CARROTS £1.60<\nBalance to Pay £1.60');
+ applyReceiptReview(state,month,parsed,[{
+  ...parsed.lines[0],selectedId:carrots.id,quantityConfirmed:false
+ }]);
+ assert.equal(carrots.receiptQty,1);
+ assert.equal(carrots.receiptQtyUnit,'kg');
+ assert.equal(shoppingEntries(month,0,false).find(x=>x.id===carrots.id).qty,'1 kg');
+ assert.ok(carrots.qty.includes('3 kg')); // Cible théorique conservée.
+ assert.equal(carrots.actual,1.60);
+ assert.equal(finance(month).paid,1.60);
+ const reloaded=validateImport(JSON.parse(JSON.stringify(state)));
+ assert.equal(reloaded.months['0'].groceries.find(x=>x.id===carrots.id).receiptQty,1);
+});
+test('deux boîtes de 12 œufs du même ticket = 24 œufs payés sans doublon',()=>{
+ const state=newState(),month=state.months['0'];
+ const eggs=month.groceries.find(x=>x.week===0&&x.name==='Œufs');
+ const parsed=parseReceiptText('29089635 MIXED EGGS X1 £5.40<\n29089635 MIXED EGGS X1 £5.40<\nBalance to Pay £10.80');
+ const rows=parsed.lines.map(x=>({...x,selectedId:eggs.id,quantityConfirmed:false}));
+ applyReceiptReview(state,month,parsed,rows);
+ assert.equal(eggs.actual,10.80);
+ assert.equal(eggs.receiptQty,24);
+ assert.equal(shoppingEntries(month,0,false).find(x=>x.id===eggs.id).qty,'2 × 12 œufs (24 œufs)');
+ assert.equal(finance(month).paid,10.80);
 });
