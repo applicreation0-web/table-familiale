@@ -48,7 +48,9 @@ export function parseReceiptText(raw){
      if(EXCLUDED.test(label)||cost===0){previous='';continue}
      const finalLabel=label.length>=2?label:previous;
      previous='';
-     if(finalLabel.length<2||/^[\d£\s.,-]+$/.test(finalLabel))continue;
+     if(finalLabel.length<2||/^[\d£\s.,-]+$/.test(finalLabel)||
+        /\b\d{2}[\/.-]\d{2}[\/.-](?:20\d{2})\b/.test(finalLabel)||
+        !/[A-Za-zÀ-ÿ]{2}/.test(finalLabel))continue;
      lines.push({id:'line-'+i,label:finalLabel,amount:cost});
    }else if(!EXCLUDED.test(line)&&!/[£\d]{1,4}[.,]\d{2}/.test(line)&&line.length>=3){
      previous=line;
