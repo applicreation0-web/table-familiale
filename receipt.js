@@ -104,7 +104,8 @@ const SKU_NAMES={
  '29095773':/^Citrons$/,
  '00199032':/^Ail$/,
  '29481385':/^Yaourt grec M&S Collection$/,
- '29091188':/^Fromage M&S/,
+ // Le cheddar râpé n'est pas assimilé au fromage à présure végétale
+ // sans contrôle de l'emballage (régime halal).
  '29495511':/^Flocons d’avoine$/,
  '00821964':/^Tomates concassées$/,
  '29173204':/^Purée de cacahuètes$/,
@@ -113,6 +114,29 @@ const SKU_NAMES={
  '00089241':/^Pâtes complètes$/,
  '00905350':/^Poivrons$/
 };
+// Conditionnements produits publiés, pas des poids déduits d'un OCR flou.
+// Les carottes M&S réf. 29087914 sont officiellement vendues en sachet de 1 kg.
+// Un conditionnement reconnu corrige l'affichage du PAQUET ACHETÉ,
+// sans changer le modèle des besoins ni créditer un article supplémentaire.
+const SKU_PACK={
+ '29087914':{value:1,unit:'kg'},
+ '29089635':{value:12,unit:'œufs'},
+ '5036589201601':{value:2,unit:'L'},
+ '00328739':{value:2.272,unit:'L'},
+ '3282380060219':{value:250,unit:'g'}
+};
+function receiptQtyFromGroup(skus,item){
+ if(!Array.isArray(skus)||!skus.length)return null;
+ const packs=skus.map(s=>SKU_PACK[s]);
+ if(packs.some(p=>!p)||!packs.every(p=>p.unit===packs[0].unit))return null;
+ if(!skus.every(s=>SKU_NAMES[s]?.test(item.name)))return null;
+ const unit=packs[0].unit;
+ const amount=Math.round(packs.reduce((n,p)=>n+p.value,0)*1000)/1000;
+ const size=packs[0].value;
+ const text=skus.length===1?amount+' '+unit:
+   skus.length+' × '+size+' '+unit+' ('+amount+' '+unit+')';
+ return {value:amount,unit,text,packageCount:skus.length};
+}
 export function recommendReceiptMatches(parsed,month,week){
  const entries=allShoppingEntries(month).filter(e=>!e.bought&&!e.hidden&&!e.inStock);
  const used=new Set(),byPrintedLabel=new Map();
@@ -177,9 +201,10 @@ export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={})
      group.price=round(group.price+cost);
      group.quantityConfirmed=group.quantityConfirmed&&row.quantityConfirmed===true;
      group.lineCount++;
+     group.skus.push(row.sku||null);
    }else{
      const group={kind:'existing',item,price:round(cost),
-       quantityConfirmed:row.quantityConfirmed===true,lineCount:1};
+       quantityConfirmed:row.quantityConfirmed===true,lineCount:1,skus:[row.sku||null]};
      grouped.set(item.id,group);
      pending.push(group);
    }
@@ -195,7 +220,17 @@ export function applyReceiptReview(state,month,receipt,rows,{supplier='M&S'}={})
      markBought(month,row.item,true,row.price);
      const found=row.item.kind==='manual'?month.manualItems.find(x=>x.id===row.item.id):
        row.item.kind==='auto'?month.autoPurchases[row.item.id]:month.groceries.find(x=>x.id===row.item.id);
-     if(found){found.actualConfirmed=true;found.receiptId=receipt.fingerprint;}
+     if(found){
+       found.actualConfirmed=true;found.receiptId=receipt.fingerprint;
+       if(row.item.kind==='base'){
+         const packageQty=receiptQtyFromGroup(row.skus,found);
+         if(packageQty){
+           found.receiptQtyText=packageQty.text;
+           found.receiptQty=packageQty.value;
+           found.receiptQtyUnit=packageQty.unit;
+         }
+       }
+     }
      // On n'apprend pas de prix unitaire si le poids ou le conditionnement du ticket n'a pas été vérifié.
      if(row.item.kind!=='auto'&&row.quantityConfirmed)adjustments.push(...learnFromConfirmedPurchase(state,month,row.item,row.price));
    }
