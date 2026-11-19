@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newState,finance,validateImport,shoppingEntries} from '../model.js';
+import {newState,finance,validateImport,shoppingEntries,suggestedPurchases} from '../model.js';
 import {parseReceiptText,recommendReceiptMatches,applyReceiptReview} from '../receipt.js';
 import {FAMILY_PLAN} from '../meal-plan.js';
 import {receiptIngredientCategory,noteCompletedReceiptWeek,
@@ -97,6 +97,9 @@ test('ticket complet : préférer les pâtes aux courgettes et tomates sans from
  assert.equal(m.meals[2].name,'Pennes complètes aux courgettes et tomates');
  assert.equal(m.meals[2].ingredients.some(x=>/Fromage|cheddar/i.test(x.name)),false);
  assert.equal(m.meals[2].ingredients.find(x=>x.name==='Tomates concassées')?.quantity,300);
+ const additions=suggestedPurchases(m).filter(x=>x.week===0);
+ assert.ok(!additions.some(x=>['Pâtes complètes','Courgettes','Tomates concassées','Ail'].includes(x.name)),
+   'Ne pas réclamer une seconde fois des ingrédients déjà relevés sur le ticket');
 });
 
 test('carottes M&S réf. 29087914 : afficher 1 kg réellement acheté, pas les 3 kg prévus',()=>{
