@@ -2,7 +2,7 @@
 
 **Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
 **Dépôt :** https://github.com/applicreation0-web/table-familiale  
-**Version des données : v8** — mise à jour du 18 novembre 2026.
+**Version des données : v9 (correctif non publié)** — mise à jour du 19 novembre 2026.
 
 ## Règles du programme familial
 
@@ -12,7 +12,7 @@ Famille de **cinq personnes** (deux adultes et trois enfants), aliments halal, q
 - Un **plat africain différent par bloc de sept jours** : mafé d'agneau, riz à la viande, poulet yassa, yassa poisson, thiou au poulet. Préparation pour **deux jours consécutifs**, une seule cuisson de **10 portions**, servies en deux repas de 5 portions (une fois/jour).
 - **31 jours** pour la première période, du 20 novembre au 20 décembre 2026. Les périodes suivantes respectent la durée réelle des mois, avec menus adaptés aux jours disponibles.
 - **16 journées viande**, **7 poisson**, **8 végétariennes**. Aucun plat actif au maquereau ; les anciennes recettes restent dans le catalogue historique pour éviter la perte de sauvegardes.
-- **4 bouteilles Yeo Valley 2 L par semaine complète (8 L)** ; yaourt grec M&S Collection 3 kg/semaine complète ; **24 œufs** par semaine sans pâtisserie optionnelle, **30** si option activée. Les œufs requis pour les quiches font partie du besoin de base, pas de l'option pâtisserie.
+- **4 bouteilles Yeo Valley 2 L par semaine complète (8 L)** ; yaourt grec M&S Collection 3 kg/semaine complète ; **24 œufs maximum** par semaine, pâtisserie comprise ; beurre M&S 250 g chaque semaine, y compris la semaine partielle. Les œufs requis pour les quiches font partie du besoin de base, pas de l'option pâtisserie.
 - M&S prioritaire pour les fruits, légumes, saumons, laitages et pâte brisée ; Saffron Alley pour les viandes halal ; Dining Solutions pour le carton de cabillaud du yassa.
 
 ## Poissons et deux nouvelles quiches
@@ -39,7 +39,7 @@ Le tarif de livraison Healthy Supplies sous le seuil de gratuité est **à confi
 
 ## Finances et contrôle de la qualité
 
-**Panier prévisionnel sans pâtisserie optionnelle : 894,88 £**, dont 5 £ de réserve pour la livraison des noix. Le plafond est **900 £**, soit une **marge fragile de 5,12 £**. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
+**Panier révisé sans pâtisserie optionnelle : 918,88 £**, dont 5 £ de réserve pour la livraison des noix. Le plafond demeure **900 £** : **dépassement prévisionnel de 18,88 £**, publication bloquée. Le pain complet est provisionné à **3,50 £ l'unité** sur cinq semaines, prix communiqué par l'utilisateur sans référence produit vérifiée. Le total peut dépasser 900 £ selon le prix réel, la disponibilité des formats, les promotions expirées, la livraison et les dépenses additionnelles. Ne jamais dire que le plafond est garanti avant réconciliation des tickets et du coût de livraison.
 
 Sources de prix indicatifs, à vérifier avant de passer commande :
 - [Pâte brisée M&S 320 g — 2 £](https://www.ocado.com/products/M-S-Ready-Rolled-Shortcrust-Pastry/606567011)
@@ -53,7 +53,7 @@ L'application affiche clairement les **prix provisoires**, la marge fragile, les
 
 ## Utilisation, sauvegardes et migrations
 
-Le navigateur conserve les périodes, achats, plats modifiés et reçus **localement**. L'onglet Suivi permet d'exporter une sauvegarde JSON avant changement de téléphone ou nettoyage de cache. Les versions **v2 à v7 migrent vers v8** : repas cuisinés, recettes personnalisées, achats payés et produits personnels conservés. Les mackerels ou noix déjà payés restent dans les comptes ; l'utilisateur doit vérifier son stock avant de re-commander les alternatives. Une recette déjà faite n'est pas secrètement remplacée par une quiche.
+Le navigateur conserve les périodes, achats, plats modifiés et reçus **localement**. L'onglet Suivi permet d'exporter une sauvegarde JSON avant changement de téléphone ou nettoyage de cache. Les versions **v2 à v8 migrent vers v9** : repas cuisinés, recettes personnalisées, achats payés et produits personnels conservés. Les mackerels ou noix déjà payés restent dans les comptes ; l'utilisateur doit vérifier son stock avant de re-commander les alternatives. Une recette déjà faite n'est pas secrètement remplacée par une quiche.
 
 La PWA peut être installée depuis Chrome Android (« Ajouter à l'écran d'accueil ») et peut fonctionner hors connexion après la mise en cache. La publication GitHub **ne redéploie pas automatiquement** Vercel ; il faut déployer le commit vérifié en production.
 
@@ -80,3 +80,13 @@ Les tests auditent : calendrier, portions, types viande/poisson/végétarien, de
 La release Android privée est générée par `.github/workflows/android-release-private.yml`, uniquement avec le keystore stable fourni comme **secrets du dépôt**. Quatre noms sont attendus : `TABLE_FAMILIALE_KEYSTORE_BASE64`, `TABLE_FAMILIALE_STORE_PASSWORD`, `TABLE_FAMILIALE_KEY_ALIAS`, `TABLE_FAMILIALE_KEY_PASSWORD`. Il ne faut jamais les mettre dans le code ou un ticket. En cas de succès, récupérer l'APK **1.0.8** signée et son **SHA256SUMS** dans l'artefact GitHub Actions `table-familiale-android-officiel` ; rétention de 7 jours. Ne pas confondre `app-debug.apk` et l'APK privée signée : leurs certificats sont différents et une installation debug n'est pas remplaçable directement par l'APK signée sans désinstallation. Exporter la sauvegarde avant toute désinstallation.
 
 Les contrôles automatisés ont été réalisés sur Linux CI ; un essai de la feuille de partage et de l'import sur un vrai téléphone Android reste à faire.
+
+
+## Correctif pré-publication du 19 novembre 2026 — NO-GO budget
+
+- Beurre M&S : **250 g chaque semaine**, sans dépendance à l'option pâtisserie (5 achats sur 31 jours, soit 14,50 £).
+- Œufs : **24 maximum par semaine**, avec ou sans pâtisserie. Les quatre semaines complètes restent à 24 œufs et la semaine partielle à 12 œufs ; aucun complément automatique de six œufs. Les œufs des repas sont soustraits du stock prévu pour les petits-déjeuners et la pâtisserie.
+- Pain complet : **3,50 £ par pain**, cinq achats, soit 17,50 £ au lieu de 8 £. Prix communiqué par l'utilisateur ; la référence précise reste à identifier avant de prétendre à une vérification en magasin.
+- Budget : ancienne prévision 894,88 £ + 14,50 £ beurre + 9,50 £ pain = **918,88 £**. Dépassement du plafond de **18,88 £**, sans inventer d'économie.
+- Les achats déjà payés et repas déjà validés sont conservés à l'import v8→v9. Un ancien achat de 30 œufs reste historique avec avertissement et ne déclenche pas de réassort.
+- **Publication officielle suspendue** tant que des économies réelles d'au moins 18,88 £, sans dégrader la qualité ni sous-estimer les quantités, ne sont pas établies.
