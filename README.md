@@ -1,5 +1,14 @@
 # Table Familiale — menus, achats et plafond de 900 £
 
+## Révision vérifiée au 19 novembre 2026 — ticket M&S réel (PR #11)
+
+Le ticket photographié contient **43 lignes d'articles totalisant 117,15 £** et une remise parking de **1,50 £** : montant réglé **115,65 £**. La transcription de ce ticket est désormais un test de régression du parseur (EAN à gauche, montant suivi de « < », texte OCR multi-colonnes, montant dû et remises). **Cela ne valide pas encore le traitement d'une véritable photo sur Android**, qui nécessite une recette sur téléphone.
+
+Prix de référence confirmé auprès de M&S pour **Organic Mixed Eggs x12 à 5,40 £ le paquet**, cohérent avec le reçu (deux paquets = 24 œufs pour 10,80 £). Le modèle v12 utilise **10,80 £ pour chacune des quatre semaines complètes** et **5,40 £ pour la semaine partielle** ; les achats déjà payés, les prix manuels et les observations apprises restent prioritaires et intacts. L'ancien budget de 8,80 £/24 œufs était sous-estimé.
+
+**Panier v12 à quantités inchangées** : **898,08 £ sans pâtisserie facultative** (marge 1,92 £), ou **903,88 £ si la pâtisserie est activée les cinq semaines** (dépassement de 3,88 £). Ces montants demeurent provisoires : quantités de lait, produits achetés hors liste et formats réels demandent une confrontation à plusieurs tickets. Ne pas réduire la consommation à partir d'un ticket isolé ni qualifier ce panier de garanti sous 900 £.
+
+
 **Application web/PWA :** https://table-familiale-ibrahima-diallo-4768.vercel.app/  
 **Dépôt :** https://github.com/applicreation0-web/table-familiale  
 **Version du paquet Android : 1.0.12, signée en privé** · **Version des données : v11** — audit des prix et tickets du 19 novembre 2026. — mise à jour du 19 novembre 2026.
