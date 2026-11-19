@@ -7,7 +7,7 @@ import {compareReceiptToPlan} from './receipt-benchmark.js';
 import {captureReceiptText,nativeReceiptAvailable} from './receipt-ocr.js';
 import {FAMILY_PLAN} from './meal-plan.js';
 import {
- BREAKFASTS, SUPPLIERS, KIND_NAMES, HARD_CEILING, money, period, periodDays, dateISO, clone,
+ BREAKFASTS, FAMILY_PROFILE, quantityAudit, SUPPLIERS, KIND_NAMES, HARD_CEILING, money, period, periodDays, dateISO, clone,
  makeMonth, newState, ingredientChanges, suggestedPurchases, shoppingEntries,
  allShoppingEntries, finance, saveDish, swapDishes, toggleCooked, markBought, markInStock, setBakingWeek, isBakingWeek, weeklyEggSummary, validateImport
 } from './model.js';
@@ -70,7 +70,7 @@ function render(){
  if(selectedWeek>=weeks())selectedWeek=weeks()-1;
  const n=month.meals.length, countProtein=month.meals.filter(m=>m.kind!=='V').length;
  document.title='Table Familiale · '+dates.start.toLocaleDateString('fr-FR',{month:'short',year:'numeric'});
- root.innerHTML=`<div class="topbar"><div class="brand"><span class="brand-icon">${icon('chef',20)}</span><strong>TABLE FAMILIALE</strong></div><span class="top-family">5 personnes · repas halal</span></div>
+ root.innerHTML=`<div class="topbar"><div class="brand"><span class="brand-icon">${icon('chef',20)}</span><strong>TABLE FAMILIALE</strong></div><span class="top-family">2 adultes · 3 enfants (3–10 ans) · halal</span></div>
  <main class="app">
  <header class="intro"><div class="intro-copy"><span class="overline">CARNET DE MENUS & COURSES</span><h1>Le plaisir de <em>bien s'organiser.</em></h1><p>Les repas de toute la famille, les courses de la semaine et le budget maîtrisé.</p></div>
  <div class="period-switch"><button class="icon-button" data-action="previous-period" ${state.selectedPeriod===0?'disabled':''} aria-label="Mois précédent">${icon('left')}</button><span><small>Période suivie</small><b>${fmt(dates.start)} — ${fmt(dates.end)} ${dates.end.getFullYear()}</b></span><button class="icon-button" data-action="next-period" aria-label="Mois suivant">${icon('right')}</button></div></header>
@@ -125,6 +125,15 @@ function renderCourses(month){
  const isMonthly=shopMode==='monthly',rows=shoppingEntries(month,selectedWeek,isMonthly);
  const changes=ingredientChanges(month).filter(x=>isMonthly?x.monthOnly:x.week===selectedWeek&&!x.monthOnly);
  const cuts=changes.filter(x=>x.delta<0);
+ const portionComparisons=isMonthly?[]:quantityAudit(month,selectedWeek);
+ const portionHtml=portionComparisons.length?'<details class="dismissed"><summary>Quantités recalculées pour 2 adultes + 3 enfants · '+portionComparisons.length+' légumes suivis</summary>'+
+  '<div class="quantity-audit">'+portionComparisons.map(q=>
+   '<div><b>'+esc(q.name)+'</b> · Besoin recette '+q.recipeKg+' kg · Sacs conseillés '+q.proposedKg+' kg'+
+   (q.plannedKg!=null?' · Panier '+q.plannedKg+' kg':' · Format à vérifier')+
+   (q.paid?' · Achat payé conservé':q.manuallyChanged?' · Quantité manuelle conservée':'')+
+   '</div>').join('')+
+  '<small>Hypothèse de portions, pas rationnement. Carottes bio à 1,60 £/kg confirmé ; autres prix indicatifs. Ajuster selon appétit et stocks.</small></div></details>':'';
+
  const hidden=[...month.groceries,...month.manualItems].filter(x=>x.hidden&&(isMonthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===selectedWeek));
  const skipped=changes.filter(x=>x.delta>0&&month.autoPurchases[x.id]?.skip);
  const total=rows.reduce((a,x)=>a+Number(x.estimate??0),0), unknown=rows.filter(x=>!x.bought&&x.estimate==null).length;
@@ -132,6 +141,7 @@ function renderCourses(month){
  return `<div class="section-title"><div><span class="overline">PANIER PRÉVISIONNEL</span><h2>Les courses</h2><p>Viandes halal, cabillaud Dining et deux grands contenants de noix bio en achats groupés ; saumons M&S et ingrédients des quiches répartis par semaine.</p></div><div class="action-line"><button class="button outline" data-action="scan-receipt">${icon('upload',17)} Lire un ticket</button><button class="button outline" data-action="add-product">${icon('plus',17)} Ajouter</button></div></div>
  <div class="choice-row"><button class="button ${!isMonthly?'primary':'outline'}" data-action="shopping-week">Courses M&S · semaine</button><button class="button ${isMonthly?'primary':'outline'}" data-action="shopping-month">Achats groupés · mois</button></div>
  ${isMonthly?`<div class="banner success">${icon('cart',20)} <div><b>Une seule commande au début du mois</b><span>Hubbard, agneau, cuisses halal, un carton de cabillaud Dining, fonio et 2 grands pots de noix bio à remplir. Pour les noix, la vente est en sachets de 500 g : les pots réutilisables ne sont pas fournis. Frais de port provisionnés à 5 £, à confirmer.</span></div></div>`:weekHeader(month,true)+bakingSwitch(month)}
+ ${portionHtml}
  ${cuts.length?`<div class="banner caution">${icon('alert')} <div><b>Ingrédients moins nécessaires après modification</b><span>${cuts.map(x=>`${esc(x.name)} (−${x.quantity} ${esc(x.unit)})`).join(' · ')}. Vérifie si tu peux réduire l'achat initial, sans perdre les produits déjà achetés.</span></div></div>`:''}
  <div class="shopping-tools"><input id="search-products" placeholder="Rechercher un ingrédient..." value="${esc(search)}" aria-label="Rechercher un ingrédient"/><span>${rows.filter(x=>x.bought).length}/${rows.length} achetés</span></div>
  ${group.length?group.map(([shop,list])=>`<section class="shop-panel"><header><strong>${esc(shop)}</strong><span>${money(list.reduce((s,i)=>s+Number(i.estimate??0),0))} prévus</span></header><div class="product-list">${list.map(renderShopItem).join('')}</div></section>`).join(''):`<div class="empty">Aucun produit correspondant.</div>`}
