@@ -26,6 +26,7 @@ try{state=validateImport(JSON.parse(localStorage.getItem(STORAGE)));localStorage
 if(state.months?.['0']&&applyUserConfirmedNoSalmonWeek1(state.months['0']).changed.length)
   localStorage.setItem(STORAGE,JSON.stringify(state));
 let activeTab='menus', selectedWeek=0, shopMode='week', search='', draft=null, modalType=null, toastTimeout=null, receiptDraft=null;
+const showPrices=()=>state.displayPrices===true;
 const icon=(name,size=18)=>{
  const icons={
    calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
@@ -74,24 +75,27 @@ function groupBySupplier(entries){
  return [...m];
 }
 function render(){
+ document.body.dataset.priceMode=showPrices()?'on':'off';
  const month=getMonth(), f=finance(month),days=activeDates(),dates=period(state.selectedPeriod);
  if(selectedWeek>=weeks())selectedWeek=weeks()-1;
  const n=month.meals.length, countProtein=month.meals.filter(m=>m.kind!=='V').length;
  document.title='Table Familiale · '+dates.start.toLocaleDateString('fr-FR',{month:'short',year:'numeric'});
  root.innerHTML=`<div class="topbar"><div class="brand"><span class="brand-icon">${icon('chef',20)}</span><strong>TABLE FAMILIALE</strong></div><span class="top-family">2 adultes · 3 enfants (3–10 ans) · halal</span></div>
  <main class="app">
- <header class="intro"><div class="intro-copy"><span class="overline">CARNET DE MENUS & COURSES</span><h1>Le plaisir de <em>bien s'organiser.</em></h1><p>Les repas de toute la famille, les courses de la semaine et le budget maîtrisé.</p></div>
- <div class="period-switch"><button class="icon-button" data-action="previous-period" ${state.selectedPeriod===0?'disabled':''} aria-label="Mois précédent">${icon('left')}</button><span><small>Période suivie</small><b>${fmt(dates.start)} — ${fmt(dates.end)} ${dates.end.getFullYear()}</b></span><button class="icon-button" data-action="next-period" aria-label="Mois suivant">${icon('right')}</button></div></header>
- <section class="summary-grid" aria-label="Budget et progression"><div class="budget-card"><div class="budget-heading"><span>${icon('wallet',18)} Budget mensuel · plafond strict</span><span class="budget-pill">Maximum ${money(HARD_CEILING)}</span></div><div class="budget-number">${money(f.paid)} <small>dépensés</small></div><div class="track"><div style="width:${Math.min(100,100*f.paid/month.budget)}%"></div></div><div class="budget-bottom"><span>Prévision <b>${money(f.forecast)}</b></span><span class="${f.forecastHeadroom<0?'budget-warning':'budget-safe'}">${f.forecastHeadroom<0?'Dépassement':'Marge'} <b>${money(Math.abs(f.forecastHeadroom))}</b></span></div></div>
+ <header class="intro"><div class="intro-copy"><span class="overline">CARNET DE MENUS & COURSES</span><h1>Le plaisir de <em>bien s'organiser.</em></h1><p>Les repas de toute la famille et les courses de la semaine, sans prix à saisir.</p></div>
+ <div class="period-switch"><button class="icon-button" data-action="previous-period" ${state.selectedPeriod===0?'disabled':''} aria-label="Mois précédent">${icon('left')}</button><span><small>Période suivie</small><b>${fmt(dates.start)} — ${fmt(dates.end)} ${dates.end.getFullYear()}</b></span><button class="icon-button" data-action="next-period" aria-label="Mois suivant">${icon('right')}</button></div><button class="button outline" data-action="toggle-prices">${showPrices()?'Masquer les prix':'Afficher les prix (facultatif)'}</button></header>
+ <section class="summary-grid" aria-label="Suivi des repas et des courses"><div class="budget-card"><div class="budget-heading"><span>${icon('wallet',18)} Budget mensuel · plafond strict</span><span class="budget-pill">Maximum ${money(HARD_CEILING)}</span></div><div class="budget-number">${money(f.paid)} <small>dépensés</small></div><div class="track"><div style="width:${Math.min(100,100*f.paid/month.budget)}%"></div></div><div class="budget-bottom"><span>Prévision <b>${money(f.forecast)}</b></span><span class="${f.forecastHeadroom<0?'budget-warning':'budget-safe'}">${f.forecastHeadroom<0?'Dépassement':'Marge'} <b>${money(Math.abs(f.forecastHeadroom))}</b></span></div></div>
  <div class="stat"><div class="stat-icon">${icon('chef',22)}</div><strong>${f.cooked}<small> / ${n}</small></strong><span>journées cuisinées</span></div>
  <div class="stat"><div class="stat-icon">${icon('basket',22)}</div><strong>${f.bought}<small> / ${f.total}</small></strong><span>courses enregistrées</span></div></section>
  <div class="meta"><span>${icon('fish',16)} ${countProtein} jours viande ou poisson</span><span>${icon('leaf',16)} ${n-countProtein} journées végétariennes</span><span>1 plat africain / semaine · 10 portions sur 2 jours</span></div>
+ <div class="price-notice">
  ${f.unknownCount?`<div class="banner caution">${icon('alert')} <span>${f.unknownCount} produit(s) ajouté(s) sans prix : la prévision du budget est incomplète. Renseigne leur prix dans « Courses ».</span></div>`:''}
   ${f.forecast>HARD_CEILING?`<div class="banner caution">${icon('alert')} <span><b>Plafond strict de ${money(HARD_CEILING)} dépassé de ${money(f.forecast-HARD_CEILING)}.</b> Ne validez pas le panier avant d'avoir réajusté les achats ou vérifié les prix réels.</span></div>`:f.unknownCount?`<div class="banner caution">${icon('alert')} <span>Prévision inférieure à ${money(HARD_CEILING)}, mais impossible de confirmer la marge : des prix manquent.</span></div>`:f.forecastHeadroom<20?`<div class="banner caution">${icon('alert')} <span><b>Prévision ${money(f.forecast)} · marge fragile ${money(f.forecastHeadroom)}.</b> Les prix M&S, les conditionnements et les frais de livraison des noix bio doivent être confirmés avant achat.</span></div>`:`<div class="banner success">${icon('check')} <span><b>Prévision sous ${money(HARD_CEILING)} :</b> marge ${money(f.forecastHeadroom)}. Vérifier les tarifs à la commande.</span></div>`}
-  ${month.reconcileWarnings?.length?`<div class="banner caution">${icon('alert')} <span>${month.reconcileWarnings.length} point(s) de réconciliation (achats, recettes ou stock). Vérifiez dans la sauvegarde avant de racheter des produits.</span></div>`:''}
- <nav class="tabs" aria-label="Sections">${[['menus','calendar','Menus'],['courses','basket','Courses'],['depenses','wallet','Dépenses'],['suivi','archive','Suivi']].map(([id,ico,label])=>`<button class="tab ${activeTab===id?'active':''}" data-action="tab" data-tab="${id}" aria-current="${activeTab===id?'page':'false'}">${icon(ico,18)}<span>${label}</span></button>`).join('')}</nav>
+  </div>
+ ${month.reconcileWarnings?.length?`<div class="banner caution">${icon('alert')} <span>${month.reconcileWarnings.length} point(s) de réconciliation (achats, recettes ou stock). Vérifiez dans la sauvegarde avant de racheter des produits.</span></div>`:''}
+ <nav class="tabs" aria-label="Sections">${[['menus','calendar','Menus'],['courses','basket','Courses'],['depenses','wallet','Dépenses'],['suivi','archive','Suivi']].filter(([id])=>showPrices()||id!=='depenses').map(([id,ico,label])=>`<button class="tab ${activeTab===id?'active':''}" data-action="tab" data-tab="${id}" aria-current="${activeTab===id?'page':'false'}">${icon(ico,18)}<span>${label}</span></button>`).join('')}</nav>
  <div id="screen">${activeTab==='menus'?renderMenus(month,days):activeTab==='courses'?renderCourses(month):activeTab==='depenses'?renderFinance(month,f):renderHistory(month,f)}</div>
- <footer>Table Familiale · Prix M&S indicatifs · Pour les enfants : noix finement moulues · Données conservées sur cet appareil · Export JSON conseillé avant désinstallation</footer>
+ <footer>Table Familiale · Liste de courses sans prix obligatoire · Pour les enfants : noix finement moulues · Données conservées sur cet appareil · Export JSON conseillé avant désinstallation</footer>
  </main>`;
 }
 function weekHeader(month,months=false){
@@ -132,7 +136,7 @@ function renderShopItem(item){
  const bought=!!item.bought;
  const priceInput=bought?`<label class="actual-entry"><span>Payé (£)</span><input type="number" step="0.01" min="0" value="${Number(item.actual??estimate??0)}" data-action="actual-change" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Prix payé ${name}"/></label>`:kind==='auto'&&estimate==null?`<label class="actual-entry"><span>Prévision (£)</span><input type="number" step="0.01" min="0" placeholder="À saisir" data-action="auto-estimate" data-id="${esc(item.id)}" aria-label="Prix prévu ${name}" /></label>`:`<b class="listed-price">${planned}</b>`;
  const actions=kind==='auto'&&!bought?`<button class="icon-button tiny" data-action="skip-auto" data-id="${esc(item.id)}" title="Déjà en stock" aria-label="Déjà en stock : ${name}">${icon('home',15)}</button>`:kind==='auto'?'':!bought?`<button class="icon-button tiny" data-action="mark-stock" data-id="${esc(item.id)}" data-kind="${kind}" title="Déjà à la maison" aria-label="Déjà en stock : ${name}">${icon('home',14)}</button><button class="icon-button tiny" data-action="edit-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Modifier ${name}">${icon('pen',14)}</button><button class="icon-button tiny" data-action="hide-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Retirer ${name}">${icon('close',14)}</button>`:'';
- return `<div class="product ${bought?'checked':''}"><input type="checkbox" class="shop-check" ${bought?'checked':''} data-action="check-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Acheter ${name}"/><div class="product-description"><strong>${name}${item.priceStatus==='provisional'?' <span class="auto-tag">Prix à confirmer</span>':''}${learned?' <span class="auto-tag">Prix réel répercuté</span>':''}${kind==='auto'?' <span class="auto-tag">Nouveau</span>':''}</strong><small>${esc(item.qty)}${kind==='auto'?' · ajouté suite au menu':''}</small>${item.priceStatus==='provisional'?`<small>Tarif, emballage et livraison à confirmer ${item.sourceUrl?`· <a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Voir le produit</a>`:''}</small>`:''}</div><div class="product-right">${priceInput}${actions}</div></div>`;
+ return `<div class="product ${bought?'checked':''}"><input type="checkbox" class="shop-check" ${bought?'checked':''} data-action="check-product" data-id="${esc(item.id)}" data-kind="${kind}" aria-label="Acheter ${name}"/><div class="product-description"><strong>${name}${showPrices()&&item.priceStatus==='provisional'?' <span class="auto-tag">Prix à confirmer</span>':''}${showPrices()&&learned?' <span class="auto-tag">Prix réel répercuté</span>':''}${kind==='auto'?' <span class="auto-tag">Nouveau</span>':''}</strong><small>${esc(item.qty)}${kind==='auto'?' · ajouté suite au menu':''}</small>${showPrices()&&item.priceStatus==='provisional'?`<small>Tarif, emballage et livraison à confirmer ${item.sourceUrl?`· <a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Voir le produit</a>`:''}</small>`:''}</div><div class="product-right">${showPrices()?priceInput:''}${actions}</div></div>`;
 }
 function renderCourses(month){
  const isMonthly=shopMode==='monthly',rows=shoppingEntries(month,selectedWeek,isMonthly);
@@ -147,7 +151,7 @@ function renderCourses(month){
    (q.actualShortageKg>0?' · Écart réel '+q.actualShortageKg+' kg (stock à vérifier)':'')+
    (q.paid?' · Achat payé conservé':q.manuallyChanged?' · Quantité manuelle conservée':'')+
    '</div>').join('')+
-  '<small>Hypothèse de portions, pas rationnement. Carottes bio à 1,60 £/kg confirmé ; autres prix indicatifs. Ajuster selon appétit et stocks.</small></div></details>':'';
+  '<small>Hypothèse de portions, pas rationnement. Formats à vérifier sur les produits effectivement achetés. Ajuster selon appétit et stocks.</small></div></details>':'';
 
  const hidden=[...month.groceries,...month.manualItems].filter(x=>x.hidden&&(isMonthly?x.purchase==='monthly':x.purchase==='weekly'&&x.week===selectedWeek));
  const skipped=changes.filter(x=>x.delta>0&&month.autoPurchases[x.id]?.skip);
@@ -160,7 +164,7 @@ function renderCourses(month){
  ${portionHtml}
  ${cuts.length?`<div class="banner caution">${icon('alert')} <div><b>Ingrédients moins nécessaires après modification</b><span>${cuts.map(x=>`${esc(x.name)} (−${x.quantity} ${esc(x.unit)})`).join(' · ')}. Vérifie si tu peux réduire l'achat initial, sans perdre les produits déjà achetés.</span></div></div>`:''}
  <div class="shopping-tools"><input id="search-products" placeholder="Rechercher un ingrédient..." value="${esc(search)}" aria-label="Rechercher un ingrédient"/><span>${rows.filter(x=>x.bought).length}/${rows.length} achetés</span></div>
- ${group.length?group.map(([shop,list])=>`<section class="shop-panel"><header><strong>${esc(shop)}</strong><span>${money(list.reduce((s,i)=>s+Number(i.estimate??0),0))} prévus</span></header><div class="product-list">${list.map(renderShopItem).join('')}</div></section>`).join(''):`<div class="empty">Aucun produit correspondant.</div>`}
+ ${group.length?group.map(([shop,list])=>`<section class="shop-panel"><header><strong>${esc(shop)}</strong><span>${showPrices()?money(list.reduce((s,i)=>s+Number(i.estimate??0),0))+' prévus':list.length+' produits'}</span></header><div class="product-list">${list.map(renderShopItem).join('')}</div></section>`).join(''):`<div class="empty">Aucun produit correspondant.</div>`}
  ${hidden.length||skipped.length?`<details class="dismissed"><summary>Déjà en stock ou retirés (${hidden.length+skipped.length}) — rétablir</summary>${hidden.map(x=>`<div><span>${x.inStock?'Déjà en stock · ':'Retiré · '}${esc(x.name)} · ${esc(x.qty)}</span><button class="button outline small" data-action="restore-product" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}${skipped.map(x=>`<div><span>${esc(x.name)} · ${x.quantity} ${esc(x.unit)}</span><button class="button outline small" data-action="restore-auto" data-id="${esc(x.id)}">Rétablir</button></div>`).join('')}</details>`:''}
  <div class="shop-bottom"><span>Prix indicatifs, notamment livraison des noix bio. Les pâtes brisées des deux quiches sont obligatoires et distinctes de la pâtisserie facultative. Vérifiez les coûts réels avant achat.</span><b>Panier affiché : ${money(total)}${unknown?' + '+unknown+' prix à renseigner':''}</b></div>`;
 }
@@ -181,7 +185,7 @@ function renderHistory(month,f){
  const entries=Object.keys(state.months).sort((a,b)=>Number(a)-Number(b));
  return `<div class="section-title"><div><span class="overline">HISTORIQUE FAMILIAL</span><h2>Suivi & sauvegardes</h2><p>Conserve tes listes, tes repas et tes dépenses d'une période à l'autre.</p></div></div>
  <div class="history-grid"><div>${icon('chef',23)}<strong>${f.cooked} / ${f.planned}</strong><small>journées cuisinées</small></div><div>${icon('basket',23)}<strong>${f.bought} / ${f.total}</strong><small>achats cochés</small></div><div>${icon('wallet',23)}<strong>${money(f.paid)}</strong><small>dépensés</small></div></div>
- <section class="archive"><h3>Périodes disponibles</h3>${entries.map(k=>{const item=state.months[k],rng=period(Number(k)),amount=finance(item);return `<div class="archive-line"><span><b>${fmt(rng.start)} — ${fmt(rng.end)} ${rng.end.getFullYear()}</b><small>${amount.cooked} plats cuisinés · ${money(amount.paid)} dépensés</small></span><button class="button ${Number(k)===state.selectedPeriod?'light':'outline'}" data-action="open-period" data-index="${k}">${Number(k)===state.selectedPeriod?'En cours':'Ouvrir'}</button></div>`}).join('')}</section>
+ <section class="archive"><h3>Périodes disponibles</h3>${entries.map(k=>{const item=state.months[k],rng=period(Number(k)),amount=finance(item);return `<div class="archive-line"><span><b>${fmt(rng.start)} — ${fmt(rng.end)} ${rng.end.getFullYear()}</b><small>${amount.cooked} plats cuisinés${showPrices()?' · '+money(amount.paid)+' dépensés':''}</small></span><button class="button ${Number(k)===state.selectedPeriod?'light':'outline'}" data-action="open-period" data-index="${k}">${Number(k)===state.selectedPeriod?'En cours':'Ouvrir'}</button></div>`}).join('')}</section>
  <section class="archive"><h3>Mes données</h3><p>L'application fonctionne sans compte et stocke les données localement sur ton appareil. Pour éviter toute perte, sauvegarde régulièrement un fichier JSON. Tu peux restaurer ce fichier ailleurs.</p><div class="action-line"><button class="button primary" data-action="export">${icon('download',17)} Sauvegarder JSON</button><button class="button outline" data-action="import">${icon('upload',17)} Restaurer JSON</button></div></section>`;
 }
 function selectOptions(values,selected){return values.map(x=>`<option value="${esc(x)}" ${String(x)===String(selected)?'selected':''}>${esc(x)}</option>`).join('')}
@@ -211,13 +215,13 @@ function openMeal(index,swap=false){
  <div class="edit-body"><label class="field"><span>Partir d'une recette du programme</span><select id="template-choice"><option value="custom">Plat actuel / personnalisé</option>${BASE_MENU.map((m,i)=>![12,20].includes(i)?`<option value="${i}">${esc(m.name)}</option>`:'').join('')}<option value="quiche-salmon">${esc(FAMILY_PLAN[12].name)}</option><option value="quiche-spinach">${esc(FAMILY_PLAN[20].name)}</option></select></label>
  <div class="edit-main"><label class="field"><span>Nom du plat</span><input id="dish-name" value="${esc(draft.name)}" /></label><label class="field"><span>Type</span><select id="dish-kind">${Object.entries(KIND_NAMES).map(([v,n])=>`<option value="${v}" ${v===draft.kind?'selected':''}>${esc(n)}</option>`).join('')}</select></label></div>
  <div class="ingredient-heading"><h3>Ingrédients du plat</h3><button class="button outline small" data-action="add-ingredient">${icon('plus',15)} Ajouter un ingrédient</button></div><div id="ingredient-rows">${ingredientFields()}</div>
- <div class="banner caution">${icon('alert')} L'ajout ou la suppression d'un ingrédient modifie les besoins à acheter. Un prix non renseigné déclenche une alerte budget.</div></div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-dish">Enregistrer le plat</button></div>`);
+ <div class="banner caution">${icon('alert')} L'ajout ou la suppression d'un ingrédient modifie les besoins à acheter. Aucune saisie de prix n'est nécessaire pour modifier le plat.</div></div><div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-dish">Enregistrer le plat</button></div>`);
  }
 }
 function openProduct(item=null){
  modalType='product';draft={id:item?.id||null,kind:item?.kind||'manual',name:item?.name||'',qty:item?.qty||'',price:item?.estimate??null,supplier:item?.supplier||'M&S',purchase:item?.purchase|| (shopMode==='monthly'?'monthly':'weekly'),week:item?.week??selectedWeek};
  openDialog(`<div class="dialog-head"><div><span class="overline">LISTE DE COURSES</span><h2 id="editor-title">${item?'Modifier un produit':'Ajouter un ingrédient ou produit'}</h2><p>Produits absents de la liste de base inclus.</p></div><button class="icon-button" data-action="close-modal" aria-label="Fermer">${icon('close')}</button></div>
- <div class="field-grid"><label class="field"><span>Nom</span><input id="product-name" value="${esc(draft.name)}" placeholder="Ex. coriandre fraîche"/></label><label class="field"><span>Quantité / nombre</span><input id="product-qty" value="${esc(draft.qty)}" placeholder="Ex. 2 bouquets / 500 g" /></label><label class="field"><span>Prix estimé (£)</span><input id="product-price" type="number" step="0.01" min="0" value="${draft.price??''}" placeholder="ex. 2.50" /></label><label class="field"><span>Magasin</span><select id="product-supplier">${selectOptions(SUPPLIERS,draft.supplier)}</select></label><label class="field"><span>À acheter</span><select id="product-purchase"><option value="weekly" ${draft.purchase==='weekly'?'selected':''}>Avec les courses M&S de la semaine</option><option value="monthly" ${draft.purchase==='monthly'?'selected':''}>En début de mois</option></select></label></div>
+ <div class="field-grid"><label class="field"><span>Nom</span><input id="product-name" value="${esc(draft.name)}" placeholder="Ex. coriandre fraîche"/></label><label class="field"><span>Quantité / nombre</span><input id="product-qty" value="${esc(draft.qty)}" placeholder="Ex. 2 bouquets / 500 g" /></label><label class="field price-field"><span>Prix estimé (£)</span><input id="product-price" type="number" step="0.01" min="0" value="${draft.price??''}" placeholder="ex. 2.50" /></label><label class="field"><span>Magasin</span><select id="product-supplier">${selectOptions(SUPPLIERS,draft.supplier)}</select></label><label class="field"><span>À acheter</span><select id="product-purchase"><option value="weekly" ${draft.purchase==='weekly'?'selected':''}>Avec les courses M&S de la semaine</option><option value="monthly" ${draft.purchase==='monthly'?'selected':''}>En début de mois</option></select></label></div>
  <div class="dialog-actions"><button class="button outline" data-action="close-modal">Annuler</button><button class="button primary" data-action="save-product">Enregistrer</button></div>`);
 }
 function openExpense(){
@@ -400,6 +404,7 @@ function onAction(action,btn){
    catch(err){flash(err.message,'error')}
    break;
  }
+ case 'toggle-prices':state.displayPrices=!showPrices();if(!showPrices()&&activeTab==='depenses')activeTab='courses';save();break;
  case 'tab':activeTab=btn.dataset.tab;search='';render();break;
  case 'goto-shopping':activeTab='courses';shopMode='week';render();break;
  case 'next-period':state.selectedPeriod++;selectedWeek=0;activeTab='menus';save();break;
@@ -507,16 +512,9 @@ root.addEventListener('change',e=>{
  if(el.dataset.action==='check-product'){
   if(!item)return;
   try{
-   let cost=item.actual??item.estimate,manuallyEntered=false;
-   if(el.checked&&cost==null){const answer=prompt(`Prix payé pour « ${item.name} » en £ ?`);if(answer===null){el.checked=false;return;}cost=Number(answer);manuallyEntered=true;}
    if(!el.checked&&item.actualConfirmed)forgetConfirmedPurchase(state,month,item);
-   markBought(month,item,el.checked,el.checked?Number(cost):null);
-   if(el.checked&&manuallyEntered){
-     const found=item.kind==='auto'?month.autoPurchases[item.id]:
-       (item.kind==='manual'?month.manualItems:month.groceries).find(x=>x.id===item.id);
-     if(found)found.actualConfirmed=true;
-     if(item.kind!=='auto')learnFromConfirmedPurchase(state,month,item,Number(cost));
-   }
+   // Cocher = achat effectué, sans prix supposé et sans boîte de dialogue.
+   markBought(month,item,el.checked,null);
    save();
   }catch(err){el.checked=!el.checked;flash(err.message,'error')}
  }
