@@ -1,3 +1,10 @@
+# 1.0.16 — Mode courses sans prix
+
+- À l'ouverture, **aucun prix ni budget n'est affiché** dans les menus et les listes de courses. L'onglet Dépenses est masqué ; le bouton « Afficher les prix (facultatif) » permet de retrouver le suivi financier existant. Le choix est local et conservé dans la sauvegarde JSON.
+- **Cocher un article ne demande plus son prix** et n'invente pas une dépense payée sur la base du tarif estimé. Produit acheté sans montant = `bought:true`, `actual:null` ; il reste pris en compte comme estimation uniquement dans la prévision budgétaire facultative.
+- Les achats déjà rapprochés avec des montants réels, les tickets importés, les recettes, les menus personnalisés, les sauvegardes et les plafonds historiques sont conservés. Le scan du ticket est facultatif pour cocher une liste ; il demande toujours une réconciliation s'il sert à enregistrer une dépense réelle.
+- Les prix de recettes et de produits peuvent rester stockés en arrière-plan sans saisie obligatoire ; les anciennes dépenses ne sont pas effacées.
+
 # Table Familiale — menus, courses, suivi local et budget de 900 £
 
 ## 1.0.15 — Semaine 1 vérifiée et menus sans saumon

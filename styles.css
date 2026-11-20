@@ -45,3 +45,13 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .meal-buttons .icon-button{width:34px;height:34px}
 .meal-buttons .button{min-height:34px;font-size:10px}
 }
+
+/* Mode courses sans prix : affichage minimal par défaut, historique conservé. */
+body[data-price-mode="off"] .budget-card,
+body[data-price-mode="off"] .price-notice,
+body[data-price-mode="off"] .shop-bottom,
+body[data-price-mode="off"] .history-grid > div:nth-child(3),
+body[data-price-mode="off"] .ingredient-p,
+body[data-price-mode="off"] .price-field {display:none !important}
+body[data-price-mode="off"] .summary-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+body[data-price-mode="off"] .summary-grid .stat {min-width:0}

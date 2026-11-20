@@ -44,7 +44,7 @@ export function makeMonth(index=0){
   calibrateCarrotsFromMeals(month); // Recommandation en sacs bio de 1kg au prix réellement observé.
   return month;
 }
-export function newState(){return {version:13, selectedPeriod:0, months:{'0':makeMonth(0)},priceBook:{}};}
+export function newState(){return {version:13, selectedPeriod:0, displayPrices:false, months:{'0':makeMonth(0)},priceBook:{}};}
 export function normalize(s=''){
   return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/[^a-z0-9]+/g,' ').trim();
 }
@@ -182,15 +182,18 @@ export function finance(month){
   const items=allShoppingEntries(month);
   const purchasedAutoKeys=new Set(suggestedPurchases(month).map(x=>x.id));
   const staleAuto=Object.entries(month.autoPurchases||{}).filter(([id,x])=>x.bought&&!purchasedAutoKeys.has(id));
-  const paidItems=items.filter(x=>x.bought).reduce((a,x)=>a+Number(x.actual??x.estimate??0),0);
+  const paidItems=items.filter(x=>x.bought).reduce((a,x)=>a+Number(x.actual??0),0);
   const paidStale=staleAuto.reduce((a,[,x])=>a+Number(x.actual??0),0);
   const paidExtras=(month.extraExpenses||[]).reduce((a,x)=>a+Number(x.amount),0);
   const paid=eurosafe(paidItems+paidStale+paidExtras);
   const unpaid=eurosafe(items.filter(x=>!x.bought).reduce((a,x)=>a+Number(x.estimate??0),0));
-  const forecast=eurosafe(paid+unpaid);
+  const unpricedBought=items.filter(x=>x.bought&&x.actual==null);
+  // Les estimations peuvent éclairer la prévision, jamais le total réellement payé.
+  const unpricedEstimate=unpricedBought.reduce((a,x)=>a+Number(x.estimate??0),0);
+  const forecast=eurosafe(paid+unpaid+unpricedEstimate);
   const uncertain=items.filter(x=>x.estimate==null&&!x.bought);
   return {paid,unpaid,forecast,available:eurosafe(month.budget-paid),forecastHeadroom:eurosafe(month.budget-forecast),
-     unknownCount:uncertain.length,initialEstimate:BASE_SHOPPING.reduce((s,x)=>s+x.price,0),
+     unknownCount:uncertain.length,unpricedBoughtCount:unpricedBought.length,initialEstimate:BASE_SHOPPING.reduce((s,x)=>s+x.price,0),
      cooked:month.meals.filter(x=>x.cooked).length,planned:month.meals.length,
      bought:items.filter(x=>x.bought).length,total:items.length};
 }
@@ -260,7 +263,8 @@ export function toggleCooked(month,index){
 }
 export function markBought(month,item,checked,actual){
   const cents=actual==null?null:Math.round(Number(actual)*100)/100;
-  if(checked&&(!Number.isFinite(cents)||cents<0))throw Error('Prix réel requis (0 possible).');
+  // Cocher un produit n'exige pas de prix et ne fabrique jamais un paiement.
+  if(checked&&cents!=null&&(!Number.isFinite(cents)||cents<0))throw Error('Prix réel invalide.');
   if(item.kind==='auto')month.autoPurchases[item.id]={...month.autoPurchases[item.id],bought:checked,actual:checked?cents:null,at:new Date().toISOString()};
   else {
     const list=item.kind==='manual'?month.manualItems:month.groceries;
@@ -682,6 +686,8 @@ export function validateImport(raw){
     raw.version=13;
   }
   raw.priceBook??={};
+  // Par défaut, la saisie et l'affichage des prix sont désactivés.
+  raw.displayPrices=raw.displayPrices===true;
   for(const month of Object.values(raw.months)){
     month.receiptImports??=[];
     month.receiptWeeks??={};
