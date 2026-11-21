@@ -1,5 +1,10 @@
 name: Android privé — release signée
 on:
+  # Déclenchement unique sur la branche isolée, sans modifier la politique de main.
+  push:
+    branches: [release/build-signed-1016-20261121]
+    paths:
+      - '.github/workflows/android-release-private.yml'
   workflow_dispatch: # Signature volontaire et uniquement avec la clé de référence configurée.
 permissions:
   contents: read
