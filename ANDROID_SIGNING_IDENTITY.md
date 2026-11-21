@@ -1,24 +1,31 @@
-# Table Familiale — identité de signature Android de référence
+# Table Familiale — identité Android privée permanente
 
-**Date de création : 19 novembre 2026**
+**Date d'entrée en service : 21 novembre 2026 — première APK officielle privée 1.0.16.**
 
-Cette fiche référence la nouvelle identité cryptographique **permanente**, utilisée pour signer les futures APK privées de Table Familiale. Elle ne contient **aucun secret**.
+Cette page contient seulement les informations publiques de vérification. **La clé privée et ses mots de passe ne sont pas conservés dans GitHub.**
 
-| Champ | Valeur |
+| Champ | Identité permanente |
 | --- | --- |
 | Android applicationId | `app.tablefamiliale.menus` |
-| Keystore | `table-familiale-release-permanent.jks` (stockage privé, hors dépôt) |
+| Version initialement signée | `1.0.16` (`versionCode=116144`) |
+| Source | `81030555c9ff1ed25e742ba86efc24785693db7c` |
 | Alias | `tablefamiliale-private-release` |
-| Algorithme | RSA 4096 bits |
-| Validité | 10 000 jours à compter du 19 novembre 2026 |
-| Certificat SHA-256 | `AC:9D:55:8B:77:EC:F8:9A:AC:18:46:0C:DA:14:D1:23:1D:5D:D0:89:FC:B7:88:CD:F5:51:61:AF:6A:E2:20:DA` |
+| Keystore privé | `Table-Familiale-cle-permanente-2026-11-21.jks` |
+| Algorithme | RSA 4096, SHA-256 |
+| Certificat SHA-256 | `B7:4C:CD:10:66:75:5D:16:99:4A:48:77:C4:9E:45:ED:C9:E3:CA:DD:EF:44:B3:FA:B5:09:E8:90:E3:14:7C:FE` |
+| SHA-256 de l'APK signée 1.0.16 | `cf28b6f0047d89c03faf9335096bd8ec003476aae2f839d239bf0d0bace4057d` |
+| Vérification | `apksigner verify` : schémas v2 et v3 vérifiés |
 
-## Conditions impératives
+## Note sur le certificat historique du 19/11/2026
 
-1. L'identité de signature permanente est **nouvelle** et **différente** des certificats de débogage générés temporairement par GitHub Actions. Les APK de test antérieures ne peuvent pas être mises à jour sur place avec cette clé : faire un export JSON des données, puis désinstaller l'ancienne APK, installer la première APK signée avec la clé permanente, réimporter le JSON.
-2. Les **quatre secrets GitHub Actions** requis sont `TABLE_FAMILIALE_KEYSTORE_BASE64`, `TABLE_FAMILIALE_STORE_PASSWORD`, `TABLE_FAMILIALE_KEY_ALIAS`, `TABLE_FAMILIALE_KEY_PASSWORD`. Ils doivent être configurés dans les **Repository secrets**, jamais committés.
-3. Le workflow de signature est `.github/workflows/android-release-private.yml`. Il faut que le job réussisse et que le certificat affiché par `apksigner verify --print-certs` soit identique à l'empreinte ci-dessus.
-4. Une APK n'est qualifiée de **release officielle privée** qu'après vérification de la signature, du `versionName`, du `versionCode` croissant, du package, des permissions et du SHA256 de l'APK, et récupération de l'artefact signé.
-5. Garder **des sauvegardes indépendantes et privées** du keystore et de ses mots de passe. Une fois la clé perdue, aucune reconstitution à partir d'une APK n'est possible.
+Une identité portant le certificat `AC:9D:55:8B:77:EC:F8:9A:AC:18:46:0C:DA:14:D1:23:1D:5D:D0:89:FC:B7:88:CD:F5:51:61:AF:6A:E2:20:DA` avait été documentée le 19 novembre, mais son fichier de clé n'était plus accessible au moment de finaliser la release. **Aucune APK officielle signée avec cet ancien certificat n'avait été distribuée** selon les exécutions GitHub consultées. La première release privée 1.0.16 a été signée hors dépôt, avec la nouvelle identité ci-dessus. Ne jamais confondre ces certificats : Android refuse une mise à jour en place si la signature change.
 
-**État au 19/11/2026 :** la clé a été générée et vérifiée localement. Les secrets GitHub n'ont pas encore été configurés ; aucune APK officielle signée avec cette nouvelle identité n'a été produite.
+## Mises à jour futures
+
+1. **Conserver hors dépôt** le fichier `.jks` et le document confidentiel des mots de passe, avec sauvegardes privées indépendantes. Sans la clé, les prochaines versions ne pourront pas remplacer l'APK 1.0.16 en place.
+2. Les workflows GitHub Actions ne fonctionneront que si les quatre secrets `TABLE_FAMILIALE_KEYSTORE_BASE64`, `TABLE_FAMILIALE_STORE_PASSWORD`, `TABLE_FAMILIALE_KEY_ALIAS` et `TABLE_FAMILIALE_KEY_PASSWORD` sont configurés explicitement. Au 21/11/2026, la signature privée a été réalisée localement, pas via des secrets GitHub.
+3. Toute future APK doit passer le contrôle de l'empreinte ci-dessus, conserver `app.tablefamiliale.menus` et augmenter `versionCode`. Ne jamais signer une mise à jour avec une clé Android de debug.
+4. **Avant d'installer un certificat différent de celui de l'APK actuellement installée**, exporter la sauvegarde JSON depuis l'application, vérifier la présence du fichier puis seulement ensuite désinstaller/réinstaller et restaurer. Éviter de supprimer l'application sans cette sauvegarde.
+5. Le scanner de tickets en conditions réelles et la migration locale doivent encore être validés sur un téléphone physique.
+
+Aucune clé privée, mot de passe ou ticket familial personnel ne doit être publié dans GitHub.

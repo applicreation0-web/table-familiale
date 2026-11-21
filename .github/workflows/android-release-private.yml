@@ -98,7 +98,7 @@ jobs:
           CERT="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK_FILE" |
             sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1 |
             tr -d ':' | tr '[:upper:]' '[:lower:]')"
-          EXPECTED="ac9d558b77ecf89aac18460cda14d1231d5dd089fcb788cdf55161af6ae220da"
+          EXPECTED="b74ccd1066755d16994a4877c49e45edc9e3caddef44b3fab509e890e3147cfe"
           if [ "$CERT" != "$EXPECTED" ]; then
             echo "::error::Certificat différent de l'identité Android privée de référence."
             exit 1
